@@ -24,47 +24,17 @@
       <!-- Logo -->
       <div
         class="flex h-16 items-center border-b border-none"
-        :class="sidebarCollapsed ? 'px-2 justify-center' : 'px-4 sm:px-6'"
+        :class="sidebarCollapsed ? 'px-2 justify-center' : 'px-2 sm:px-4'"
       >
         <div
           class="flex items-center"
           :class="sidebarCollapsed ? 'justify-center w-full' : ''"
         >
-          <div
-            class="h-8 w-8 bg-black rounded-md flex items-center justify-center relative"
-            style="border-radius: 5px"
-          >
-            <!-- Staggered diagonal lines -->
-            <div class="absolute inset-0">
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-1 left-0.5"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-2 left-1"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-3 left-1.5"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-4 left-2"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-5 left-2.5"
-              ></div>
-            </div>
-            <!-- Dots -->
-            <div
-              class="absolute top-1 right-1 w-1 h-1 bg-white rounded-full"
-            ></div>
-            <div
-              class="absolute bottom-1 left-1 w-1 h-1 bg-white rounded-full"
-            ></div>
-          </div>
-          <span
-            v-show="!sidebarCollapsed"
-            class="ml-2 text-xl font-semibold text-gray-900 dark:text-white"
-            >iVisa</span
-          >
+          <img
+            :class="sidebarCollapsed ? 'h-8 w-8' : 'h-8 w-auto'"
+            src="/logo/logoname.svg"
+            alt="iVisa"
+          />
         </div>
       </div>
 
@@ -74,50 +44,22 @@
           <!-- Dashboard -->
           <a
             href="/dashboard"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <BarChart3
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate">Dashboard</span>
-          </a>
-
-          <!-- Notifications -->
-          <a
-            href="/dashboard/notifications"
             class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
           >
-            <MessageCircle
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Notifications</span
-            >
-            <span
-              v-show="!sidebarCollapsed"
-              class="ml-auto text-xs py-0.5 rounded-full"
-              >10</span
-            >
+            <Home class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+            <span v-show="!sidebarCollapsed" class="truncate">Dashboard</span>
           </a>
 
-          <!-- Properties -->
+          <!-- Countries -->
           <div>
             <button
               @click="toggleProperties"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <Building
-                class="h-4 w-4"
-                :class="sidebarCollapsed ? '' : 'mr-3'"
-              />
-              <span v-show="!sidebarCollapsed" class="truncate"
-                >Properties</span
-              >
+              <Send class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Countries</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
                 :class="propertiesOpen ? 'rotate-180' : ''"
@@ -132,26 +74,31 @@
                 href="/dashboard/properties"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Properties</a
+                >List of Countries</a
               >
               <a
                 href="/dashboard/properties/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Property</a
+                >Add Country</a
               >
             </div>
           </div>
 
-          <!-- Owners -->
+          <!-- Visa Products -->
           <div>
             <button
               @click="toggleOwners"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <User class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Owners</span>
+              <MessageCircle
+                class="h-4 w-4"
+                :class="sidebarCollapsed ? '' : 'mr-3'"
+              />
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Visa Products</span
+              >
               <ChevronDown
                 v-show="!sidebarCollapsed"
                 :class="ownersOpen ? 'rotate-180' : ''"
@@ -166,39 +113,31 @@
                 href="/dashboard/owners"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Owners</a
+                >List of Visa Products</a
               >
               <a
                 href="/dashboard/owners/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Owner</a
+                >Add Visa Product</a
               >
             </div>
           </div>
 
-          <!-- Calendar -->
-          <a
-            href="/dashboard/calendar"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <Calendar class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate">Calendar</span>
-          </a>
-
-          <!-- Bookings -->
+          <!-- Nationalities -->
           <div>
             <button
               @click="toggleBookings"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <FileCheck
+              <Network
                 class="h-4 w-4"
                 :class="sidebarCollapsed ? '' : 'mr-3'"
               />
-              <span v-show="!sidebarCollapsed" class="truncate">Bookings</span>
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Nationalities</span
+              >
               <ChevronDown
                 v-show="!sidebarCollapsed"
                 :class="bookingsOpen ? 'rotate-180' : ''"
@@ -213,26 +152,26 @@
                 href="/dashboard/bookings"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Bookings</a
+                >List of Nationalities</a
               >
               <a
                 href="/dashboard/bookings/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Booking</a
+                >Add Nationality</a
               >
             </div>
           </div>
 
-          <!-- Guests -->
+          <!-- Embassies -->
           <div>
             <button
               @click="toggleGuests"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Guests</span>
+              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Embassies</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
                 :class="guestsOpen ? 'rotate-180' : ''"
@@ -247,18 +186,88 @@
                 href="/dashboard/guests"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Guests</a
+                >List of Embassies</a
               >
               <a
                 href="/dashboard/guests/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Guest</a
+                >Add Embassy</a
               >
             </div>
           </div>
 
-          <!-- Users -->
+          <!-- Customers -->
+          <div>
+            <button
+              @click="toggleGuests"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Customers</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="guestsOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="guestsOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/guests"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Customers</a
+              >
+              <a
+                href="/dashboard/guests/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Customer</a
+              >
+            </div>
+          </div>
+
+          <!-- Applications -->
+          <div>
+            <button
+              @click="toggleGuests"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Clock class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Applications</span
+              >
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="guestsOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="guestsOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/guests"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Applications</a
+              >
+              <a
+                href="/dashboard/guests/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Application</a
+              >
+            </div>
+          </div>
+
+          <!-- Finances -->
           <div>
             <button
               @click="toggleUsers"
@@ -266,7 +275,7 @@
               :class="sidebarCollapsed ? 'justify-center' : ''"
             >
               <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Users</span>
+              <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
                 :class="usersOpen ? 'rotate-180' : ''"
@@ -279,105 +288,36 @@
             >
               <a
                 href="/dashboard/users"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors bg-gray-100 text-gray-900 dark:text-white"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Users</a
+                >List of Finances</a
               >
               <a
                 href="/dashboard/users/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add User</a
+                >Add Finance</a
               >
             </div>
           </div>
-
-          <!-- Maintenance -->
-          <div>
-            <button
-              @click="toggleMaintenance"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
-            >
-              <Wrench class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate"
-                >Maintenance</span
-              >
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="maintenanceOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="maintenanceOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/maintenance"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >List of Maintenance</a
-              >
-              <a
-                href="/dashboard/maintenance/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add Maintenance</a
-              >
-            </div>
-          </div>
-
-          <!-- Transactions -->
-          <a
-            href="/dashboard/transactions"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <Wallet class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Transactions</span
-            >
-          </a>
-
-          <!-- Reports -->
-          <a
-            href="/dashboard/reports"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <PieChart class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate">Reports</span>
-          </a>
-
-          <!-- Communication -->
-          <a
-            href="/dashboard/communication"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <MessageSquare
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Communication</span
-            >
-          </a>
         </div>
       </nav>
+
       <!-- Settings -->
-      <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'">
+      <nav
+        :class="sidebarCollapsed ? 'px-2' : 'px-2'"
+        class="absolute bottom-16 left-0 right-0"
+      >
         <a
           href="/dashboard/settings"
           class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+          style="margin: 8px"
           :class="sidebarCollapsed ? 'justify-center' : ''"
         >
           <Settings class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
           <span v-show="!sidebarCollapsed" class="truncate">Settings</span>
         </a>
       </nav>
-
       <!-- User Profile -->
       <div
         class="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors duration-200 rounded-md relative"
@@ -1113,13 +1053,13 @@
                 <h1
                   class="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white"
                 >
-                  Bookings
+                  Visa Products
                 </h1>
                 <label
                   class="text-[#475467] dark:text-white text-[10px] sm:text-base leading-[12px] sm:leading-6"
                   style="font-weight: 400; letter-spacing: 0%"
                 >
-                  Here you can find all of your campaigns
+                  Here you can find all the Visa Products.
                 </label>
               </div>
               <button
@@ -1140,7 +1080,7 @@
                     font-family: 'Geist', sans-serif;
                     letter-spacing: 0;
                   "
-                  >Add Booking</span
+                  >Add Visa Product</span
                 >
               </button>
             </div>
@@ -1155,7 +1095,7 @@
                   <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Search Bookings"
+                    placeholder="Search Visa Products"
                     class="w-full h-[36px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-black focus:shadow-[0_0_10px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.2)]"
                     style="border-radius: 7px"
                   />
@@ -1561,21 +1501,18 @@
               </div>
             </div>
 
-            <!-- Bookings Table -->
+            <!-- Visa Products Table -->
             <div
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
             >
               <div class="overflow-x-auto">
-                <table class="w-full min-w-[600px] sm:min-w-[800px]">
+                <table class="w-full">
                   <thead
                     class="bg-[#FFFFFF] dark:bg-[#09090B] border-b dark:border-gray-800"
                   >
                     <tr class="!h-[37px]">
-                      <!-- force small row height -->
-                      <th
-                        class="w-10 sm:w-12 px-2 sm:px-3 lg:px-4 py-2 text-left align-middle"
-                      >
+                      <th class="w-10 sm:w-12 px-4 py-3 text-left align-middle">
                         <input
                           type="checkbox"
                           v-model="selectAll"
@@ -1583,164 +1520,100 @@
                           style="border-radius: 7px"
                         />
                       </th>
-
                       <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                        class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
                       >
-                        Booking ID
+                        Country
                       </th>
                       <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Property</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                        class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>Check In</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
+                          <span>Products</span>
+                          <svg
+                            class="h-4 w-4 text-gray-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
                           >
+                            <path
+                              fill-rule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                              clip-rule="evenodd"
+                            ></path>
+                          </svg>
                         </div>
                       </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Checkout</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Source</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Payment Status</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↓</span
-                          >
-                        </div>
-                      </th>
+                      <th class="w-20 px-4 py-3"></th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                     <tr
-                      v-for="booking in filteredBookings"
-                      :key="booking.id"
+                      v-for="visaProduct in filteredVisaProducts"
+                      :key="visaProduct.id"
                       class="hover:bg-gray-50 dark:hover:bg-gray-900"
                     >
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
+                      <td class="px-4 py-3">
                         <input
                           type="checkbox"
-                          v-model="booking.selected"
+                          v-model="visaProduct.selected"
                           class="border-gray-300"
                           style="border-radius: 7px"
                         />
                       </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
-                        <span
-                          class="text-[#27272B] dark:text-white text-xs sm:text-sm"
-                          style="
-                            font-size: 14px;
-                            font-weight: 400;
-                            font-style: normal;
-                            line-height: 20px;
-                            font-family: 'Geist', sans-serif;
-                            letter-spacing: 0;
-                          "
-                          >{{ booking.bookingId }}</span
-                        >
+                      <td
+                        class="px-4 py-3 text-sm text-[#475467] dark:text-white font-medium"
+                      >
+                        {{ visaProduct.name }}
                       </td>
                       <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
+                        class="px-4 py-3 text-sm text-[#475467] dark:text-white"
                       >
-                        {{ booking.property }}
+                        {{ visaProduct.products }}
                       </td>
-                      <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
-                      >
-                        {{ booking.checkIn }}
-                      </td>
-                      <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
-                      >
-                        {{ booking.checkout }}
-                      </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
-                        <span
-                          :class="getSourceClasses(booking.source)"
-                          class="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 text-xs font-medium"
-                          style="border-radius: 15px"
-                        >
-                          {{ booking.source }}
-                        </span>
-                      </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
-                        <div
-                          class="inline-flex items-center px-2 py-1 rounded-md bg-[white] border border-gray-200"
-                          style="border-radius: 7px"
-                        >
-                          <div
-                            :class="
-                              getPaymentStatusDotClasses(booking.paymentStatus)
-                            "
-                            class="w-2 h-2 rounded-full mr-2"
-                          ></div>
-                          <span
-                            class="text-gray-800 text-xs sm:text-sm"
-                            style="
-                              font-size: 14px;
-                              font-weight: 400;
-                              font-style: normal;
-                              line-height: 20px;
-                              font-family: 'Geist', sans-serif;
-                              letter-spacing: 0;
-                            "
-                            >{{ booking.paymentStatus }}</span
+                      <td class="px-4 py-3">
+                        <div class="flex items-center space-x-2">
+                          <button
+                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            title="View"
                           >
+                            <svg
+                              class="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              ></path>
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              ></path>
+                            </svg>
+                          </button>
+                          <button
+                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            title="Edit"
+                          >
+                            <svg
+                              class="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              ></path>
+                            </svg>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1757,7 +1630,7 @@
               <div
                 class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap"
               >
-                {{ selectedCount }} of {{ bookings.length }} row(s) selected.
+                {{ selectedCount }} of {{ visaProducts.length }} row(s) selected.
               </div>
 
               <!-- Navigation Buttons -->
@@ -1826,6 +1699,10 @@ import {
   Wallet,
   PieChart,
   MessageSquare,
+  Send,
+  Folder,
+  Network,
+  Clock,
 } from "lucide-vue-next";
 
 // Import dropdown components
@@ -1834,109 +1711,69 @@ import DropdownMenuItem from "~/components/ui/DropdownMenuItem.vue";
 
 // Set page title
 useHead({
-  title: "Bookings - iVisa",
+  title: "Visa Products - iVisa",
 });
 
-// Sample booking data - matching the image structure
-const bookings = ref([
+// Sample visa products data matching the image
+const visaProducts = ref([
   {
     id: 1,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 4, 2022",
-    checkout: "Jan 4, 2022",
-    source: "Booking.com",
-    paymentStatus: "Partially Paid",
+    name: "Thailand",
+    products: 3,
     selected: false,
   },
   {
     id: 2,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 2, 2022",
-    checkout: "Jan 2, 2022",
-    source: "Airbnb",
-    paymentStatus: "Paid",
+    name: "Pakistan",
+    products: 4,
     selected: false,
   },
   {
     id: 3,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 8, 2022",
-    checkout: "Jan 8, 2022",
-    source: "Offline",
-    paymentStatus: "Not Paid",
+    name: "Indonesia",
+    products: 5,
     selected: false,
   },
   {
     id: 4,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 4, 2022",
-    checkout: "Jan 4, 2022",
-    source: "Booking.com",
-    paymentStatus: "Partially Paid",
+    name: "Malaysia",
+    products: 2,
     selected: false,
   },
   {
     id: 5,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 2, 2022",
-    checkout: "Jan 2, 2022",
-    source: "Airbnb",
-    paymentStatus: "Paid",
+    name: "Singapore",
+    products: 6,
     selected: false,
   },
   {
     id: 6,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 8, 2022",
-    checkout: "Jan 8, 2022",
-    source: "Offline",
-    paymentStatus: "Not Paid",
+    name: "Vietnam",
+    products: 3,
     selected: false,
   },
   {
     id: 7,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 4, 2022",
-    checkout: "Jan 4, 2022",
-    source: "Booking.com",
-    paymentStatus: "Partially Paid",
+    name: "Philippines",
+    products: 4,
     selected: false,
   },
   {
     id: 8,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 2, 2022",
-    checkout: "Jan 2, 2022",
-    source: "Airbnb",
-    paymentStatus: "Paid",
+    name: "India",
+    products: 7,
     selected: false,
   },
   {
     id: 9,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 8, 2022",
-    checkout: "Jan 8, 2022",
-    source: "Offline",
-    paymentStatus: "Not Paid",
+    name: "Bangladesh",
+    products: 2,
     selected: false,
   },
   {
     id: 10,
-    bookingId: "#123312",
-    property: "117 Executive Tower Business Bay Dubai",
-    checkIn: "Jan 4, 2022",
-    checkout: "Jan 4, 2022",
-    source: "Booking.com",
-    paymentStatus: "Partially Paid",
+    name: "Sri Lanka",
+    products: 3,
     selected: false,
   },
 ]);
@@ -2389,59 +2226,61 @@ onMounted(() => {
   }
 });
 
-const filteredBookings = computed(() => {
-  if (!searchQuery.value) return bookings.value;
+const filteredVisaProducts = computed(() => {
+  if (!searchQuery.value) return visaProducts.value;
 
-  return bookings.value.filter(
-    (booking) =>
-      booking.bookingId
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      booking.property
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      booking.source.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return visaProducts.value.filter((visaProduct) =>
+    visaProduct.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
 const selectedCount = computed(() => {
-  return bookings.value.filter((booking) => booking.selected).length;
+  return visaProducts.value.filter((visaProduct) => visaProduct.selected).length;
 });
 
-const getSourceClasses = (source) => {
-  switch (source) {
-    case "Booking.com":
-      return "bg-green-100 text-green-800 border border-green-300";
-    case "Airbnb":
-      return "bg-green-100 text-green-800 border border-green-300";
-    case "Offline":
-      return "bg-orange-100 text-orange-800 border border-orange-300";
-    default:
-      return "bg-gray-100 text-gray-800 border border-gray-300 dark:bg-[#18181B] dark:text-gray-200 dark:border-gray-600";
-  }
-};
-
-const getPaymentStatusDotClasses = (status) => {
+const getStatusContainerClasses = (status) => {
   switch (status) {
-    case "Partially Paid":
-      return "bg-blue-400";
-    case "Paid":
-      return "bg-green-500";
-    case "Not Paid":
-      return "bg-red-500";
+    case "Vacant":
+      return "bg-[#FFFAEB] border border-orange-300";
+    case "Rented":
+      return "bg-[#ECFDF3] border border-green-300";
+    case "Unsold":
+      return "bg-orange-100 border border-orange-300";
     default:
-      return "bg-gray-400";
+      return "bg-gray-100 border border-gray-300";
   }
 };
 
-const capitalizeFirst = (str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+const getStatusDotClasses = (status) => {
+  switch (status) {
+    case "Vacant":
+      return "bg-orange-500";
+    case "Rented":
+      return "bg-green-600";
+    case "Unsold":
+      return "bg-orange-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+const getStatusTextClasses = (status) => {
+  switch (status) {
+    case "Vacant":
+      return "text-orange-700";
+    case "Rented":
+      return "text-green-700";
+    case "Unsold":
+      return "text-orange-700";
+    default:
+      return "text-gray-700";
+  }
 };
 
 // Watch for select all changes
 watch(selectAll, (newValue) => {
-  bookings.value.forEach((booking) => {
-    booking.selected = newValue;
+  visaProducts.value.forEach((visaProduct) => {
+    visaProduct.selected = newValue;
   });
 });
 </script>
