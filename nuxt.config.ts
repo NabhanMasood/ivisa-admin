@@ -1,19 +1,26 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// nuxt.config.ts or nuxt.config.js
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ["@nuxtjs/tailwindcss"],
+
   components: {
     global: true,
-    dirs: ['~/components']
+    dirs: ["~/components"],
   },
+
   app: {
     head: {
-      title: 'iVisa - Management System',
+      title: "iVisa - Management System",
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'icon', type: 'image/svg+xml', href: '/images/Logomark.svg' }
-      ]
-    }
-  }
-})
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "icon", type: "image/svg+xml", href: "/images/Logomark.svg" },
+      ],
+    },
+  },
+
+  // 👇 Add this block
+  nitro: {
+    preset: "vercel",
+  },
+});
