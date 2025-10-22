@@ -14,20 +14,30 @@
 
     <!-- Right Column - Form Section -->
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
+      <!-- Mobile Header -->
+      <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
+        <img src="/images/visa123-logo.png" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <h1 class="text-xl font-bold text-gray-900" style="display: none;">VISA123</h1>
+      </div>
+
       <!-- Form Container -->
-      <div class="flex-1 flex flex-col justify-center px-8 py-12">
+      <div class="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         <!-- Form Card -->
         <div class="w-full max-w-md mx-auto">
           <!-- Header Text -->
-          <div class="text-left mb-8">
-            <img src="/images/visa123-logo.png" alt="VISA123" class="h-10" style='margin-left: -10px;'/>
+          <div class="text-left mb-6 sm:mb-8">
+            <!-- Desktop Logo -->
+            <div class="hidden lg:block">
+              <img src="/images/visa123-logo.png" alt="VISA123" class="h-10" style="margin-left: -10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+              <h1 class="text-4xl font-bold text-gray-900" style="display: none;">VISA123</h1>
+            </div>
             <p class="text-lg text-gray-500 mt-4">Please sign in to your account</p>
           </div>
 
           <!-- Form -->
           <form
             @submit.prevent="handleSubmit"
-            class="flex flex-col gap-6 w-full"
+            class="flex flex-col gap-4 sm:gap-6 w-full"
           >
             <!-- Email Field -->
             <div>
@@ -166,7 +176,7 @@
           </form>
 
           <!-- Divider -->
-          <div class="mt-8">
+          <div class="mt-6 sm:mt-8">
             <div class="relative">
               <div class="absolute inset-0 flex items-center">
                 <div class="w-full border-t border-gray-300" />
@@ -178,7 +188,7 @@
           </div>
 
           <!-- Social Login Buttons -->
-          <div class="flex gap-3 mt-6">
+          <div class="flex gap-3 mt-4 sm:mt-6">
               <!-- Google -->
               <button
                 type="button"
@@ -236,7 +246,7 @@
       </div>
 
           <!-- Sign up link -->
-          <div class="mt-8 text-center">
+          <div class="mt-6 sm:mt-8 text-center">
             <p class="text-sm text-gray-600">
               Don't have an account? 
               <NuxtLink
