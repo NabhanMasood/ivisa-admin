@@ -38,7 +38,6 @@
         </div>
       </div>
 
- 
       <!-- Navigation -->
       <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" style="padding: 10px">
         <div class="space-y-1">
@@ -1833,16 +1832,122 @@ import {
   Folder,
   Network,
   Clock,
+  Eye,
+  Pencil,
 } from "lucide-vue-next";
 
-const props = defineProps({
-  pageTitle: {
-    type: String,
-    default: "Dashboard",
-  },
+// Set page title
+useHead({
+  title: "Applications - iVisa",
 });
 
-// State management
+// Sample applications data
+const applications = ref([
+  {
+    id: 1,
+    applicationId: "APP-001245",
+    customerName: "Ali Raza",
+    destination: "Thailand",
+    visaProduct: "Tourist Visa",
+    price: "USD 100",
+    status: "Approved",
+    selected: false,
+  },
+  {
+    id: 2,
+    applicationId: "APP-001246",
+    customerName: "Sarah Khan",
+    destination: "UAE",
+    visaProduct: "Business Visa",
+    price: "USD 250",
+    status: "In Review",
+    selected: false,
+  },
+  {
+    id: 3,
+    applicationId: "APP-001247",
+    customerName: "John Smith",
+    destination: "Germany",
+    visaProduct: "Schengen Visa",
+    price: "USD 400",
+    status: "Pending",
+    selected: false,
+  },
+  {
+    id: 4,
+    applicationId: "APP-001248",
+    customerName: "Maria Garcia",
+    destination: "France",
+    visaProduct: "Tourist Visa",
+    price: "USD 150",
+    status: "Approved",
+    selected: false,
+  },
+  {
+    id: 5,
+    applicationId: "APP-001249",
+    customerName: "Ahmed Hassan",
+    destination: "Japan",
+    visaProduct: "Business Visa",
+    price: "USD 300",
+    status: "In Review",
+    selected: false,
+  },
+  {
+    id: 6,
+    applicationId: "APP-001250",
+    customerName: "Emma Wilson",
+    destination: "Canada",
+    visaProduct: "Student Visa",
+    price: "USD 200",
+    status: "Approved",
+    selected: false,
+  },
+  {
+    id: 7,
+    applicationId: "APP-001251",
+    customerName: "David Lee",
+    destination: "Australia",
+    visaProduct: "Work Visa",
+    price: "USD 180",
+    status: "Pending",
+    selected: false,
+  },
+  {
+    id: 8,
+    applicationId: "APP-001252",
+    customerName: "Fatima Ali",
+    destination: "UK",
+    visaProduct: "Tourist Visa",
+    price: "USD 350",
+    status: "Approved",
+    selected: false,
+  },
+  {
+    id: 9,
+    applicationId: "APP-001253",
+    customerName: "Michael Brown",
+    destination: "Singapore",
+    visaProduct: "Business Visa",
+    price: "USD 80",
+    status: "In Review",
+    selected: false,
+  },
+  {
+    id: 10,
+    applicationId: "APP-001254",
+    customerName: "Aisha Patel",
+    destination: "India",
+    visaProduct: "Tourist Visa",
+    price: "USD 120",
+    status: "Approved",
+    selected: false,
+  },
+]);
+
+const searchQuery = ref("");
+const selectAll = ref(false);
+const currentPage = ref(1);
 const sidebarCollapsed = ref(false);
 const isDarkMode = ref(false);
 
@@ -1860,8 +1965,45 @@ const settingsDropdownOpen = ref(false);
 const userDropdownOpen = ref(false);
 const notificationsDropdownOpen = ref(false);
 const logoutDropdownOpen = ref(false);
+const statusDropdownOpen = ref(false);
+const planDropdownOpen = ref(false);
+const roleDropdownOpen = ref(false);
+const columnsDropdownOpen = ref(false);
 
-// Computed countries
+// Notifications data
+const notifications = ref([
+  {
+    id: 1,
+    title: "Your order is placed",
+    message: "Amet minim mollit non deser unt ullamco e...",
+    time: "2 days ago",
+    unread: false,
+  },
+  {
+    id: 2,
+    title: "Congratulations Darlene 🎉",
+    message: "Won the monthly best seller badge",
+    time: "11 am",
+    unread: true,
+  },
+  {
+    id: 3,
+    title: "Joaquina Weisenborn",
+    message: "Requesting access permission",
+    time: "12 pm",
+    unread: true,
+    hasActions: true,
+  },
+  {
+    id: 4,
+    title: "Brooklyn Simmons",
+    message: "Added you to Top Secret Project...",
+    time: "1 pm",
+    unread: true,
+  },
+]);
+
+// Computed properties
 const sidebarClasses = computed(() => {
   if (sidebarCollapsed.value) {
     return "w-64 lg:w-16 -translate-x-full lg:translate-x-0";
@@ -1869,6 +2011,68 @@ const sidebarClasses = computed(() => {
     return "w-64 lg:w-64 translate-x-0";
   }
 });
+
+const filteredApplications = computed(() => {
+  if (!searchQuery.value) return applications.value;
+
+  return applications.value.filter(
+    (application) =>
+      application.applicationId
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase()) ||
+      application.customerName
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase()) ||
+      application.destination
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase())
+  );
+});
+
+const selectedCount = computed(() => {
+  return applications.value.filter((application) => application.selected)
+    .length;
+});
+
+// Status styling functions
+const getStatusContainerClasses = (status) => {
+  switch (status) {
+    case "Approved":
+      return "bg-gray-100 border border-gray-300";
+    case "In Review":
+      return "bg-gray-100 border border-gray-300";
+    case "Pending":
+      return "bg-gray-100 border border-gray-300";
+    default:
+      return "bg-gray-100 border border-gray-300";
+  }
+};
+
+const getStatusDotClasses = (status) => {
+  switch (status) {
+    case "Approved":
+      return "bg-green-500";
+    case "In Review":
+      return "bg-blue-500";
+    case "Pending":
+      return "bg-orange-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+const getStatusTextClasses = (status) => {
+  switch (status) {
+    case "Approved":
+      return "text-gray-700";
+    case "In Review":
+      return "text-gray-700";
+    case "Pending":
+      return "text-gray-700";
+    default:
+      return "text-gray-700";
+  }
+};
 
 // Methods
 const toggleSidebar = () => {
@@ -1962,6 +2166,10 @@ const toggleSettingsDropdown = () => {
   userDropdownOpen.value = false;
   notificationsDropdownOpen.value = false;
   logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
   settingsDropdownOpen.value = !settingsDropdownOpen.value;
 };
 
@@ -1969,6 +2177,10 @@ const toggleUserDropdown = () => {
   settingsDropdownOpen.value = false;
   notificationsDropdownOpen.value = false;
   logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
   userDropdownOpen.value = !userDropdownOpen.value;
 };
 
@@ -1976,6 +2188,10 @@ const toggleNotificationsDropdown = () => {
   settingsDropdownOpen.value = false;
   userDropdownOpen.value = false;
   logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
   notificationsDropdownOpen.value = !notificationsDropdownOpen.value;
 };
 
@@ -1983,8 +2199,63 @@ const toggleLogoutDropdown = () => {
   settingsDropdownOpen.value = false;
   userDropdownOpen.value = false;
   notificationsDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
   logoutDropdownOpen.value = !logoutDropdownOpen.value;
 };
+
+const toggleStatusDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  statusDropdownOpen.value = !statusDropdownOpen.value;
+};
+
+const togglePlanDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  planDropdownOpen.value = !planDropdownOpen.value;
+};
+
+const toggleRoleDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  roleDropdownOpen.value = !roleDropdownOpen.value;
+};
+
+const toggleColumnsDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = !columnsDropdownOpen.value;
+};
+
+// Watch for select all changes
+watch(selectAll, (newValue) => {
+  applications.value.forEach((application) => {
+    application.selected = newValue;
+  });
+});
 
 // Component mounted
 onMounted(() => {

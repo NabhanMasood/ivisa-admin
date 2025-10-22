@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- Navigation -->
+    <!-- Navigation -->
       <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" style="padding: 10px">
         <div class="space-y-1">
           <!-- Dashboard -->
@@ -54,7 +54,7 @@
           <!-- Countries -->
           <div>
             <button
-              @click="toggleProperties"
+              @click="toggleCountries"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -62,22 +62,22 @@
               <span v-show="!sidebarCollapsed" class="truncate">Countries</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="propertiesOpen ? 'rotate-180' : ''"
+                :class="countriesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="propertiesOpen && !sidebarCollapsed"
+              v-if="countriesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/properties"
+                href="/dashboard/countries"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Countries</a
               >
               <a
-                href="/dashboard/properties/add"
+                href="/dashboard/countries/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Country</a
@@ -88,7 +88,7 @@
           <!-- Visa Products -->
           <div>
             <button
-              @click="toggleOwners"
+              @click="toggleVisaproducts"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -101,22 +101,22 @@
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="ownersOpen ? 'rotate-180' : ''"
+                :class="visaproductsOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="ownersOpen && !sidebarCollapsed"
+              v-if="visaproductsOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/owners"
+                href="/dashboard/visaproducts"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Visa Products</a
               >
               <a
-                href="/dashboard/owners/add"
+                href="/dashboard/visaproducts/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Visa Product</a
@@ -127,7 +127,7 @@
           <!-- Nationalities -->
           <div>
             <button
-              @click="toggleBookings"
+              @click="toggleNationalities"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -140,22 +140,22 @@
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="bookingsOpen ? 'rotate-180' : ''"
+                :class="nationalitiesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="bookingsOpen && !sidebarCollapsed"
+              v-if="nationalitiesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/bookings"
+                href="/dashboard/nationalities"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Nationalities</a
               >
               <a
-                href="/dashboard/bookings/add"
+                href="/dashboard/nationalities/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Nationality</a
@@ -166,7 +166,7 @@
           <!-- Embassies -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleEmbassies"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -174,22 +174,22 @@
               <span v-show="!sidebarCollapsed" class="truncate">Embassies</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="embassiesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="embassiesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/embassies"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Embassies</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/embassies/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Embassy</a
@@ -200,7 +200,7 @@
           <!-- Customers -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleCustomers"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -208,22 +208,22 @@
               <span v-show="!sidebarCollapsed" class="truncate">Customers</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="customersOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="customersOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/customers"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Customers</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/customers/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Customer</a
@@ -234,7 +234,7 @@
           <!-- Applications -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleApplications"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -244,22 +244,22 @@
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="applicationsOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="applicationsOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/applications"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Applications</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/applications/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Application</a
@@ -270,30 +270,30 @@
           <!-- Finances -->
           <div>
             <button
-              @click="toggleUsers"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md dark:hover:bg-[#2F2F31] transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
+              @click="toggleFinances"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
               <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="usersOpen ? 'rotate-180' : ''"
+                :class="financesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="usersOpen && !sidebarCollapsed"
+              v-if="financesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/users"
+                href="/dashboard/finances"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Finances</a
               >
               <a
-                href="/dashboard/users/add"
+                href="/dashboard/finances/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Finance</a
@@ -1536,7 +1536,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Customer Name</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm" style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1553,7 +1555,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Application</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm" style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1570,7 +1574,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Destination</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm" style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1587,7 +1593,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Amount</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm" style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1604,7 +1612,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Date Paid</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm" style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1725,7 +1735,7 @@
                         <div
                           :class="getStatusContainerClasses(order.status)"
                           class="inline-flex items-center px-2 py-1 rounded-md"
-                          style="border-radius: 7px; background: white;"
+                          style="border-radius: 7px; background: white"
                         >
                           <div
                             :class="getStatusDotClasses(order.status)"
@@ -1987,12 +1997,13 @@ const sidebarOpen = ref(true); // Start with sidebar visible
 const sidebarCollapsed = ref(false); // Start with sidebar expanded
 
 // Navigation state - All closed by default
-const propertiesOpen = ref(false);
-const ownersOpen = ref(false);
-const bookingsOpen = ref(false);
-const guestsOpen = ref(false);
-const usersOpen = ref(false); // Users section closed by default
-const maintenanceOpen = ref(false);
+const countriesOpen = ref(false);
+const visaproductsOpen = ref(false);
+const nationalitiesOpen = ref(false);
+const embassiesOpen = ref(false);
+const customersOpen = ref(false);
+const applicationsOpen = ref(false);
+const financesOpen = ref(false);
 
 // Settings options
 const selectedTheme = ref("Default");
@@ -2349,70 +2360,88 @@ const toggleSidebar = () => {
 };
 
 // Navigation toggle functions with accordion behavior
-const toggleProperties = () => {
+const toggleCountries = () => {
   // Close all other sections
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  propertiesOpen.value = !propertiesOpen.value;
+  countriesOpen.value = !countriesOpen.value;
 };
 
-const toggleOwners = () => {
+const toggleVisaproducts = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  ownersOpen.value = !ownersOpen.value;
+  visaproductsOpen.value = !visaproductsOpen.value;
 };
 
-const toggleBookings = () => {
+const toggleNationalities = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  bookingsOpen.value = !bookingsOpen.value;
+  nationalitiesOpen.value = !nationalitiesOpen.value;
 };
 
-const toggleGuests = () => {
+const toggleEmbassies = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  guestsOpen.value = !guestsOpen.value;
+  embassiesOpen.value = !embassiesOpen.value;
 };
 
-const toggleUsers = () => {
+const toggleCustomers = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  usersOpen.value = !usersOpen.value;
+  customersOpen.value = !customersOpen.value;
 };
 
-const toggleMaintenance = () => {
+const toggleApplications = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  maintenanceOpen.value = !maintenanceOpen.value;
+  applicationsOpen.value = !applicationsOpen.value;
+};
+
+const toggleFinances = () => {
+  // Close all other sections
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  // Toggle current section
+  financesOpen.value = !financesOpen.value;
 };
 
 // Component mounted

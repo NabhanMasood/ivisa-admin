@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- Navigation -->
+     <!-- Navigation -->
       <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" style="padding: 10px">
         <div class="space-y-1">
           <!-- Dashboard -->
@@ -54,7 +54,7 @@
           <!-- Countries -->
           <div>
             <button
-              @click="toggleProperties"
+              @click="toggleCountries"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -62,22 +62,22 @@
               <span v-show="!sidebarCollapsed" class="truncate">Countries</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="propertiesOpen ? 'rotate-180' : ''"
+                :class="countriesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="propertiesOpen && !sidebarCollapsed"
+              v-if="countriesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/properties"
+                href="/dashboard/countries"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Countries</a
               >
               <a
-                href="/dashboard/properties/add"
+                href="/dashboard/countries/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Country</a
@@ -88,7 +88,7 @@
           <!-- Visa Products -->
           <div>
             <button
-              @click="toggleOwners"
+              @click="toggleVisaproducts"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -101,22 +101,22 @@
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="ownersOpen ? 'rotate-180' : ''"
+                :class="visaproductsOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="ownersOpen && !sidebarCollapsed"
+              v-if="visaproductsOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/owners"
+                href="/dashboard/visaproducts"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Visa Products</a
               >
               <a
-                href="/dashboard/owners/add"
+                href="/dashboard/visaproducts/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Visa Product</a
@@ -127,7 +127,7 @@
           <!-- Nationalities -->
           <div>
             <button
-              @click="toggleBookings"
+              @click="toggleNationalities"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -140,22 +140,22 @@
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="bookingsOpen ? 'rotate-180' : ''"
+                :class="nationalitiesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="bookingsOpen && !sidebarCollapsed"
+              v-if="nationalitiesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/bookings"
+                href="/dashboard/nationalities"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Nationalities</a
               >
               <a
-                href="/dashboard/bookings/add"
+                href="/dashboard/nationalities/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Nationality</a
@@ -166,7 +166,7 @@
           <!-- Embassies -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleEmbassies"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -174,22 +174,22 @@
               <span v-show="!sidebarCollapsed" class="truncate">Embassies</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="embassiesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="embassiesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/embassies"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Embassies</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/embassies/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Embassy</a
@@ -200,7 +200,7 @@
           <!-- Customers -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleCustomers"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -208,22 +208,22 @@
               <span v-show="!sidebarCollapsed" class="truncate">Customers</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="customersOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="customersOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/customers"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Customers</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/customers/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Customer</a
@@ -234,7 +234,7 @@
           <!-- Applications -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleApplications"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
@@ -244,22 +244,22 @@
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="applicationsOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="applicationsOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/applications"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Applications</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/applications/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Application</a
@@ -270,30 +270,30 @@
           <!-- Finances -->
           <div>
             <button
-              @click="toggleUsers"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md dark:hover:bg-[#2F2F31] transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
+              @click="toggleFinances"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
               <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="usersOpen ? 'rotate-180' : ''"
+                :class="financesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="usersOpen && !sidebarCollapsed"
+              v-if="financesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/users"
+                href="/dashboard/finances"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >List of Finances</a
               >
               <a
-                href="/dashboard/users/add"
+                href="/dashboard/finances/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
                 >Add Finance</a
@@ -302,6 +302,7 @@
           </div>
         </div>
       </nav>
+
 
       <!-- Settings -->
       <nav
@@ -1536,7 +1537,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Email</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"  style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1572,7 +1575,9 @@
                       >
                         <div class="flex items-center space-x-1">
                           <span>Total Applications</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"  style="
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
                               height: 20px;
                               width: 20px;
                               border: 1px solid gray;
@@ -1663,11 +1668,11 @@
                       >
                         {{ customer.totalApplications }}
                       </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2" >
+                      <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <div
                           :class="getStatusContainerClasses(customer.status)"
                           class="inline-flex items-center px-2 py-1 rounded-md"
-                          style="border-radius: 7px; background: white;"
+                          style="border-radius: 7px; background: white"
                         >
                           <div
                             :class="getStatusDotClasses(customer.status)"
@@ -1688,7 +1693,7 @@
                           >
                         </div>
                       </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2" >
+                      <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <div class="flex items-center space-x-2">
                           <button
                             class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -1799,49 +1804,45 @@ import {
   Pencil,
 } from "lucide-vue-next";
 
-// Import dropdown components
-import DropdownMenu from "~/components/ui/DropdownMenu.vue";
-import DropdownMenuItem from "~/components/ui/DropdownMenuItem.vue";
-
 // Set page title
 useHead({
   title: "Customers - iVisa",
 });
 
-// Sample customers data matching the image
+// Sample customers data
 const customers = ref([
   {
     id: 1,
     name: "Ali Raza",
-    email: "aliraza@email.com",
-    phone: "+92 3000987",
-    totalApplications: 3,
+    email: "ali.raza@email.com",
+    phone: "+92 300 1234567",
+    totalApplications: 5,
     status: "Active",
     selected: false,
   },
   {
     id: 2,
     name: "Sarah Khan",
-    email: "sarakhan@email.com",
-    phone: "+92 3000987",
-    totalApplications: 5,
+    email: "sarah.khan@email.com",
+    phone: "+92 301 2345678",
+    totalApplications: 3,
     status: "Active",
     selected: false,
   },
   {
     id: 3,
     name: "John Smith",
-    email: "johnsmith@email.com",
-    phone: "+92 3000987",
-    totalApplications: 1,
-    status: "Active",
+    email: "john.smith@email.com",
+    phone: "+1 555 1234567",
+    totalApplications: 8,
+    status: "Inactive",
     selected: false,
   },
   {
     id: 4,
     name: "Maria Garcia",
-    email: "mariagarcia@email.com",
-    phone: "+92 3000987",
+    email: "maria.garcia@email.com",
+    phone: "+34 600 123456",
     totalApplications: 2,
     status: "Active",
     selected: false,
@@ -1849,54 +1850,54 @@ const customers = ref([
   {
     id: 5,
     name: "Ahmed Hassan",
-    email: "ahmedhassan@email.com",
-    phone: "+92 3000987",
-    totalApplications: 4,
+    email: "ahmed.hassan@email.com",
+    phone: "+92 302 3456789",
+    totalApplications: 7,
     status: "Active",
     selected: false,
   },
   {
     id: 6,
     name: "Emma Wilson",
-    email: "emmawilson@email.com",
-    phone: "+92 3000987",
-    totalApplications: 1,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 7,
-    name: "David Brown",
-    email: "davidbrown@email.com",
-    phone: "+92 3000987",
-    totalApplications: 3,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 8,
-    name: "Lisa Chen",
-    email: "lisachen@email.com",
-    phone: "+92 3000987",
-    totalApplications: 2,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 9,
-    name: "Michael Johnson",
-    email: "michaeljohnson@email.com",
-    phone: "+92 3000987",
+    email: "emma.wilson@email.com",
+    phone: "+44 20 1234 5678",
     totalApplications: 4,
     status: "Active",
     selected: false,
   },
   {
-    id: 10,
-    name: "Anna Rodriguez",
-    email: "annarodriguez@email.com",
-    phone: "+92 3000987",
+    id: 7,
+    name: "David Lee",
+    email: "david.lee@email.com",
+    phone: "+61 2 1234 5678",
+    totalApplications: 6,
+    status: "Inactive",
+    selected: false,
+  },
+  {
+    id: 8,
+    name: "Fatima Ali",
+    email: "fatima.ali@email.com",
+    phone: "+92 303 4567890",
+    totalApplications: 9,
+    status: "Active",
+    selected: false,
+  },
+  {
+    id: 9,
+    name: "Michael Brown",
+    email: "michael.brown@email.com",
+    phone: "+1 555 9876543",
     totalApplications: 1,
+    status: "Active",
+    selected: false,
+  },
+  {
+    id: 10,
+    name: "Aisha Patel",
+    email: "aisha.patel@email.com",
+    phone: "+91 98765 43210",
+    totalApplications: 3,
     status: "Active",
     selected: false,
   },
@@ -1905,87 +1906,32 @@ const customers = ref([
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
-const sidebarOpen = ref(true); // Start with sidebar visible
-const sidebarCollapsed = ref(false); // Start with sidebar expanded
+const sidebarCollapsed = ref(false);
+const isDarkMode = ref(false);
 
 // Navigation state - All closed by default
-const propertiesOpen = ref(false);
-const ownersOpen = ref(false);
-const bookingsOpen = ref(false);
-const guestsOpen = ref(false);
-const usersOpen = ref(false); // Users section closed by default
-const maintenanceOpen = ref(false);
+const countriesOpen = ref(false);
+const visaproductsOpen = ref(false);
+const nationalitiesOpen = ref(false);
+const embassiesOpen = ref(false);
+const customersOpen = ref(false);
+const applicationsOpen = ref(false);
+const financesOpen = ref(false);
 
-// Settings options
-const selectedTheme = ref("Default");
-const selectedScale = ref("none");
-const selectedRadius = ref("none");
-const selectedColorMode = ref("light");
-const selectedContentLayout = ref("full");
-const selectedSidebarMode = ref("default");
-
-// Dropdown states - only one can be open at a time
+// Dropdown states
 const settingsDropdownOpen = ref(false);
-const themeDropdownOpen = ref(false);
 const userDropdownOpen = ref(false);
 const notificationsDropdownOpen = ref(false);
-const sunDropdownOpen = ref(false);
 const logoutDropdownOpen = ref(false);
 const statusDropdownOpen = ref(false);
 const planDropdownOpen = ref(false);
 const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
 
-// Theme state
-const isDarkMode = ref(false);
-
-// Theme options with colors
-const themeOptions = [
-  { label: "Default", value: "default", color: "#000000" },
-  { label: "Underground", value: "underground", color: "#2D5A27" },
-  { label: "Rose Garden", value: "rose-garden", color: "#DC2626" },
-  { label: "Lake View", value: "lake-view", color: "#0891B2" },
-  { label: "Sunset Glow", value: "sunset-glow", color: "#EA580C" },
-  { label: "Forest Whisper", value: "forest-whisper", color: "#0F766E" },
-  { label: "Ocean Breeze", value: "ocean-breeze", color: "#2563EB" },
-  { label: "Lavender Dream", value: "lavender-dream", color: "#9333EA" },
-];
-
-// Options arrays
-const scaleOptions = [
-  { label: "None", value: "none" },
-  { label: "XS", value: "xs" },
-  { label: "LG", value: "lg" },
-];
-
-const radiusOptions = [
-  { label: "None", value: "none" },
-  { label: "SM", value: "sm" },
-  { label: "MD", value: "md" },
-  { label: "LG", value: "lg" },
-  { label: "XL", value: "xl" },
-];
-
-const colorModes = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-];
-
-const contentLayouts = [
-  { label: "Full", value: "full" },
-  { label: "Centered", value: "centered" },
-];
-
-const sidebarModes = [
-  { label: "Default", value: "default" },
-  { label: "Icon", value: "icon" },
-];
-
 // Notifications data
 const notifications = ref([
   {
     id: 1,
-    avatar: "/images/avatar1.jpg",
     title: "Your order is placed",
     message: "Amet minim mollit non deser unt ullamco e...",
     time: "2 days ago",
@@ -1993,7 +1939,6 @@ const notifications = ref([
   },
   {
     id: 2,
-    avatar: "/images/avatar2.jpg",
     title: "Congratulations Darlene 🎉",
     message: "Won the monthly best seller badge",
     time: "11 am",
@@ -2001,7 +1946,6 @@ const notifications = ref([
   },
   {
     id: 3,
-    avatar: "/images/avatar3.jpg",
     title: "Joaquina Weisenborn",
     message: "Requesting access permission",
     time: "12 pm",
@@ -2010,7 +1954,6 @@ const notifications = ref([
   },
   {
     id: 4,
-    avatar: "/images/avatar4.jpg",
     title: "Brooklyn Simmons",
     message: "Added you to Top Secret Project...",
     time: "1 pm",
@@ -2020,333 +1963,10 @@ const notifications = ref([
 
 // Computed properties
 const sidebarClasses = computed(() => {
-  // On mobile (lg and below), always show full width with slide behavior
-  // On desktop (lg and above), use collapse behavior
   if (sidebarCollapsed.value) {
     return "w-64 lg:w-16 -translate-x-full lg:translate-x-0";
   } else {
     return "w-64 lg:w-64 translate-x-0";
-  }
-});
-
-// User dropdown menu handlers
-const handleUpgradeClick = () => {
-  console.log("Upgrade to Pro clicked");
-  // Add upgrade logic here
-};
-
-const handleAccountClick = () => {
-  console.log("Account clicked");
-  // Add navigation logic here
-};
-
-const handleBillingClick = () => {
-  console.log("Billing clicked");
-  // Add navigation logic here
-};
-
-const handleNotificationsClick = () => {
-  console.log("Notifications clicked");
-  // Add navigation logic here
-};
-
-const handleSignOutClick = () => {
-  console.log("Sign out clicked");
-  // Add sign out logic here
-};
-
-const setTheme = (theme) => {
-  selectedTheme.value = theme;
-};
-
-const getSelectedThemeColor = () => {
-  const theme = themeOptions.find((t) => t.label === selectedTheme.value);
-  return theme ? theme.color : "#000000";
-};
-
-const toggleSettingsDropdown = () => {
-  // Close other dropdowns if open
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle settings dropdown
-  settingsDropdownOpen.value = !settingsDropdownOpen.value;
-};
-
-const toggleThemeDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle theme dropdown
-  themeDropdownOpen.value = !themeDropdownOpen.value;
-};
-
-const toggleUserDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle user dropdown
-  userDropdownOpen.value = !userDropdownOpen.value;
-};
-
-const toggleNotificationsDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle notifications dropdown
-  notificationsDropdownOpen.value = !notificationsDropdownOpen.value;
-};
-
-const toggleSunDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle sun dropdown
-  sunDropdownOpen.value = !sunDropdownOpen.value;
-};
-
-const toggleLogoutDropdown = () => {
-  console.log(
-    "Toggle logout dropdown clicked, current state:",
-    logoutDropdownOpen.value
-  );
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle logout dropdown
-  logoutDropdownOpen.value = !logoutDropdownOpen.value;
-  console.log("New logout dropdown state:", logoutDropdownOpen.value);
-};
-
-const toggleStatusDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle status dropdown
-  statusDropdownOpen.value = !statusDropdownOpen.value;
-};
-
-const togglePlanDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle plan dropdown
-  planDropdownOpen.value = !planDropdownOpen.value;
-};
-
-const toggleRoleDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle role dropdown
-  roleDropdownOpen.value = !roleDropdownOpen.value;
-};
-
-const toggleColumnsDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  // Toggle columns dropdown
-  columnsDropdownOpen.value = !columnsDropdownOpen.value;
-};
-
-const resetToDefault = () => {
-  selectedTheme.value = "Default";
-  selectedScale.value = "none";
-  selectedRadius.value = "none";
-  selectedColorMode.value = "light";
-  selectedContentLayout.value = "full";
-  selectedSidebarMode.value = "default";
-  console.log("Settings reset to default");
-};
-
-const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value;
-  // Apply theme to document and save to localStorage
-  if (isDarkMode.value) {
-    document.documentElement.classList.add("dark");
-    localStorage.setItem("theme", "dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-    localStorage.setItem("theme", "light");
-  }
-};
-
-// Close dropdowns when clicking outside
-onMounted(() => {
-  const handleClickOutside = (event) => {
-    if (!event.target.closest(".relative")) {
-      settingsDropdownOpen.value = false;
-      themeDropdownOpen.value = false;
-      userDropdownOpen.value = false;
-      notificationsDropdownOpen.value = false;
-      sunDropdownOpen.value = false;
-      logoutDropdownOpen.value = false;
-      statusDropdownOpen.value = false;
-      planDropdownOpen.value = false;
-      roleDropdownOpen.value = false;
-      columnsDropdownOpen.value = false;
-    }
-  };
-  document.addEventListener("click", handleClickOutside);
-
-  onUnmounted(() => {
-    document.removeEventListener("click", handleClickOutside);
-  });
-});
-
-// Methods
-const toggleSidebar = () => {
-  // Toggle between expanded and collapsed states only
-  sidebarCollapsed.value = !sidebarCollapsed.value;
-};
-
-// Navigation toggle functions with accordion behavior
-const toggleProperties = () => {
-  // Close all other sections
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  propertiesOpen.value = !propertiesOpen.value;
-};
-
-const toggleOwners = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  ownersOpen.value = !ownersOpen.value;
-};
-
-const toggleBookings = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  bookingsOpen.value = !bookingsOpen.value;
-};
-
-const toggleGuests = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  guestsOpen.value = !guestsOpen.value;
-};
-
-const toggleUsers = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  usersOpen.value = !usersOpen.value;
-};
-
-const toggleMaintenance = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  // Toggle current section
-  maintenanceOpen.value = !maintenanceOpen.value;
-};
-
-// Component mounted
-onMounted(() => {
-  // Initialize theme from localStorage or default to light
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark") {
-    isDarkMode.value = true;
-    document.documentElement.classList.add("dark");
-  } else {
-    isDarkMode.value = false;
-    document.documentElement.classList.remove("dark");
   }
 });
 
@@ -2364,9 +1984,12 @@ const selectedCount = computed(() => {
   return customers.value.filter((customer) => customer.selected).length;
 });
 
+// Status styling functions
 const getStatusContainerClasses = (status) => {
   switch (status) {
     case "Active":
+      return "bg-gray-100 border border-gray-300";
+    case "Inactive":
       return "bg-gray-100 border border-gray-300";
     default:
       return "bg-gray-100 border border-gray-300";
@@ -2377,8 +2000,10 @@ const getStatusDotClasses = (status) => {
   switch (status) {
     case "Active":
       return "bg-green-500";
+    case "Inactive":
+      return "bg-gray-500";
     default:
-      return "bg-green-500";
+      return "bg-gray-500";
   }
 };
 
@@ -2386,9 +2011,187 @@ const getStatusTextClasses = (status) => {
   switch (status) {
     case "Active":
       return "text-gray-700";
+    case "Inactive":
+      return "text-gray-700";
     default:
       return "text-gray-700";
   }
+};
+
+// Methods
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+};
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value;
+  if (isDarkMode.value) {
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("theme", "dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("theme", "light");
+  }
+};
+
+// Navigation toggle functions
+const toggleCountries = () => {
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  countriesOpen.value = !countriesOpen.value;
+};
+
+const toggleVisaproducts = () => {
+  countriesOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  visaproductsOpen.value = !visaproductsOpen.value;
+};
+
+const toggleNationalities = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  nationalitiesOpen.value = !nationalitiesOpen.value;
+};
+
+const toggleEmbassies = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  embassiesOpen.value = !embassiesOpen.value;
+};
+
+const toggleCustomers = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  customersOpen.value = !customersOpen.value;
+};
+
+const toggleApplications = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  financesOpen.value = false;
+  applicationsOpen.value = !applicationsOpen.value;
+};
+
+const toggleFinances = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = !financesOpen.value;
+};
+
+// Dropdown toggle functions
+const toggleSettingsDropdown = () => {
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  settingsDropdownOpen.value = !settingsDropdownOpen.value;
+};
+
+const toggleUserDropdown = () => {
+  settingsDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  userDropdownOpen.value = !userDropdownOpen.value;
+};
+
+const toggleNotificationsDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  notificationsDropdownOpen.value = !notificationsDropdownOpen.value;
+};
+
+const toggleLogoutDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  logoutDropdownOpen.value = !logoutDropdownOpen.value;
+};
+
+const toggleStatusDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  statusDropdownOpen.value = !statusDropdownOpen.value;
+};
+
+const togglePlanDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  planDropdownOpen.value = !planDropdownOpen.value;
+};
+
+const toggleRoleDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  roleDropdownOpen.value = !roleDropdownOpen.value;
+};
+
+const toggleColumnsDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = !columnsDropdownOpen.value;
 };
 
 // Watch for select all changes
@@ -2396,5 +2199,17 @@ watch(selectAll, (newValue) => {
   customers.value.forEach((customer) => {
     customer.selected = newValue;
   });
+});
+
+// Component mounted
+onMounted(() => {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    isDarkMode.value = true;
+    document.documentElement.classList.add("dark");
+  } else {
+    isDarkMode.value = false;
+    document.documentElement.classList.remove("dark");
+  }
 });
 </script>
