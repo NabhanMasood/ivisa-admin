@@ -14,7 +14,7 @@
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
       <!-- Mobile Header -->
       <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
-        <img src="/logo/Logo.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <img src="/logo/logoname.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
         <h1 class="text-xl font-bold text-gray-900" style="display: none;">VISA123</h1>
       </div>
 
@@ -25,7 +25,7 @@
             <!-- Desktop Logo -->
             <div class="hidden lg:block">
               <img
-                src="/logo/Logo.svg"
+                src="/logo/logoname.svg"
                 alt="VISA123"
                 class="h-10"
                 style="margin-left: -11px"
