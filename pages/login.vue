@@ -274,7 +274,7 @@ useHead({
   ],
   link: [
     { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-    { rel: "icon", type: "image/svg+xml", href: "/images/Logomark.svg" },
+    { rel: "icon", type: "image/svg+xml", href: "/logo/Visa123logo.svg" },
   ],
 });
 
