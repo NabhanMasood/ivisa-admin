@@ -8,16 +8,27 @@
 
     <!-- Right Column - Form Section -->
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
-      <div class="flex-1 flex flex-col justify-center px-8 py-12">
+      <!-- Mobile Header -->
+      <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
+        <img src="/logo/Logo.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <h1 class="text-xl font-bold text-gray-900" style="display: none;">VISA123</h1>
+      </div>
+
+      <div class="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         <div class="w-full max-w-md mx-auto">
           <!-- Header Text -->
-          <div class="text-left mb-8">
-            <h1 class="mb-2 text-4xl font-bold text-gray-900">Create an account</h1>
+          <div class="text-left mb-6 sm:mb-8">
+            <!-- Desktop Logo -->
+            <div class="hidden lg:block">
+              <img src="/logo/Logo.svg" alt="VISA123" class="h-10" style="margin-left: -10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+              <h1 class="text-4xl font-bold text-gray-900" style="display: none;">VISA123</h1>
+            </div>
+            <h1 class="mb-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Create an account</h1>
             <p class="text-lg text-gray-500">Please fill in your details</p>
-          </div>
+        </div>
 
           <!-- Form -->
-          <form @submit.prevent="handleSubmit" class="flex flex-col gap-6 w-full">
+          <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 sm:gap-6 w-full">
             <!-- Name Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -43,7 +54,7 @@
                 />
                 <div class="h-4">
                   <p v-if="firstNameError" class="text-sm text-red-600">{{ firstNameError }}</p>
-                </div>
+               </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Last name</label>
@@ -123,8 +134,8 @@
               />
               <div class="h-4">
                 <p v-if="passwordError" class="text-sm text-red-600">{{ passwordError }}</p>
-              </div>
-            </div>
+        </div>
+      </div>
 
             <!-- Submit -->
             <UiButton
@@ -133,16 +144,16 @@
               size="lg"
               :disabled="isLoading || !isFormValid"
               class="w-full h-12 text-sm font-semibold"
-              style="
+          style="
                 height: 48px;
                 border-radius: 8px;
                 border: 1px solid #00DC6E;
                 background: #00DC6E;
                 color: #ffffff;
-                font-family: 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif;
                 font-weight: 600;
-                font-size: 14px;
-                line-height: 20px;
+            font-size: 14px;
+            line-height: 20px;
                 transition: all 0.2s ease-in-out;
               "
               :style="
@@ -157,7 +168,7 @@
                 <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+          </svg>
                 Creating account...
               </span>
               <span v-else>Sign up</span>
@@ -172,9 +183,9 @@
               </div>
               <div class="relative flex justify-center text-sm">
                 <span class="px-3 bg-white text-gray-500 font-medium">or continue with</span>
-              </div>
-            </div>
-          </div>
+        </div>
+      </div>
+    </div>
 
           <!-- Social Login Buttons -->
           <div class="flex gap-3 mt-6">
@@ -211,8 +222,8 @@
               Already have an account?
               <NuxtLink to="/login" class="text-sm font-medium text-gray-900 hover:underline transition-colors duration-200">Sign in</NuxtLink>
             </p>
-          </div>
         </div>
+      </div>
       </div>
     </div>
   </div>

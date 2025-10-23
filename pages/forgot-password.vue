@@ -12,18 +12,29 @@
 
     <!-- Right Column - Form Section -->
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
-      <div class="flex-1 flex flex-col justify-center px-8 py-12">
+      <!-- Mobile Header -->
+      <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
+        <img src="/logo/Logo.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <h1 class="text-xl font-bold text-gray-900" style="display: none;">VISA123</h1>
+      </div>
+
+      <div class="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         <div class="w-full max-w-md mx-auto">
           <!-- Header Text -->
-          <div class="text-left mb-8">
-            <img
-              src="/images/visa123-logo.png"
-              alt="VISA123"
-              class="h-10"
-              style="margin-left: -11px"
-            />
+          <div class="text-left mb-6 sm:mb-8">
+            <!-- Desktop Logo -->
+            <div class="hidden lg:block">
+              <img
+                src="/logo/Logo.svg"
+                alt="VISA123"
+                class="h-10"
+                style="margin-left: -11px"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+              />
+              <h1 class="text-4xl font-bold text-gray-900" style="display: none;">VISA123</h1>
+            </div>
 
-            <h1 class="mb-2 text-4xl font-bold text-gray-900 mt-4">
+            <h1 class="mb-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mt-4">
               Forgot Password
             </h1>
             <p class="text-lg text-gray-500">Reset your password</p>

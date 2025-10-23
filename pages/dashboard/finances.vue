@@ -24,360 +24,300 @@
       <!-- Logo -->
       <div
         class="flex h-16 items-center border-b border-none"
-        :class="sidebarCollapsed ? 'px-2 justify-center' : 'px-4 sm:px-6'"
+        :class="sidebarCollapsed ? 'px-2 justify-center' : 'px-2 sm:px-4'"
       >
         <div
           class="flex items-center"
           :class="sidebarCollapsed ? 'justify-center w-full' : ''"
         >
-          <div
-            class="h-8 w-8 bg-black rounded-md flex items-center justify-center relative"
-            style="border-radius: 5px"
-          >
-            <!-- Staggered diagonal lines -->
-            <div class="absolute inset-0">
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-1 left-0.5"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-2 left-1"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-3 left-1.5"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-4 left-2"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-5 left-2.5"
-              ></div>
-            </div>
-            <!-- Dots -->
-            <div
-              class="absolute top-1 right-1 w-1 h-1 bg-white rounded-full"
-            ></div>
-            <div
-              class="absolute bottom-1 left-1 w-1 h-1 bg-white rounded-full"
-            ></div>
-          </div>
-          <span
-            v-show="!sidebarCollapsed"
-            class="ml-2 text-xl font-semibold text-gray-900 dark:text-white"
-            >iVisa</span
-          >
+          <img
+            :class="sidebarCollapsed ? 'h-8 w-8' : 'h-8 w-auto'"
+            src="/logo/logoname.svg"
+            alt="iVisa"
+          />
         </div>
       </div>
 
-      <!-- Navigation -->
+    <!-- Navigation -->
       <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" style="padding: 10px">
         <div class="space-y-1">
           <!-- Dashboard -->
           <a
             href="/dashboard"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
           >
-            <BarChart3
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
+            <Home class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
             <span v-show="!sidebarCollapsed" class="truncate">Dashboard</span>
           </a>
 
-          <!-- Notifications -->
-          <a
-            href="/dashboard/notifications"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <MessageCircle
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Notifications</span
-            >
-            <span
-              v-show="!sidebarCollapsed"
-              class="ml-auto text-xs py-0.5 rounded-full"
-              >10</span
-            >
-          </a>
-
-          <!-- Properties -->
+          <!-- Countries -->
           <div>
             <button
-              @click="toggleProperties"
+              @click="toggleCountries"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <Building
+              <Send class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Countries</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="countriesOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="countriesOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/countries"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Countries</a
+              >
+              <a
+                href="/dashboard/countries/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Country</a
+              >
+            </div>
+          </div>
+
+          <!-- Visa Products -->
+          <div>
+            <button
+              @click="toggleVisaproducts"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <MessageCircle
                 class="h-4 w-4"
                 :class="sidebarCollapsed ? '' : 'mr-3'"
               />
               <span v-show="!sidebarCollapsed" class="truncate"
-                >Properties</span
+                >Visa Products</span
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="propertiesOpen ? 'rotate-180' : ''"
+                :class="visaproductsOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="propertiesOpen && !sidebarCollapsed"
+              v-if="visaproductsOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/properties"
+                href="/dashboard/visaproducts"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Properties</a
+                >List of Visa Products</a
               >
               <a
-                href="/dashboard/properties/add"
+                href="/dashboard/visaproducts/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Property</a
+                >Add Visa Product</a
               >
             </div>
           </div>
 
-          <!-- Owners -->
+          <!-- Nationalities -->
           <div>
             <button
-              @click="toggleOwners"
+              @click="toggleNationalities"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <User class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Owners</span>
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="ownersOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="ownersOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/owners"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >List of Owners</a
-              >
-              <a
-                href="/dashboard/owners/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add Owner</a
-              >
-            </div>
-          </div>
-
-          <!-- Calendar -->
-          <a
-            href="/dashboard/calendar"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <Calendar class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate">Calendar</span>
-          </a>
-
-          <!-- Bookings -->
-          <div>
-            <button
-              @click="toggleBookings"
-              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-            >
-              <FileCheck
+              <Network
                 class="h-4 w-4"
                 :class="sidebarCollapsed ? '' : 'mr-3'"
               />
-              <span v-show="!sidebarCollapsed" class="truncate">Bookings</span>
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Nationalities</span
+              >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="bookingsOpen ? 'rotate-180' : ''"
+                :class="nationalitiesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="bookingsOpen && !sidebarCollapsed"
+              v-if="nationalitiesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/bookings"
+                href="/dashboard/nationalities"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Bookings</a
+                >List of Nationalities</a
               >
               <a
-                href="/dashboard/bookings/add"
+                href="/dashboard/nationalities/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Booking</a
+                >Add Nationality</a
               >
             </div>
           </div>
 
-          <!-- Guests -->
+          <!-- Embassies -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleEmbassies"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Embassies</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="embassiesOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="embassiesOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/embassies"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Embassies</a
+              >
+              <a
+                href="/dashboard/embassies/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Embassy</a
+              >
+            </div>
+          </div>
+
+          <!-- Customers -->
+          <div>
+            <button
+              @click="toggleCustomers"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Customers</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="customersOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="customersOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/customers"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Customers</a
+              >
+              <a
+                href="/dashboard/customers/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Customer</a
+              >
+            </div>
+          </div>
+
+          <!-- Applications -->
+          <div>
+            <button
+              @click="toggleApplications"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Clock class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Applications</span
+              >
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="applicationsOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="applicationsOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/applications"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Applications</a
+              >
+              <a
+                href="/dashboard/applications/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Application</a
+              >
+            </div>
+          </div>
+
+          <!-- Finances -->
+          <div>
+            <button
+              @click="toggleFinances"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
               <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Guests</span>
+              <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="financesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="financesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/finances"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Guests</a
+                >List of Finances</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/finances/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Guest</a
+                >Add Finance</a
               >
             </div>
           </div>
-
-          <!-- Users -->
-          <div>
-            <button
-              @click="toggleUsers"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md dark:hover:bg-[#2F2F31] transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
-            >
-              <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Users</span>
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="usersOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="usersOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/users"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors bg-gray-100 text-gray-900 dark:text-white"
-                style="border-radius: 5px"
-                >List of Users</a
-              >
-              <a
-                href="/dashboard/users/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add User</a
-              >
-            </div>
-          </div>
-
-          <!-- Maintenance -->
-          <div>
-            <button
-              @click="toggleMaintenance"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
-            >
-              <Wrench class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate"
-                >Maintenance</span
-              >
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="maintenanceOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="maintenanceOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/maintenance"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >List of Maintenance</a
-              >
-              <a
-                href="/dashboard/maintenance/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add Maintenance</a
-              >
-            </div>
-          </div>
-
-          <!-- Transactions -->
-          <a
-            href="/dashboard/transactions"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <Wallet class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Transactions</span
-            >
-          </a>
-
-          <!-- Reports -->
-          <a
-            href="/dashboard/reports"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <PieChart class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate">Reports</span>
-          </a>
-
-          <!-- Communication -->
-          <a
-            href="/dashboard/communication"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <MessageSquare
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Communication</span
-            >
-          </a>
         </div>
       </nav>
+
       <!-- Settings -->
-      <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'">
+      <nav
+        :class="sidebarCollapsed ? 'px-2' : 'px-2'"
+        class="absolute bottom-16 left-0 right-0"
+      >
         <a
           href="/dashboard/settings"
           class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+          style="margin: 8px"
           :class="sidebarCollapsed ? 'justify-center' : ''"
         >
           <Settings class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
           <span v-show="!sidebarCollapsed" class="truncate">Settings</span>
         </a>
       </nav>
-
       <!-- User Profile -->
       <div
         class="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors duration-200 rounded-md relative"
@@ -1113,13 +1053,13 @@
                 <h1
                   class="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white"
                 >
-                  Owners
+                  Finances
                 </h1>
                 <label
                   class="text-[#475467] dark:text-white text-[10px] sm:text-base leading-[12px] sm:leading-6"
                   style="font-weight: 400; letter-spacing: 0%"
                 >
-                  Here you can find all of your campaigns
+                  Here you can find all the finances
                 </label>
               </div>
               <button
@@ -1140,7 +1080,7 @@
                     font-family: 'Geist', sans-serif;
                     letter-spacing: 0;
                   "
-                  >Add Owner</span
+                  >Add Finance</span
                 >
               </button>
             </div>
@@ -1155,7 +1095,7 @@
                   <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Search Owners"
+                    placeholder="Search Finances"
                     class="w-full h-[36px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-black focus:shadow-[0_0_10px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.2)]"
                     style="border-radius: 7px"
                   />
@@ -1561,7 +1501,7 @@
               </div>
             </div>
 
-            <!-- Owners Table -->
+            <!-- Finances Table -->
             <div
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
@@ -1571,7 +1511,7 @@
                   <thead
                     class="bg-[#FFFFFF] dark:bg-[#09090B] border-b dark:border-gray-800"
                   >
-                    <tr class="!h-[37px]">
+                    <tr class="!h-[37px] bg-[#F9FAFB] dark:bg-[#18181B]">
                       <!-- force small row height -->
                       <th
                         class="w-10 sm:w-12 px-2 sm:px-3 lg:px-4 py-2 text-left align-middle"
@@ -1588,9 +1528,25 @@
                         class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>ID</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
+                          <span>Order #</span>
+                        </div>
+                      </th>
+                      <th
+                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Customer Name</span>
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
+                              height: 20px;
+                              width: 20px;
+                              border: 1px solid gray;
+                              border-radius: 47px;
+                              display: flex;
+                              justify-content: center;
+                            "
+                            >?</span
                           >
                         </div>
                       </th>
@@ -1598,30 +1554,18 @@
                         class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>Owner Name</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Properties</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Created By</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
+                          <span>Application</span>
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
+                              height: 20px;
+                              width: 20px;
+                              border: 1px solid gray;
+                              border-radius: 47px;
+                              display: flex;
+                              justify-content: center;
+                            "
+                            >?</span
                           >
                         </div>
                       </th>
@@ -1629,9 +1573,56 @@
                         class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>Created Date & Time</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
+                          <span>Destination</span>
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
+                              height: 20px;
+                              width: 20px;
+                              border: 1px solid gray;
+                              border-radius: 47px;
+                              display: flex;
+                              justify-content: center;
+                            "
+                            >?</span
+                          >
+                        </div>
+                      </th>
+                      <th
+                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Amount</span>
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
+                              height: 20px;
+                              width: 20px;
+                              border: 1px solid gray;
+                              border-radius: 47px;
+                              display: flex;
+                              justify-content: center;
+                            "
+                            >?</span
+                          >
+                        </div>
+                      </th>
+                      <th
+                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                      >
+                        <div class="flex items-center space-x-1">
+                          <span>Date Paid</span>
+                          <span
+                            class="text-gray-500 dark:text-gray-400 text-sm"
+                            style="
+                              height: 20px;
+                              width: 20px;
+                              border: 1px solid gray;
+                              border-radius: 47px;
+                              display: flex;
+                              justify-content: center;
+                            "
+                            >?</span
                           >
                         </div>
                       </th>
@@ -1645,35 +1636,35 @@
                           >
                         </div>
                       </th>
+                      <th class="w-10 sm:w-12 px-2 sm:px-3 lg:px-4 py-2"></th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                     <tr
-                      v-for="owner in filteredOwners"
-                      :key="owner.id"
+                      v-for="order in filteredOrders"
+                      :key="order.id"
                       class="hover:bg-gray-50 dark:hover:bg-gray-900"
                     >
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <input
                           type="checkbox"
-                          v-model="owner.selected"
+                          v-model="order.selected"
                           class="border-gray-300"
                           style="border-radius: 7px"
                         />
                       </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
-                        <span
-                          class="text-[#27272B] dark:text-white text-xs sm:text-sm"
-                          style="
-                            font-size: 14px;
-                            font-weight: 400;
-                            font-style: normal;
-                            line-height: 20px;
-                            font-family: 'Geist', sans-serif;
-                            letter-spacing: 0;
-                          "
-                          >{{ owner.id }}</span
-                        >
+                      <td
+                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-gray-700 dark:text-white font-semibold"
+                        style="
+                          font-size: 14px;
+                          font-weight: 600;
+                          font-style: normal;
+                          line-height: 20px;
+                          font-family: 'Geist', sans-serif;
+                          letter-spacing: 0;
+                        "
+                      >
+                        {{ order.orderId }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -1686,7 +1677,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ owner.ownerName }}
+                        {{ order.customerName }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -1699,7 +1690,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ owner.properties }}
+                        {{ order.application }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -1712,10 +1703,10 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ owner.createdBy }}
+                        {{ order.destination }}
                       </td>
                       <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-gray-700 dark:text-white"
+                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
                         style="
                           font-size: 14px;
                           font-weight: 400;
@@ -1725,20 +1716,33 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ owner.createdDateTime }}
+                        {{ order.amount }}
+                      </td>
+                      <td
+                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
+                        style="
+                          font-size: 14px;
+                          font-weight: 400;
+                          font-style: normal;
+                          line-height: 20px;
+                          font-family: 'Geist', sans-serif;
+                          letter-spacing: 0;
+                        "
+                      >
+                        {{ order.datePaid }}
                       </td>
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <div
-                          :class="getStatusContainerClasses(owner.status)"
+                          :class="getStatusContainerClasses(order.status)"
                           class="inline-flex items-center px-2 py-1 rounded-md"
-                          style="border-radius: 7px"
+                          style="border-radius: 7px; background: white"
                         >
                           <div
-                            :class="getStatusDotClasses(owner.status)"
+                            :class="getStatusDotClasses(order.status)"
                             class="w-2 h-2 rounded-full mr-2"
                           ></div>
                           <span
-                            :class="getStatusTextClasses(owner.status)"
+                            :class="getStatusTextClasses(order.status)"
                             class="text-xs sm:text-sm"
                             style="
                               font-size: 14px;
@@ -1748,8 +1752,28 @@
                               font-family: 'Geist', sans-serif;
                               letter-spacing: 0;
                             "
-                            >{{ owner.status }}</span
+                            >{{ order.status }}</span
                           >
+                        </div>
+                      </td>
+                      <td class="px-2 sm:px-3 lg:px-4 py-2">
+                        <div class="flex items-center space-x-2">
+                          <button
+                            class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                            title="View"
+                          >
+                            <Eye
+                              class="h-4 w-4 text-gray-600 dark:text-gray-400"
+                            />
+                          </button>
+                          <button
+                            class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                            title="Edit"
+                          >
+                            <Pencil
+                              class="h-4 w-4 text-gray-600 dark:text-gray-400"
+                            />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1766,7 +1790,7 @@
               <div
                 class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap"
               >
-                {{ selectedCount }} of {{ owners.length }} row(s) selected.
+                {{ selectedCount }} of {{ orders.length }} row(s) selected.
               </div>
 
               <!-- Navigation Buttons -->
@@ -1835,6 +1859,12 @@ import {
   Wallet,
   PieChart,
   MessageSquare,
+  Send,
+  Folder,
+  Network,
+  Clock,
+  Eye,
+  Pencil,
 } from "lucide-vue-next";
 
 // Import dropdown components
@@ -1843,99 +1873,119 @@ import DropdownMenuItem from "~/components/ui/DropdownMenuItem.vue";
 
 // Set page title
 useHead({
-  title: "Owners - iVisa",
+  title: "Finances - iVisa",
 });
 
-// Sample owner data - matching the image structure
-const owners = ref([
+// Sample orders data matching the image
+const orders = ref([
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 5,
-    createdBy: "Self",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Draft",
+    id: 1,
+    orderId: "ORD - 1001",
+    customerName: "Ali Raza",
+    application: "APP-001245",
+    destination: "Thailand",
+    amount: "USD 100",
+    datePaid: "01/01/2024",
+    status: "Approved",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 7,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Active",
+    id: 2,
+    orderId: "ORD - 1002",
+    customerName: "Sarah Khan",
+    application: "APP-001246",
+    destination: "UAE",
+    amount: "USD 250",
+    datePaid: "-",
+    status: "In Review",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 4,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Active",
+    id: 3,
+    orderId: "ORD - 1003",
+    customerName: "John Smith",
+    application: "APP-001247",
+    destination: "Germany",
+    amount: "USD 400",
+    datePaid: "-",
+    status: "Pending",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 6,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Active",
+    id: 4,
+    orderId: "ORD - 1004",
+    customerName: "Maria Garcia",
+    application: "APP-001248",
+    destination: "France",
+    amount: "USD 150",
+    datePaid: "02/01/2024",
+    status: "Approved",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 4,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Active",
+    id: 5,
+    orderId: "ORD - 1005",
+    customerName: "Ahmed Hassan",
+    application: "APP-001249",
+    destination: "Japan",
+    amount: "USD 300",
+    datePaid: "-",
+    status: "In Review",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 3,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Active",
+    id: 6,
+    orderId: "ORD - 1006",
+    customerName: "Emma Wilson",
+    application: "APP-001250",
+    destination: "Canada",
+    amount: "USD 200",
+    datePaid: "03/01/2024",
+    status: "Approved",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 6,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Inactive",
+    id: 7,
+    orderId: "ORD - 1007",
+    customerName: "David Lee",
+    application: "APP-001251",
+    destination: "Australia",
+    amount: "USD 180",
+    datePaid: "-",
+    status: "Pending",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 3,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Inactive",
+    id: 8,
+    orderId: "ORD - 1008",
+    customerName: "Fatima Ali",
+    application: "APP-001252",
+    destination: "UK",
+    amount: "USD 350",
+    datePaid: "04/01/2024",
+    status: "Approved",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 6,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Inactive",
+    id: 9,
+    orderId: "ORD - 1009",
+    customerName: "Michael Brown",
+    application: "APP-001253",
+    destination: "Singapore",
+    amount: "USD 80",
+    datePaid: "-",
+    status: "In Review",
     selected: false,
   },
   {
-    id: "#123312",
-    ownerName: "John Doe",
-    properties: 7,
-    createdBy: "Alex Moes",
-    createdDateTime: "08:42 AM Jan 4, 2025",
-    status: "Inactive",
+    id: 10,
+    orderId: "ORD - 1010",
+    customerName: "Aisha Patel",
+    application: "APP-001254",
+    destination: "India",
+    amount: "USD 120",
+    datePaid: "05/01/2024",
+    status: "Approved",
     selected: false,
   },
 ]);
@@ -1947,12 +1997,13 @@ const sidebarOpen = ref(true); // Start with sidebar visible
 const sidebarCollapsed = ref(false); // Start with sidebar expanded
 
 // Navigation state - All closed by default
-const propertiesOpen = ref(false);
-const ownersOpen = ref(false);
-const bookingsOpen = ref(false);
-const guestsOpen = ref(false);
-const usersOpen = ref(false); // Users section closed by default
-const maintenanceOpen = ref(false);
+const countriesOpen = ref(false);
+const visaproductsOpen = ref(false);
+const nationalitiesOpen = ref(false);
+const embassiesOpen = ref(false);
+const customersOpen = ref(false);
+const applicationsOpen = ref(false);
+const financesOpen = ref(false);
 
 // Settings options
 const selectedTheme = ref("Default");
@@ -2309,70 +2360,88 @@ const toggleSidebar = () => {
 };
 
 // Navigation toggle functions with accordion behavior
-const toggleProperties = () => {
+const toggleCountries = () => {
   // Close all other sections
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  propertiesOpen.value = !propertiesOpen.value;
+  countriesOpen.value = !countriesOpen.value;
 };
 
-const toggleOwners = () => {
+const toggleVisaproducts = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  ownersOpen.value = !ownersOpen.value;
+  visaproductsOpen.value = !visaproductsOpen.value;
 };
 
-const toggleBookings = () => {
+const toggleNationalities = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  bookingsOpen.value = !bookingsOpen.value;
+  nationalitiesOpen.value = !nationalitiesOpen.value;
 };
 
-const toggleGuests = () => {
+const toggleEmbassies = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  guestsOpen.value = !guestsOpen.value;
+  embassiesOpen.value = !embassiesOpen.value;
 };
 
-const toggleUsers = () => {
+const toggleCustomers = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  maintenanceOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  usersOpen.value = !usersOpen.value;
+  customersOpen.value = !customersOpen.value;
 };
 
-const toggleMaintenance = () => {
+const toggleApplications = () => {
   // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  financesOpen.value = false;
   // Toggle current section
-  maintenanceOpen.value = !maintenanceOpen.value;
+  applicationsOpen.value = !applicationsOpen.value;
+};
+
+const toggleFinances = () => {
+  // Close all other sections
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  // Toggle current section
+  financesOpen.value = !financesOpen.value;
 };
 
 // Component mounted
@@ -2388,29 +2457,33 @@ onMounted(() => {
   }
 });
 
-const filteredOwners = computed(() => {
-  if (!searchQuery.value) return owners.value;
+const filteredOrders = computed(() => {
+  if (!searchQuery.value) return orders.value;
 
-  return owners.value.filter(
-    (owner) =>
-      owner.id.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      owner.ownerName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      owner.createdBy.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return orders.value.filter(
+    (order) =>
+      order.orderId
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase()) ||
+      order.customerName
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase()) ||
+      order.destination.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
 const selectedCount = computed(() => {
-  return owners.value.filter((owner) => owner.selected).length;
+  return orders.value.filter((order) => order.selected).length;
 });
 
 const getStatusContainerClasses = (status) => {
   switch (status) {
-    case "Draft":
-      return "bg-[#FFFAEB] border border-yellow-300";
-    case "Active":
-      return "bg-[#ECFDF3] border border-green-300";
-    case "Inactive":
-      return "bg-[#FEF3F2] border border-red-300";
+    case "Approved":
+      return "bg-gray-100 border border-gray-300";
+    case "In Review":
+      return "bg-gray-100 border border-gray-300";
+    case "Pending":
+      return "bg-gray-100 border border-gray-300";
     default:
       return "bg-gray-100 border border-gray-300";
   }
@@ -2418,12 +2491,12 @@ const getStatusContainerClasses = (status) => {
 
 const getStatusDotClasses = (status) => {
   switch (status) {
-    case "Draft":
+    case "Approved":
+      return "bg-green-500";
+    case "In Review":
+      return "bg-blue-500";
+    case "Pending":
       return "bg-orange-500";
-    case "Active":
-      return "bg-green-600";
-    case "Inactive":
-      return "bg-red-600";
     default:
       return "bg-gray-500";
   }
@@ -2431,25 +2504,21 @@ const getStatusDotClasses = (status) => {
 
 const getStatusTextClasses = (status) => {
   switch (status) {
-    case "Draft":
-      return "text-orange-700";
-    case "Active":
-      return "text-green-700";
-    case "Inactive":
-      return "text-red-700";
+    case "Approved":
+      return "text-gray-700";
+    case "In Review":
+      return "text-gray-700";
+    case "Pending":
+      return "text-gray-700";
     default:
       return "text-gray-700";
   }
 };
 
-const capitalizeFirst = (str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
 // Watch for select all changes
 watch(selectAll, (newValue) => {
-  owners.value.forEach((owner) => {
-    owner.selected = newValue;
+  orders.value.forEach((order) => {
+    order.selected = newValue;
   });
 });
 </script>

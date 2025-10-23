@@ -24,360 +24,300 @@
       <!-- Logo -->
       <div
         class="flex h-16 items-center border-b border-none"
-        :class="sidebarCollapsed ? 'px-2 justify-center' : 'px-4 sm:px-6'"
+        :class="sidebarCollapsed ? 'px-2 justify-center' : 'px-2 sm:px-4'"
       >
         <div
           class="flex items-center"
           :class="sidebarCollapsed ? 'justify-center w-full' : ''"
         >
-          <div
-            class="h-8 w-8 bg-black rounded-md flex items-center justify-center relative"
-            style="border-radius: 5px"
-          >
-            <!-- Staggered diagonal lines -->
-            <div class="absolute inset-0">
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-1 left-0.5"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-2 left-1"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-3 left-1.5"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-4 left-2"
-              ></div>
-              <div
-                class="w-3 h-0.5 bg-white transform rotate-45 absolute top-5 left-2.5"
-              ></div>
-            </div>
-            <!-- Dots -->
-            <div
-              class="absolute top-1 right-1 w-1 h-1 bg-white rounded-full"
-            ></div>
-            <div
-              class="absolute bottom-1 left-1 w-1 h-1 bg-white rounded-full"
-            ></div>
-          </div>
-          <span
-            v-show="!sidebarCollapsed"
-            class="ml-2 text-xl font-semibold text-gray-900 dark:text-white"
-            >iVisa</span
-          >
+          <img
+            :class="sidebarCollapsed ? 'h-8 w-8' : 'h-8 w-auto'"
+            src="/logo/logoname.svg"
+            alt="iVisa"
+          />
         </div>
       </div>
 
-      <!-- Navigation -->
+    <!-- Navigation -->
       <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" style="padding: 10px">
         <div class="space-y-1">
           <!-- Dashboard -->
           <a
             href="/dashboard"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
           >
-            <BarChart3
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
+            <Home class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
             <span v-show="!sidebarCollapsed" class="truncate">Dashboard</span>
           </a>
 
-          <!-- Notifications -->
-          <a
-            href="/dashboard/notifications"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <MessageCircle
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Notifications</span
-            >
-            <span
-              v-show="!sidebarCollapsed"
-              class="ml-auto text-xs py-0.5 rounded-full"
-              >10</span
-            >
-          </a>
-
-          <!-- Properties -->
+          <!-- Countries -->
           <div>
             <button
-              @click="toggleProperties"
+              @click="toggleCountries"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <Building
+              <Send class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Countries</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="countriesOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="countriesOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/countries"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Countries</a
+              >
+              <a
+                href="/dashboard/countries/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Country</a
+              >
+            </div>
+          </div>
+
+          <!-- Visa Products -->
+          <div>
+            <button
+              @click="toggleVisaproducts"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <MessageCircle
                 class="h-4 w-4"
                 :class="sidebarCollapsed ? '' : 'mr-3'"
               />
               <span v-show="!sidebarCollapsed" class="truncate"
-                >Properties</span
+                >Visa Products</span
               >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="propertiesOpen ? 'rotate-180' : ''"
+                :class="visaproductsOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="propertiesOpen && !sidebarCollapsed"
+              v-if="visaproductsOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/properties"
+                href="/dashboard/visaproducts"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Properties</a
+                >List of Visa Products</a
               >
               <a
-                href="/dashboard/properties/add"
+                href="/dashboard/visaproducts/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Property</a
+                >Add Visa Product</a
               >
             </div>
           </div>
 
-          <!-- Owners -->
+          <!-- Nationalities -->
           <div>
             <button
-              @click="toggleOwners"
+              @click="toggleNationalities"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
-              <User class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Owners</span>
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="ownersOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="ownersOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/owners"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >List of Owners</a
-              >
-              <a
-                href="/dashboard/owners/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add Owner</a
-              >
-            </div>
-          </div>
-
-          <!-- Calendar -->
-          <a
-            href="/dashboard/calendar"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <Calendar class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate">Calendar</span>
-          </a>
-
-          <!-- Bookings -->
-          <div>
-            <button
-              @click="toggleBookings"
-              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-            >
-              <FileCheck
+              <Network
                 class="h-4 w-4"
                 :class="sidebarCollapsed ? '' : 'mr-3'"
               />
-              <span v-show="!sidebarCollapsed" class="truncate">Bookings</span>
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Nationalities</span
+              >
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="bookingsOpen ? 'rotate-180' : ''"
+                :class="nationalitiesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="bookingsOpen && !sidebarCollapsed"
+              v-if="nationalitiesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/bookings"
+                href="/dashboard/nationalities"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Bookings</a
+                >List of Nationalities</a
               >
               <a
-                href="/dashboard/bookings/add"
+                href="/dashboard/nationalities/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Booking</a
+                >Add Nationality</a
               >
             </div>
           </div>
 
-          <!-- Guests -->
+          <!-- Embassies -->
           <div>
             <button
-              @click="toggleGuests"
+              @click="toggleEmbassies"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Embassies</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="embassiesOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="embassiesOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/embassies"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Embassies</a
+              >
+              <a
+                href="/dashboard/embassies/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Embassy</a
+              >
+            </div>
+          </div>
+
+          <!-- Customers -->
+          <div>
+            <button
+              @click="toggleCustomers"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Customers</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="customersOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="customersOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/customers"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Customers</a
+              >
+              <a
+                href="/dashboard/customers/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Customer</a
+              >
+            </div>
+          </div>
+
+          <!-- Applications -->
+          <div>
+            <button
+              @click="toggleApplications"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            >
+              <Clock class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate"
+                >Applications</span
+              >
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="applicationsOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <div
+              v-if="applicationsOpen && !sidebarCollapsed"
+              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            >
+              <a
+                href="/dashboard/applications"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >List of Applications</a
+              >
+              <a
+                href="/dashboard/applications/add"
+                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                style="border-radius: 5px"
+                >Add Application</a
+              >
+            </div>
+          </div>
+
+          <!-- Finances -->
+          <div>
+            <button
+              @click="toggleFinances"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
               :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
             >
               <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Guests</span>
+              <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
-                :class="guestsOpen ? 'rotate-180' : ''"
+                :class="financesOpen ? 'rotate-180' : ''"
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
             <div
-              v-if="guestsOpen && !sidebarCollapsed"
+              v-if="financesOpen && !sidebarCollapsed"
               class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
             >
               <a
-                href="/dashboard/guests"
+                href="/dashboard/finances"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >List of Guests</a
+                >List of Finances</a
               >
               <a
-                href="/dashboard/guests/add"
+                href="/dashboard/finances/add"
                 class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
                 style="border-radius: 5px"
-                >Add Guest</a
+                >Add Finance</a
               >
             </div>
           </div>
-
-          <!-- Users -->
-          <div>
-            <button
-              @click="toggleUsers"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md dark:hover:bg-[#2F2F31] transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
-            >
-              <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate">Users</span>
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="usersOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="usersOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/users"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors bg-gray-100 text-gray-900 dark:text-white"
-                style="border-radius: 5px"
-                >List of Users</a
-              >
-              <a
-                href="/dashboard/users/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add User</a
-              >
-            </div>
-          </div>
-
-          <!-- Maintenance -->
-          <div>
-            <button
-              @click="toggleMaintenance"
-              class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center' : ''"
-            >
-              <Wrench class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-              <span v-show="!sidebarCollapsed" class="truncate"
-                >Maintenance</span
-              >
-              <ChevronDown
-                v-show="!sidebarCollapsed"
-                :class="maintenanceOpen ? 'rotate-180' : ''"
-                class="ml-auto h-4 w-4 transition-transform"
-              />
-            </button>
-            <div
-              v-if="maintenanceOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
-            >
-              <a
-                href="/dashboard/maintenance"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >List of Maintenance</a
-              >
-              <a
-                href="/dashboard/maintenance/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
-                style="border-radius: 5px"
-                >Add Maintenance</a
-              >
-            </div>
-          </div>
-
-          <!-- Transactions -->
-          <a
-            href="/dashboard/transactions"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <Wallet class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Transactions</span
-            >
-          </a>
-
-          <!-- Reports -->
-          <a
-            href="/dashboard/reports"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <PieChart class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-            <span v-show="!sidebarCollapsed" class="truncate">Reports</span>
-          </a>
-
-          <!-- Communication -->
-          <a
-            href="/dashboard/communication"
-            class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-          >
-            <MessageSquare
-              class="h-4 w-4"
-              :class="sidebarCollapsed ? '' : 'mr-3'"
-            />
-            <span v-show="!sidebarCollapsed" class="truncate"
-              >Communication</span
-            >
-          </a>
         </div>
       </nav>
+
       <!-- Settings -->
-      <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'">
+      <nav
+        :class="sidebarCollapsed ? 'px-2' : 'px-2'"
+        class="absolute bottom-16 left-0 right-0"
+      >
         <a
           href="/dashboard/settings"
           class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+          style="margin: 8px"
           :class="sidebarCollapsed ? 'justify-center' : ''"
         >
           <Settings class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
           <span v-show="!sidebarCollapsed" class="truncate">Settings</span>
         </a>
       </nav>
-
       <!-- User Profile -->
       <div
         class="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors duration-200 rounded-md relative"
@@ -1113,13 +1053,13 @@
                 <h1
                   class="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white"
                 >
-                  Properties
+                  Nationalities
                 </h1>
                 <label
                   class="text-[#475467] dark:text-white text-[10px] sm:text-base leading-[12px] sm:leading-6"
                   style="font-weight: 400; letter-spacing: 0%"
                 >
-                  Here you can find all of your campaigns
+                  Here you can find all the Nationalities.
                 </label>
               </div>
               <button
@@ -1140,7 +1080,7 @@
                     font-family: 'Geist', sans-serif;
                     letter-spacing: 0;
                   "
-                  >Add Property</span
+                  >Add Nationality</span
                 >
               </button>
             </div>
@@ -1155,7 +1095,7 @@
                   <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Search Properties"
+                    placeholder="Search Nationalities"
                     class="w-full h-[36px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-black focus:shadow-[0_0_10px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.2)]"
                     style="border-radius: 7px"
                   />
@@ -1561,21 +1501,18 @@
               </div>
             </div>
 
-            <!-- Users Table -->
+            <!-- Nationalities Table -->
             <div
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
             >
               <div class="overflow-x-auto">
-                <table class="w-full min-w-[600px] sm:min-w-[800px]">
+                <table class="w-full">
                   <thead
                     class="bg-[#FFFFFF] dark:bg-[#09090B] border-b dark:border-gray-800"
                   >
                     <tr class="!h-[37px]">
-                      <!-- force small row height -->
-                      <th
-                        class="w-10 sm:w-12 px-2 sm:px-3 lg:px-4 py-2 text-left align-middle"
-                      >
+                      <th class="w-10 sm:w-12 px-4 py-3 text-left align-middle">
                         <input
                           type="checkbox"
                           v-model="selectAll"
@@ -1583,172 +1520,123 @@
                           style="border-radius: 7px"
                         />
                       </th>
-
                       <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                        class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
+                      >
+                        Nationality (Passport)
+                      </th>
+                      <th
+                        class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>Property ID</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
+                          <span>Destinations</span>
+                          <svg
+                            class="h-4 w-4 text-gray-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
                           >
+                            <path
+                              fill-rule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                              clip-rule="evenodd"
+                            ></path>
+                          </svg>
                         </div>
                       </th>
                       <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                        class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>Address</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
+                          <span>Available Visa Permits</span>
+                          <svg
+                            class="h-4 w-4 text-gray-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
                           >
+                            <path
+                              fill-rule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                              clip-rule="evenodd"
+                            ></path>
+                          </svg>
                         </div>
                       </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Owner Name</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Property Type</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Usage</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↑↓</span
-                          >
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Status</span>
-                          <span class="text-gray-500 dark:text-gray-400 text-sm"
-                            >↓</span
-                          >
-                        </div>
-                      </th>
-                      <th class="w-10 sm:w-12 px-2 sm:px-3 lg:px-4 py-2"></th>
+                      <th class="w-20 px-4 py-3"></th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                     <tr
-                      v-for="property in filteredProperties"
-                      :key="property.id"
+                      v-for="nationality in filteredNationalities"
+                      :key="nationality.id"
                       class="hover:bg-gray-50 dark:hover:bg-gray-900"
                     >
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
+                      <td class="px-4 py-3">
                         <input
                           type="checkbox"
-                          v-model="property.selected"
+                          v-model="nationality.selected"
                           class="border-gray-300"
                           style="border-radius: 7px"
                         />
                       </td>
                       <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-gray-700 dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
+                        class="px-4 py-3 text-sm text-[#475467] dark:text-white font-medium"
                       >
-                        {{ property.propertyId }}
+                        {{ nationality.name }}
                       </td>
                       <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
+                        class="px-4 py-3 text-sm text-[#475467] dark:text-white"
                       >
-                        {{ property.address }}
+                        {{ nationality.destinations }}
                       </td>
                       <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
+                        class="px-4 py-3 text-sm text-[#475467] dark:text-white"
                       >
-                        {{ property.ownerName }}
+                        {{ nationality.visaPermits }}
                       </td>
-                      <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
-                      >
-                        {{ property.propertyType }}
-                      </td>
-                      <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
-                      >
-                        {{ property.usage }}
-                      </td>
-                      <td class="px-2 sm:px-3 lg:px-4 py-2">
-                        <div
-                          :class="getStatusContainerClasses(property.status)"
-                          class="inline-flex items-center px-2 py-1 rounded-md"
-                          style="border-radius: 7px"
-                        >
-                          <div
-                            :class="getStatusDotClasses(property.status)"
-                            class="w-2 h-2 rounded-full mr-2"
-                          ></div>
-                          <span
-                            :class="getStatusTextClasses(property.status)"
-                            class="text-xs sm:text-sm"
-                            style="
-                              font-size: 14px;
-                              font-weight: 400;
-                              font-style: normal;
-                              line-height: 20px;
-                              font-family: 'Geist', sans-serif;
-                              letter-spacing: 0;
-                            "
-                            >{{ property.status }}</span
+                      <td class="px-4 py-3">
+                        <div class="flex items-center space-x-2">
+                          <button
+                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            title="View"
                           >
+                            <svg
+                              class="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              ></path>
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              ></path>
+                            </svg>
+                          </button>
+                          <button
+                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            title="Edit"
+                          >
+                            <svg
+                              class="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              ></path>
+                            </svg>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1765,7 +1653,8 @@
               <div
                 class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap"
               >
-                {{ selectedCount }} of {{ properties.length }} row(s) selected.
+                {{ selectedCount }} of {{ nationalities.length }} row(s)
+                selected.
               </div>
 
               <!-- Navigation Buttons -->
@@ -1834,117 +1723,89 @@ import {
   Wallet,
   PieChart,
   MessageSquare,
+  Send,
+  Folder,
+  Network,
+  Clock,
+  Eye,
+  Pencil,
 } from "lucide-vue-next";
-
-// Import dropdown components
-import DropdownMenu from "~/components/ui/DropdownMenu.vue";
-import DropdownMenuItem from "~/components/ui/DropdownMenuItem.vue";
 
 // Set page title
 useHead({
-  title: "Properties - iVisa",
+  title: "Nationalities - iVisa",
 });
 
-// Sample properties data matching the image
-const properties = ref([
+// Sample nationalities data
+const nationalities = ref([
   {
     id: 1,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Short Term Lease",
-    status: "Vacant",
+    name: "Pakistani",
+    destinations: "USA, UK, Canada",
+    visaPermits: "Tourist, Business, Student",
     selected: false,
   },
   {
     id: 2,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Indian",
+    destinations: "USA, UK, Australia",
+    visaPermits: "Tourist, Work, Student",
     selected: false,
   },
   {
     id: 3,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Villa",
-    usage: "For Sale",
-    status: "Unsold",
+    name: "Bangladeshi",
+    destinations: "UK, Canada, Germany",
+    visaPermits: "Tourist, Business, Work",
     selected: false,
   },
   {
     id: 4,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Villa",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Sri Lankan",
+    destinations: "USA, UK, Australia",
+    visaPermits: "Tourist, Student, Work",
     selected: false,
   },
   {
     id: 5,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Nepalese",
+    destinations: "USA, UK, Canada",
+    visaPermits: "Tourist, Business, Student",
     selected: false,
   },
   {
     id: 6,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Afghan",
+    destinations: "USA, UK, Germany",
+    visaPermits: "Tourist, Work, Student",
     selected: false,
   },
   {
     id: 7,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Iranian",
+    destinations: "UK, Canada, Australia",
+    visaPermits: "Tourist, Business, Student",
     selected: false,
   },
   {
     id: 8,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Iraqi",
+    destinations: "USA, UK, Canada",
+    visaPermits: "Tourist, Work, Student",
     selected: false,
   },
   {
     id: 9,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Syrian",
+    destinations: "UK, Canada, Germany",
+    visaPermits: "Tourist, Work, Student",
     selected: false,
   },
   {
     id: 10,
-    propertyId: "#123312",
-    address: "117 Executive Tower, Business Bay Dubai",
-    ownerName: "John Doe",
-    propertyType: "Apartment",
-    usage: "Long Term Lease",
-    status: "Rented",
+    name: "Yemeni",
+    destinations: "USA, UK, Australia",
+    visaPermits: "Tourist, Business, Student",
     selected: false,
   },
 ]);
@@ -1952,87 +1813,32 @@ const properties = ref([
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
-const sidebarOpen = ref(true); // Start with sidebar visible
-const sidebarCollapsed = ref(false); // Start with sidebar expanded
+const sidebarCollapsed = ref(false);
+const isDarkMode = ref(false);
 
 // Navigation state - All closed by default
-const propertiesOpen = ref(false);
-const ownersOpen = ref(false);
-const bookingsOpen = ref(false);
-const guestsOpen = ref(false);
-const usersOpen = ref(false); // Users section closed by default
-const maintenanceOpen = ref(false);
+const countriesOpen = ref(false);
+const visaproductsOpen = ref(false);
+const nationalitiesOpen = ref(false);
+const embassiesOpen = ref(false);
+const customersOpen = ref(false);
+const applicationsOpen = ref(false);
+const financesOpen = ref(false);
 
-// Settings options
-const selectedTheme = ref("Default");
-const selectedScale = ref("none");
-const selectedRadius = ref("none");
-const selectedColorMode = ref("light");
-const selectedContentLayout = ref("full");
-const selectedSidebarMode = ref("default");
-
-// Dropdown states - only one can be open at a time
+// Dropdown states
 const settingsDropdownOpen = ref(false);
-const themeDropdownOpen = ref(false);
 const userDropdownOpen = ref(false);
 const notificationsDropdownOpen = ref(false);
-const sunDropdownOpen = ref(false);
 const logoutDropdownOpen = ref(false);
 const statusDropdownOpen = ref(false);
 const planDropdownOpen = ref(false);
 const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
 
-// Theme state
-const isDarkMode = ref(false);
-
-// Theme options with colors
-const themeOptions = [
-  { label: "Default", value: "default", color: "#000000" },
-  { label: "Underground", value: "underground", color: "#2D5A27" },
-  { label: "Rose Garden", value: "rose-garden", color: "#DC2626" },
-  { label: "Lake View", value: "lake-view", color: "#0891B2" },
-  { label: "Sunset Glow", value: "sunset-glow", color: "#EA580C" },
-  { label: "Forest Whisper", value: "forest-whisper", color: "#0F766E" },
-  { label: "Ocean Breeze", value: "ocean-breeze", color: "#2563EB" },
-  { label: "Lavender Dream", value: "lavender-dream", color: "#9333EA" },
-];
-
-// Options arrays
-const scaleOptions = [
-  { label: "None", value: "none" },
-  { label: "XS", value: "xs" },
-  { label: "LG", value: "lg" },
-];
-
-const radiusOptions = [
-  { label: "None", value: "none" },
-  { label: "SM", value: "sm" },
-  { label: "MD", value: "md" },
-  { label: "LG", value: "lg" },
-  { label: "XL", value: "xl" },
-];
-
-const colorModes = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-];
-
-const contentLayouts = [
-  { label: "Full", value: "full" },
-  { label: "Centered", value: "centered" },
-];
-
-const sidebarModes = [
-  { label: "Default", value: "default" },
-  { label: "Icon", value: "icon" },
-];
-
 // Notifications data
 const notifications = ref([
   {
     id: 1,
-    avatar: "/images/avatar1.jpg",
     title: "Your order is placed",
     message: "Amet minim mollit non deser unt ullamco e...",
     time: "2 days ago",
@@ -2040,7 +1846,6 @@ const notifications = ref([
   },
   {
     id: 2,
-    avatar: "/images/avatar2.jpg",
     title: "Congratulations Darlene 🎉",
     message: "Won the monthly best seller badge",
     time: "11 am",
@@ -2048,7 +1853,6 @@ const notifications = ref([
   },
   {
     id: 3,
-    avatar: "/images/avatar3.jpg",
     title: "Joaquina Weisenborn",
     message: "Requesting access permission",
     time: "12 pm",
@@ -2057,7 +1861,6 @@ const notifications = ref([
   },
   {
     id: 4,
-    avatar: "/images/avatar4.jpg",
     title: "Brooklyn Simmons",
     message: "Added you to Top Secret Project...",
     time: "1 pm",
@@ -2067,8 +1870,6 @@ const notifications = ref([
 
 // Computed properties
 const sidebarClasses = computed(() => {
-  // On mobile (lg and below), always show full width with slide behavior
-  // On desktop (lg and above), use collapse behavior
   if (sidebarCollapsed.value) {
     return "w-64 lg:w-16 -translate-x-full lg:translate-x-0";
   } else {
@@ -2076,209 +1877,25 @@ const sidebarClasses = computed(() => {
   }
 });
 
-// User dropdown menu handlers
-const handleUpgradeClick = () => {
-  console.log("Upgrade to Pro clicked");
-  // Add upgrade logic here
-};
+const filteredNationalities = computed(() => {
+  if (!searchQuery.value) return nationalities.value;
 
-const handleAccountClick = () => {
-  console.log("Account clicked");
-  // Add navigation logic here
-};
-
-const handleBillingClick = () => {
-  console.log("Billing clicked");
-  // Add navigation logic here
-};
-
-const handleNotificationsClick = () => {
-  console.log("Notifications clicked");
-  // Add navigation logic here
-};
-
-const handleSignOutClick = () => {
-  console.log("Sign out clicked");
-  // Add sign out logic here
-};
-
-const setTheme = (theme) => {
-  selectedTheme.value = theme;
-};
-
-const getSelectedThemeColor = () => {
-  const theme = themeOptions.find((t) => t.label === selectedTheme.value);
-  return theme ? theme.color : "#000000";
-};
-
-const toggleSettingsDropdown = () => {
-  // Close other dropdowns if open
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle settings dropdown
-  settingsDropdownOpen.value = !settingsDropdownOpen.value;
-};
-
-const toggleThemeDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle theme dropdown
-  themeDropdownOpen.value = !themeDropdownOpen.value;
-};
-
-const toggleUserDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle user dropdown
-  userDropdownOpen.value = !userDropdownOpen.value;
-};
-
-const toggleNotificationsDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle notifications dropdown
-  notificationsDropdownOpen.value = !notificationsDropdownOpen.value;
-};
-
-const toggleSunDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle sun dropdown
-  sunDropdownOpen.value = !sunDropdownOpen.value;
-};
-
-const toggleLogoutDropdown = () => {
-  console.log(
-    "Toggle logout dropdown clicked, current state:",
-    logoutDropdownOpen.value
+  return nationalities.value.filter((nationality) =>
+    nationality.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle logout dropdown
-  logoutDropdownOpen.value = !logoutDropdownOpen.value;
-  console.log("New logout dropdown state:", logoutDropdownOpen.value);
-};
+});
 
-const toggleStatusDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle status dropdown
-  statusDropdownOpen.value = !statusDropdownOpen.value;
-};
+const selectedCount = computed(() => {
+  return nationalities.value.filter((nationality) => nationality.selected).length;
+});
 
-const togglePlanDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle plan dropdown
-  planDropdownOpen.value = !planDropdownOpen.value;
-};
-
-const toggleRoleDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  // Toggle role dropdown
-  roleDropdownOpen.value = !roleDropdownOpen.value;
-};
-
-const toggleColumnsDropdown = () => {
-  // Close other dropdowns if open
-  settingsDropdownOpen.value = false;
-  themeDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  sunDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  // Toggle columns dropdown
-  columnsDropdownOpen.value = !columnsDropdownOpen.value;
-};
-
-const resetToDefault = () => {
-  selectedTheme.value = "Default";
-  selectedScale.value = "none";
-  selectedRadius.value = "none";
-  selectedColorMode.value = "light";
-  selectedContentLayout.value = "full";
-  selectedSidebarMode.value = "default";
-  console.log("Settings reset to default");
+// Methods
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
 };
 
 const toggleTheme = () => {
   isDarkMode.value = !isDarkMode.value;
-  // Apply theme to document and save to localStorage
   if (isDarkMode.value) {
     document.documentElement.classList.add("dark");
     localStorage.setItem("theme", "dark");
@@ -2288,105 +1905,175 @@ const toggleTheme = () => {
   }
 };
 
-// Close dropdowns when clicking outside
-onMounted(() => {
-  const handleClickOutside = (event) => {
-    if (!event.target.closest(".relative")) {
-      settingsDropdownOpen.value = false;
-      themeDropdownOpen.value = false;
-      userDropdownOpen.value = false;
-      notificationsDropdownOpen.value = false;
-      sunDropdownOpen.value = false;
-      logoutDropdownOpen.value = false;
-      statusDropdownOpen.value = false;
-      planDropdownOpen.value = false;
-      roleDropdownOpen.value = false;
-      columnsDropdownOpen.value = false;
-    }
-  };
-  document.addEventListener("click", handleClickOutside);
+// Navigation toggle functions
+const toggleCountries = () => {
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  countriesOpen.value = !countriesOpen.value;
+};
 
-  onUnmounted(() => {
-    document.removeEventListener("click", handleClickOutside);
+const toggleVisaproducts = () => {
+  countriesOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  visaproductsOpen.value = !visaproductsOpen.value;
+};
+
+const toggleNationalities = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  nationalitiesOpen.value = !nationalitiesOpen.value;
+};
+
+const toggleEmbassies = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  embassiesOpen.value = !embassiesOpen.value;
+};
+
+const toggleCustomers = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = false;
+  customersOpen.value = !customersOpen.value;
+};
+
+const toggleApplications = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  financesOpen.value = false;
+  applicationsOpen.value = !applicationsOpen.value;
+};
+
+const toggleFinances = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  customersOpen.value = false;
+  applicationsOpen.value = false;
+  financesOpen.value = !financesOpen.value;
+};
+
+// Dropdown toggle functions
+const toggleSettingsDropdown = () => {
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  settingsDropdownOpen.value = !settingsDropdownOpen.value;
+};
+
+const toggleUserDropdown = () => {
+  settingsDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  userDropdownOpen.value = !userDropdownOpen.value;
+};
+
+const toggleNotificationsDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  notificationsDropdownOpen.value = !notificationsDropdownOpen.value;
+};
+
+const toggleLogoutDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  logoutDropdownOpen.value = !logoutDropdownOpen.value;
+};
+
+const toggleStatusDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  statusDropdownOpen.value = !statusDropdownOpen.value;
+};
+
+const togglePlanDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  planDropdownOpen.value = !planDropdownOpen.value;
+};
+
+const toggleRoleDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  columnsDropdownOpen.value = false;
+  roleDropdownOpen.value = !roleDropdownOpen.value;
+};
+
+const toggleColumnsDropdown = () => {
+  settingsDropdownOpen.value = false;
+  userDropdownOpen.value = false;
+  notificationsDropdownOpen.value = false;
+  logoutDropdownOpen.value = false;
+  statusDropdownOpen.value = false;
+  planDropdownOpen.value = false;
+  roleDropdownOpen.value = false;
+  columnsDropdownOpen.value = !columnsDropdownOpen.value;
+};
+
+// Watch for select all changes
+watch(selectAll, (newValue) => {
+  nationalities.value.forEach((nationality) => {
+    nationality.selected = newValue;
   });
 });
 
-// Methods
-const toggleSidebar = () => {
-  // Toggle between expanded and collapsed states only
-  sidebarCollapsed.value = !sidebarCollapsed.value;
-};
-
-// Navigation toggle functions with accordion behavior
-const toggleProperties = () => {
-  // Close all other sections
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  propertiesOpen.value = !propertiesOpen.value;
-};
-
-const toggleOwners = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  ownersOpen.value = !ownersOpen.value;
-};
-
-const toggleBookings = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  bookingsOpen.value = !bookingsOpen.value;
-};
-
-const toggleGuests = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  usersOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  guestsOpen.value = !guestsOpen.value;
-};
-
-const toggleUsers = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  maintenanceOpen.value = false;
-  // Toggle current section
-  usersOpen.value = !usersOpen.value;
-};
-
-const toggleMaintenance = () => {
-  // Close all other sections
-  propertiesOpen.value = false;
-  ownersOpen.value = false;
-  bookingsOpen.value = false;
-  guestsOpen.value = false;
-  usersOpen.value = false;
-  // Toggle current section
-  maintenanceOpen.value = !maintenanceOpen.value;
-};
-
 // Component mounted
 onMounted(() => {
-  // Initialize theme from localStorage or default to light
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme === "dark") {
     isDarkMode.value = true;
@@ -2395,70 +2082,5 @@ onMounted(() => {
     isDarkMode.value = false;
     document.documentElement.classList.remove("dark");
   }
-});
-
-const filteredProperties = computed(() => {
-  if (!searchQuery.value) return properties.value;
-
-  return properties.value.filter(
-    (property) =>
-      property.propertyId
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      property.address
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      property.ownerName.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
-
-const selectedCount = computed(() => {
-  return properties.value.filter((property) => property.selected).length;
-});
-
-const getStatusContainerClasses = (status) => {
-  switch (status) {
-    case "Vacant":
-      return "bg-[#FFFAEB] border border-orange-300";
-    case "Rented":
-      return "bg-[#ECFDF3] border border-green-300";
-    case "Unsold":
-      return "bg-orange-100 border border-orange-300";
-    default:
-      return "bg-gray-100 border border-gray-300";
-  }
-};
-
-const getStatusDotClasses = (status) => {
-  switch (status) {
-    case "Vacant":
-      return "bg-orange-500";
-    case "Rented":
-      return "bg-green-600";
-    case "Unsold":
-      return "bg-orange-500";
-    default:
-      return "bg-gray-500";
-  }
-};
-
-const getStatusTextClasses = (status) => {
-  switch (status) {
-    case "Vacant":
-      return "text-orange-700";
-    case "Rented":
-      return "text-green-700";
-    case "Unsold":
-      return "text-orange-700";
-    default:
-      return "text-gray-700";
-  }
-};
-
-// Watch for select all changes
-watch(selectAll, (newValue) => {
-  properties.value.forEach((property) => {
-    property.selected = newValue;
-  });
 });
 </script>
