@@ -13,9 +13,8 @@ export default defineNuxtConfig({
     head: {
       title: "iVisa - Management System",
       link: [
-<<<<<<< Updated upstream
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-        { rel: "icon", type: "image/svg+xml", href: "/images/Logomark.svg" },
+        { rel: "icon", type: "image/svg+xml", href: "/logo/Visa123logo.svg" },
       ],
     },
   },
@@ -25,11 +24,3 @@ export default defineNuxtConfig({
     preset: "vercel",
   },
 });
-=======
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'icon', type: 'image/svg+xml', href: '/logo/Visa123logo.svg' }
-      ]
-    }
-  }
-})
->>>>>>> Stashed changes
