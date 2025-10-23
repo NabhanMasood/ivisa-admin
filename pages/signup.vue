@@ -10,7 +10,7 @@
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
       <!-- Mobile Header -->
       <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
-        <img src="/logo/Logo.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <img src="/logo/logoname.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
         <h1 class="text-xl font-bold text-gray-900" style="display: none;">VISA123</h1>
       </div>
 
@@ -20,7 +20,7 @@
           <div class="text-left mb-6 sm:mb-8">
             <!-- Desktop Logo -->
             <div class="hidden lg:block">
-              <img src="/logo/Logo.svg" alt="VISA123" class="h-10" style="margin-left: -10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+              <img src="/logo/logoname.svg" alt="VISA123" class="h-10" style="margin-left: -10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
               <h1 class="text-4xl font-bold text-gray-900" style="display: none;">VISA123</h1>
             </div>
             <h1 class="mb-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Create an account</h1>
@@ -284,7 +284,7 @@ const handleSubmit = async () => {
   try {
     await new Promise((r) => setTimeout(r, 1500));
     console.log("Signup successful", { firstName: firstName.value, lastName: lastName.value, email: email.value });
-    await navigateTo("/dashboard/users");
+    await navigateTo("/dashboard/countries");
   } finally {
     isLoading.value = false;
   }
@@ -295,7 +295,7 @@ const handleSocial = async (provider) => {
   try {
     await new Promise((r) => setTimeout(r, 1000));
     console.log(`Signup with ${provider}`);
-    await navigateTo("/dashboard/users");
+    await navigateTo("/dashboard/countries");
   } finally {
     isLoading.value = false;
   }

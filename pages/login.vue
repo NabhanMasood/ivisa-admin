@@ -16,7 +16,7 @@
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
       <!-- Mobile Header -->
       <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
-        <img src="/images/visa123-logo.png" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <img src="/logo/logoname.svg" alt="VISA123" class="h-8 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
         <h1 class="text-xl font-bold text-gray-900" style="display: none;">VISA123</h1>
       </div>
 
@@ -28,7 +28,7 @@
           <div class="text-left mb-6 sm:mb-8">
             <!-- Desktop Logo -->
             <div class="hidden lg:block">
-              <img src="/images/visa123-logo.png" alt="VISA123" class="h-10" style="margin-left: -10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+              <img src="/logo/logoname.svg" alt="VISA123" class="h-10" style="margin-left: -10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
               <h1 class="text-4xl font-bold text-gray-900" style="display: none;">VISA123</h1>
             </div>
             <p class="text-lg text-gray-500 mt-4">Please sign in to your account</p>
@@ -363,8 +363,8 @@ const handleSubmit = async () => {
     // 2. Redirect to dashboard
     // 3. Handle remember me functionality
 
-    // Redirect to dashboard users page
-    await navigateTo("/dashboard/users");
+    // Redirect to dashboard countries page
+    await navigateTo("/dashboard/countries");
   } catch (error) {
     emailError.value = "Invalid email or password";
   } finally {
@@ -384,7 +384,7 @@ const handleSocialLogin = async (provider) => {
     alert(`${provider} login successful! (This is a demo)`);
     
     // Redirect to dashboard after successful social login
-    await navigateTo("/dashboard/users");
+    await navigateTo("/dashboard/countries");
   } catch (error) {
     console.error(`Social login error with ${provider}:`, error);
   } finally {

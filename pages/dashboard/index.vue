@@ -87,7 +87,7 @@
         <div class="p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <NuxtLink to="/dashboard/users" class="group">
+            <NuxtLink to="/dashboard/countries" class="group">
               <div
                 class="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
