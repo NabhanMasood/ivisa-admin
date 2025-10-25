@@ -45,9 +45,12 @@
           <a
             href="/dashboard"
             class="group flex items-center py-2 text-sm font-medium rounded-md transition-colors text-gray-700 dark:hover:bg-[#2F2F31] dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-            :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+            :class="[
+              sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              isDashboardActive ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' : ''
+            ]"
           >
-            <Home class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+            <Dashboard class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
             <span v-show="!sidebarCollapsed" class="truncate">Dashboard</span>
           </a>
 
@@ -56,9 +59,11 @@
             <button
               @click="toggleCountries"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              ]"
             >
-              <Send class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <Countries class="h-4 w-4 " :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate">Countries</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
@@ -66,23 +71,42 @@
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
-            <div
-              v-if="countriesOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-2"
+              enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-2"
             >
+              <div
+                v-if="countriesOpen && !sidebarCollapsed"
+                class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+              >
               <a
                 href="/dashboard/countries"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isCountriesListActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >List of Countries</a
               >
               <a
                 href="/dashboard/countries/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isCountriesAddActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >Add Country</a
               >
-            </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- Visa Products -->
@@ -90,12 +114,11 @@
             <button
               @click="toggleVisaproducts"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              ]"
             >
-              <MessageCircle
-                class="h-4 w-4"
-                :class="sidebarCollapsed ? '' : 'mr-3'"
-              />
+              <VisaProducts class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate"
                 >Visa Products</span
               >
@@ -105,23 +128,42 @@
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
-            <div
-              v-if="visaproductsOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-2"
+              enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-2"
             >
+              <div
+                v-if="visaproductsOpen && !sidebarCollapsed"
+                class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+              >
               <a
                 href="/dashboard/visaproducts"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isVisaproductsListActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >List of Visa Products</a
               >
               <a
                 href="/dashboard/visaproducts/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isVisaproductsAddActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >Add Visa Product</a
               >
-            </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- Nationalities -->
@@ -129,12 +171,11 @@
             <button
               @click="toggleNationalities"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              ]"
             >
-              <Network
-                class="h-4 w-4"
-                :class="sidebarCollapsed ? '' : 'mr-3'"
-              />
+              <Nationalities class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate"
                 >Nationalities</span
               >
@@ -144,23 +185,42 @@
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
-            <div
-              v-if="nationalitiesOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-2"
+              enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-2"
             >
+              <div
+                v-if="nationalitiesOpen && !sidebarCollapsed"
+                class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+              >
               <a
                 href="/dashboard/nationalities"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isNationalitiesListActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >List of Nationalities</a
               >
               <a
                 href="/dashboard/nationalities/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isNationalitiesAddActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >Add Nationality</a
               >
-            </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- Embassies -->
@@ -168,9 +228,11 @@
             <button
               @click="toggleEmbassies"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              ]"
             >
-              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <Embassies class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate">Embassies</span>
               <ChevronDown
                 v-show="!sidebarCollapsed"
@@ -178,23 +240,42 @@
                 class="ml-auto h-4 w-4 transition-transform"
               />
             </button>
-            <div
-              v-if="embassiesOpen && !sidebarCollapsed"
-              class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-2"
+              enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-2"
             >
+              <div
+                v-if="embassiesOpen && !sidebarCollapsed"
+                class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+              >
               <a
                 href="/dashboard/embassies"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isEmbassiesListActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >List of Embassies</a
               >
               <a
                 href="/dashboard/embassies/add"
-                class="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31] transition-colors"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isEmbassiesAddActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
                 style="border-radius: 5px"
                 >Add Embassy</a
               >
-            </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- Customers -->
@@ -202,9 +283,12 @@
             <a
               href="/dashboard/customers"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+                isCustomersActive ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' : ''
+              ]"
             >
-              <Folder class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+                <Customers class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate">Customers</span>
             </a>
           </div>
@@ -214,9 +298,12 @@
             <a
               href="/dashboard/applications"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+                isApplicationsActive ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' : ''
+              ]"
             >
-              <Clock class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <Applications class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate"
                 >Applications</span
               >
@@ -228,9 +315,12 @@
             <a
               href="/dashboard/finances"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-              :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+                isFinancesActive ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' : ''
+              ]"
             >
-              <Users class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <Finances class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
               <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
             </a>
           </div>
@@ -985,6 +1075,14 @@ import {
   Network,
   Clock,
 } from "lucide-vue-next";
+import Countries from "./svg/countries.vue";
+import VisaProducts from "./svg/visaproducts.vue";
+import Nationalities from "./svg/nationalities.vue";
+import Embassies from "./svg/embassies.vue";
+import Customers from "./svg/customers.vue";
+import Applications from "./svg/applications.vue";
+import Finances from "./svg/finances.vue";
+import Dashboard from "./svg/dashboard.vue";
 
 const props = defineProps({
   pageTitle: {
@@ -997,11 +1095,112 @@ const props = defineProps({
 const sidebarCollapsed = ref(false);
 const isDarkMode = ref(false);
 
-// Navigation state - All closed by default
+// Navigation state - Persist across page navigation
 const countriesOpen = ref(false);
 const visaproductsOpen = ref(false);
 const nationalitiesOpen = ref(false);
 const embassiesOpen = ref(false);
+
+// Route detection for active states
+const route = useRoute()
+
+// Computed properties for active states
+const isDashboardActive = computed(() => route.path === '/dashboard')
+const isCountriesActive = computed(() => route.path.startsWith('/dashboard/countries'))
+const isVisaproductsActive = computed(() => route.path.startsWith('/dashboard/visaproducts'))
+const isNationalitiesActive = computed(() => route.path.startsWith('/dashboard/nationalities'))
+const isEmbassiesActive = computed(() => route.path.startsWith('/dashboard/embassies'))
+const isCustomersActive = computed(() => route.path.startsWith('/dashboard/customers'))
+const isApplicationsActive = computed(() => route.path.startsWith('/dashboard/applications'))
+const isFinancesActive = computed(() => route.path.startsWith('/dashboard/finances'))
+
+// Individual dropdown item active states
+const isCountriesListActive = computed(() => route.path === '/dashboard/countries')
+const isCountriesAddActive = computed(() => route.path === '/dashboard/countries/add')
+const isVisaproductsListActive = computed(() => route.path === '/dashboard/visaproducts')
+const isVisaproductsAddActive = computed(() => route.path === '/dashboard/visaproducts/add')
+const isNationalitiesListActive = computed(() => route.path === '/dashboard/nationalities')
+const isNationalitiesAddActive = computed(() => route.path === '/dashboard/nationalities/add')
+const isEmbassiesListActive = computed(() => route.path === '/dashboard/embassies')
+const isEmbassiesAddActive = computed(() => route.path === '/dashboard/embassies/add')
+
+// Initialize dropdown states from localStorage and route
+onMounted(() => {
+  if (process.client) {
+    // Check if we should open dropdowns based on current route
+    if (isCountriesActive.value) {
+      countriesOpen.value = true
+      localStorage.setItem('countriesOpen', 'true')
+    } else {
+      countriesOpen.value = localStorage.getItem('countriesOpen') === 'true'
+    }
+    
+    if (isVisaproductsActive.value) {
+      visaproductsOpen.value = true
+      localStorage.setItem('visaproductsOpen', 'true')
+    } else {
+      visaproductsOpen.value = localStorage.getItem('visaproductsOpen') === 'true'
+    }
+    
+    if (isNationalitiesActive.value) {
+      nationalitiesOpen.value = true
+      localStorage.setItem('nationalitiesOpen', 'true')
+    } else {
+      nationalitiesOpen.value = localStorage.getItem('nationalitiesOpen') === 'true'
+    }
+    
+    if (isEmbassiesActive.value) {
+      embassiesOpen.value = true
+      localStorage.setItem('embassiesOpen', 'true')
+    } else {
+      embassiesOpen.value = localStorage.getItem('embassiesOpen') === 'true'
+    }
+  }
+});
+
+// Watch for route changes to maintain dropdown state
+watch(() => route.path, (newPath) => {
+  if (process.client) {
+    // Update dropdown states based on new route
+    if (newPath.startsWith('/dashboard/countries')) {
+      countriesOpen.value = true
+      visaproductsOpen.value = false
+      nationalitiesOpen.value = false
+      embassiesOpen.value = false
+      localStorage.setItem('countriesOpen', 'true')
+      localStorage.setItem('visaproductsOpen', 'false')
+      localStorage.setItem('nationalitiesOpen', 'false')
+      localStorage.setItem('embassiesOpen', 'false')
+    } else if (newPath.startsWith('/dashboard/visaproducts')) {
+      countriesOpen.value = false
+      visaproductsOpen.value = true
+      nationalitiesOpen.value = false
+      embassiesOpen.value = false
+      localStorage.setItem('countriesOpen', 'false')
+      localStorage.setItem('visaproductsOpen', 'true')
+      localStorage.setItem('nationalitiesOpen', 'false')
+      localStorage.setItem('embassiesOpen', 'false')
+    } else if (newPath.startsWith('/dashboard/nationalities')) {
+      countriesOpen.value = false
+      visaproductsOpen.value = false
+      nationalitiesOpen.value = true
+      embassiesOpen.value = false
+      localStorage.setItem('countriesOpen', 'false')
+      localStorage.setItem('visaproductsOpen', 'false')
+      localStorage.setItem('nationalitiesOpen', 'true')
+      localStorage.setItem('embassiesOpen', 'false')
+    } else if (newPath.startsWith('/dashboard/embassies')) {
+      countriesOpen.value = false
+      visaproductsOpen.value = false
+      nationalitiesOpen.value = false
+      embassiesOpen.value = true
+      localStorage.setItem('countriesOpen', 'false')
+      localStorage.setItem('visaproductsOpen', 'false')
+      localStorage.setItem('nationalitiesOpen', 'false')
+      localStorage.setItem('embassiesOpen', 'true')
+    }
+  }
+}, { immediate: true });
 
 // Dropdown states
 const settingsDropdownOpen = ref(false);
@@ -1124,6 +1323,14 @@ const toggleCountries = () => {
   nationalitiesOpen.value = false;
   embassiesOpen.value = false;
   countriesOpen.value = !countriesOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('countriesOpen', countriesOpen.value.toString());
+    localStorage.setItem('visaproductsOpen', 'false');
+    localStorage.setItem('nationalitiesOpen', 'false');
+    localStorage.setItem('embassiesOpen', 'false');
+  }
 };
 
 const toggleVisaproducts = () => {
@@ -1131,6 +1338,14 @@ const toggleVisaproducts = () => {
   nationalitiesOpen.value = false;
   embassiesOpen.value = false;
   visaproductsOpen.value = !visaproductsOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('visaproductsOpen', visaproductsOpen.value.toString());
+    localStorage.setItem('countriesOpen', 'false');
+    localStorage.setItem('nationalitiesOpen', 'false');
+    localStorage.setItem('embassiesOpen', 'false');
+  }
 };
 
 const toggleNationalities = () => {
@@ -1138,6 +1353,14 @@ const toggleNationalities = () => {
   visaproductsOpen.value = false;
   embassiesOpen.value = false;
   nationalitiesOpen.value = !nationalitiesOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('nationalitiesOpen', nationalitiesOpen.value.toString());
+    localStorage.setItem('countriesOpen', 'false');
+    localStorage.setItem('visaproductsOpen', 'false');
+    localStorage.setItem('embassiesOpen', 'false');
+  }
 };
 
 const toggleEmbassies = () => {
@@ -1145,6 +1368,14 @@ const toggleEmbassies = () => {
   visaproductsOpen.value = false;
   nationalitiesOpen.value = false;
   embassiesOpen.value = !embassiesOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('embassiesOpen', embassiesOpen.value.toString());
+    localStorage.setItem('countriesOpen', 'false');
+    localStorage.setItem('visaproductsOpen', 'false');
+    localStorage.setItem('nationalitiesOpen', 'false');
+  }
 };
 
 
