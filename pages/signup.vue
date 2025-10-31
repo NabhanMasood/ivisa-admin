@@ -27,6 +27,11 @@
             <p class="text-lg text-gray-500">Please fill in your details</p>
         </div>
 
+          <!-- Error Message -->
+          <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-600">{{ errorMessage }}</p>
+          </div>
+
           <!-- Form -->
           <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 sm:gap-6 w-full">
             <!-- Name Row -->
@@ -229,11 +234,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { useAuthApi } from "~/composables/useAuthApi";
+
 useHead({
   title: "Sign Up - iVisa",
   meta: [{ name: "description", content: "Create your iVisa account" }],
 });
+
+// Initialize API
+const { register } = useAuthApi();
+const router = useRouter();
 
 const firstName = ref("");
 const lastName = ref("");
@@ -244,6 +255,7 @@ const lastNameError = ref("");
 const emailError = ref("");
 const passwordError = ref("");
 const isLoading = ref(false);
+const errorMessage = ref("");
 
 const isFormValid = computed(() => {
   return (
@@ -274,28 +286,70 @@ watch(password, (v) => {
 });
 
 const handleSubmit = async () => {
+  // Reset errors
+  firstNameError.value = "";
+  lastNameError.value = "";
+  emailError.value = "";
+  passwordError.value = "";
+  errorMessage.value = "";
+
+  // Validate form
   firstNameError.value = !firstName.value ? "First name is required" : "";
   lastNameError.value = !lastName.value ? "Last name is required" : "";
-  emailError.value = !email.value ? "Email is required" : (!validateEmail(email.value) ? "Please enter a valid email address" : "");
-  passwordError.value = !password.value ? "Password is required" : (password.value.length < 8 ? "Password must be at least 8 characters" : "");
+  emailError.value = !email.value
+    ? "Email is required"
+    : !validateEmail(email.value)
+    ? "Please enter a valid email address"
+    : "";
+  passwordError.value = !password.value
+    ? "Password is required"
+    : password.value.length < 8
+    ? "Password must be at least 8 characters"
+    : "";
+
   if (!isFormValid.value) return;
 
   isLoading.value = true;
   try {
-    await new Promise((r) => setTimeout(r, 1500));
-    console.log("Signup successful", { firstName: firstName.value, lastName: lastName.value, email: email.value });
-    await navigateTo("/dashboard/countries");
+    // Prepare full name from first and last name
+    const fullName = `${firstName.value.trim()} ${lastName.value.trim()}`;
+
+    const response = await register({
+      fullName: fullName,
+      email: email.value.trim(),
+      password: password.value,
+    });
+
+    if (response.success) {
+      // Success - redirect to login page or dashboard
+      await router.push("/login");
+    }
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error ? error.message : "Registration failed. Please try again.";
+    
+    // Set individual field errors if applicable
+    const errorMsg = errorMessage.value.toLowerCase();
+    if (errorMsg.includes("email")) {
+      emailError.value = errorMessage.value;
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
-const handleSocial = async (provider) => {
+const handleSocial = async (provider: string) => {
   isLoading.value = true;
+  errorMessage.value = "";
+
   try {
-    await new Promise((r) => setTimeout(r, 1000));
+    // TODO: Implement social signup OAuth flow
+    errorMessage.value = `${provider} signup is not yet implemented`;
     console.log(`Signup with ${provider}`);
-    await navigateTo("/dashboard/countries");
+    // await router.push("/dashboard/countries");
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error ? error.message : `Failed to signup with ${provider}`;
   } finally {
     isLoading.value = false;
   }

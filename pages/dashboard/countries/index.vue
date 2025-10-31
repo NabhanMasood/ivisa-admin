@@ -60,8 +60,55 @@
               </div>
             </div>
 
+            <!-- Loading State -->
+            <div
+              v-if="isLoading"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden flex items-center justify-center py-12"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin"></div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Loading countries...</p>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div
+              v-else-if="errorMessage"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <p class="text-sm text-red-600 dark:text-red-400">{{ errorMessage }}</p>
+                <button
+                  @click="loadCountries"
+                  class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div
+              v-else-if="!isLoading && countries.length === 0"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden p-12"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <p class="text-sm text-gray-600 dark:text-gray-400">No countries found</p>
+                <button
+                  @click="navigateToAddCountry"
+                  class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Add Your First Country
+                </button>
+              </div>
+            </div>
+
             <!-- Countries Table -->
             <div
+              v-else
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
             >
@@ -87,20 +134,7 @@
                       <th
                         class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
                       >
-                        <div class="flex items-center space-x-1">
-                          <span>Products</span>
-                          <svg
-                            class="h-4 w-4 text-gray-400"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fill-rule="evenodd"
-                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                              clip-rule="evenodd"
-                            ></path>
-                          </svg>
-                        </div>
+                        Date Added
                       </th>
                       <th class="w-20 px-4 py-3"></th>
                     </tr>
@@ -122,12 +156,12 @@
                       <td
                         class="px-4 py-3 text-sm text-[#475467] dark:text-white font-medium"
                       >
-                        {{ country.name }}
+                        {{ country.countryName }}
                       </td>
                       <td
                         class="px-4 py-3 text-sm text-[#475467] dark:text-white"
                       >
-                        {{ country.products }}
+                        {{ country.createdAt || 'N/A' }}
                       </td>
                       <td class="px-4 py-3">
                         <div class="flex items-center space-x-2">
@@ -219,140 +253,59 @@
   </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import {
-  Plus,
-  Columns,
-  Search,
-  ChevronUp,
-  ChevronDown,
-  MoreVertical,
-  MoreHorizontal,
-  Eye,
-  Pencil,
-} from "lucide-vue-next";
+import { Plus } from "lucide-vue-next";
+import { useCountriesApi, type Country } from "~/composables/useCountriesApi";
 
 // Set page title
 useHead({
   title: "Countries - iVisa",
 });
 
-// Sample countries data
-const countries = ref([
-  {
-    id: 1,
-    name: "United States",
-    products: "Tourist Visa, Business Visa",
-    selected: false,
-  },
-  {
-    id: 2,
-    name: "United Kingdom",
-    products: "Tourist Visa, Work Visa",
-    selected: false,
-  },
-  {
-    id: 3,
-    name: "Canada",
-    products: "Tourist Visa, Student Visa",
-    selected: false,
-  },
-  {
-    id: 4,
-    name: "Germany",
-    products: "Schengen Visa, Work Visa",
-    selected: false,
-  },
-  {
-    id: 5,
-    name: "France",
-    products: "Schengen Visa, Tourist Visa",
-    selected: false,
-  },
-  {
-    id: 6,
-    name: "Japan",
-    products: "Tourist Visa, Business Visa",
-    selected: false,
-  },
-  {
-    id: 7,
-    name: "Australia",
-    products: "Tourist Visa, Work Visa",
-    selected: false,
-  },
-  {
-    id: 8,
-    name: "Singapore",
-    products: "Tourist Visa, Business Visa",
-    selected: false,
-  },
-  {
-    id: 9,
-    name: "Thailand",
-    products: "Tourist Visa, Work Visa",
-    selected: false,
-  },
-  {
-    id: 10,
-    name: "UAE",
-    products: "Tourist Visa, Business Visa",
-    selected: false,
-  },
-]);
+// Initialize API
+const { getCountries } = useCountriesApi();
 
+// Reactive state
+const countries = ref<Array<Country & { selected: boolean }>>([]);
+const isLoading = ref(false);
+const errorMessage = ref("");
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
 
-// Notifications data
-const notifications = ref([
-  {
-    id: 1,
-    title: "Your order is placed",
-    message: "Amet minim mollit non deser unt ullamco e...",
-    time: "2 days ago",
-    unread: false,
-  },
-  {
-    id: 2,
-    title: "Congratulations Darlene 🎉",
-    message: "Won the monthly best seller badge",
-    time: "11 am",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Joaquina Weisenborn",
-    message: "Requesting access permission",
-    time: "12 pm",
-    unread: true,
-    hasActions: true,
-  },
-  {
-    id: 4,
-    title: "Brooklyn Simmons",
-    message: "Added you to Top Secret Project...",
-    time: "1 pm",
-    unread: true,
-  },
-]);
+// Load countries from API
+const loadCountries = async () => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    
+    const response = await getCountries();
+    
+    if (response.success && response.data) {
+      // Map API data to include selected property
+      countries.value = response.data.map((country) => ({
+        ...country,
+        selected: false,
+      }));
+    } else {
+      countries.value = [];
+      errorMessage.value = response.message || "Failed to load countries";
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to load countries. Please try again.";
+    countries.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 // Computed properties
-const sidebarClasses = computed(() => {
-  if (sidebarCollapsed.value) {
-    return "w-64 lg:w-16 -translate-x-full lg:translate-x-0";
-  } else {
-    return "w-64 lg:w-64 translate-x-0";
-  }
-});
-
 const filteredCountries = computed(() => {
   if (!searchQuery.value) return countries.value;
 
   return countries.value.filter((country) =>
-    country.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    country.countryName?.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
@@ -367,11 +320,11 @@ const navigateToAddCountry = () => {
   router.push("/dashboard/countries/add");
 };
 
-const viewCountry = (country) => {
+const viewCountry = (country: Country) => {
   router.push(`/dashboard/countries/add?id=${country.id}&mode=view`);
 };
 
-const editCountry = (country) => {
+const editCountry = (country: Country) => {
   router.push(`/dashboard/countries/add?id=${country.id}&mode=edit`);
 };
 
@@ -382,4 +335,13 @@ watch(selectAll, (newValue) => {
   });
 });
 
+// Load countries on mount
+onMounted(() => {
+  loadCountries();
+});
+
+// Refresh countries list when page becomes active (useful when returning from edit page)
+onActivated(() => {
+  loadCountries();
+});
 </script>

@@ -23,4 +23,11 @@ export default defineNuxtConfig({
   nitro: {
     preset: "vercel",
   },
+
+  // Runtime config for API
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.API_BASE_URL ?? 'https://ivisa123-backend-production.up.railway.app',
+    },
+  },
 });

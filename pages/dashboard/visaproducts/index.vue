@@ -156,8 +156,55 @@
               </div>
             </div>
 
+            <!-- Loading State -->
+            <div
+              v-if="isLoading"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden flex items-center justify-center py-12"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin"></div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Loading visa products...</p>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div
+              v-else-if="errorMessage"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <p class="text-sm text-red-600 dark:text-red-400">{{ errorMessage }}</p>
+                <button
+                  @click="loadVisaProducts"
+                  class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div
+              v-else-if="!isLoading && visaProducts.length === 0"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden p-12"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <p class="text-sm text-gray-600 dark:text-gray-400">No visa products found</p>
+                <button
+                  @click="navigateToAddVisaProduct"
+                  class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Add Your First Visa Product
+                </button>
+              </div>
+            </div>
+
             <!-- Visa Products Table -->
             <div
+              v-else
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
             >
@@ -191,7 +238,7 @@
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                     <tr
                       v-for="visaProduct in filteredVisaProducts"
-                      :key="visaProduct.id"
+                      :key="visaProduct.country"
                       class="hover:bg-gray-50 dark:hover:bg-gray-900"
                     >
                       <td class="px-4 py-3">
@@ -210,7 +257,7 @@
                       <td
                         class="px-4 py-3 text-sm text-[#475467] dark:text-white"
                       >
-                        {{ visaProduct.products.map(product => product.productName).join(', ') }}
+                        {{ visaProduct.productCount }}
                       </td>
                       <td class="px-4 py-3">
                         <div class="flex items-center space-x-2">
@@ -239,25 +286,6 @@
                               ></path>
                             </svg>
                           </button>
-                          <!-- <button
-                            @click="editVisaProduct(visaProduct)"
-                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                            title="Edit"
-                          >
-                            <svg
-                              class="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              ></path>
-                            </svg>
-                          </button> -->
                         </div>
                       </td>
                     </tr>
@@ -302,278 +330,23 @@
   </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import {
-  Plus,
-  Columns,
-  Search,
-  ChevronUp,
-  ChevronDown,
-  MoreVertical,
-  MoreHorizontal,
-  Eye,
-  Pencil,
-} from "lucide-vue-next";
+import { Plus, Columns } from "lucide-vue-next";
+import { useVisaProductsApi, type GroupedVisaProductByCountry } from "~/composables/useVisaProductsApi";
 
 // Set page title
 useHead({
   title: "Visa Products - iVisa",
 });
 
-// Sample visa products data - showing one visa per country for the main list
-const visaProducts = ref([
-  {
-    id: 1,
-    country: "United States",
-    products: [
-      {
-        productName: "Tourist Visa (B-2)",
-        duration: "6 months",
-        validity: "10 years",
-        price: "$160",
-      },
-      {
-        productName: "Business Visa (B-1)",
-        duration: "6 months",
-        validity: "10 years",
-        price: "$180",
-      },
-      {
-        productName: "Student Visa (F-1)",
-        duration: "4 years",
-        validity: "5 years",
-        price: "$200",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 2,
-    country: "United Kingdom",
-    products: [
-      {
-        productName: "Tourist Visa",
-        duration: "6 months",
-        validity: "6 months",
-        price: "$100",
-      },
-      {
-        productName: "Business Visa",
-        duration: "6 months",
-        validity: "2 years",
-        price: "$150",
-      },
-      {
-        productName: "Student Visa",
-        duration: "2 years",
-        validity: "5 years",
-        price: "$220",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 3,
-    country: "Canada",
-    products: [
-      {
-        productName: "Tourist Visa",
-        duration: "6 months",
-        validity: "10 years",
-        price: "$100",
-      },
-      {
-        productName: "Work Visa",
-        duration: "2 years",
-        validity: "3 years",
-        price: "$250",
-      },
-      {
-        productName: "Student Visa",
-        duration: "4 years",
-        validity: "5 years",
-        price: "$190",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 4,
-    country: "Germany",
-    products: [
-      {
-        productName: "Schengen Visa",
-        duration: "90 days",
-        validity: "6 months",
-        price: "$80",
-      },
-      {
-        productName: "Business Visa",
-        duration: "90 days",
-        validity: "1 year",
-        price: "$120",
-      },
-      {
-        productName: "Work Visa",
-        duration: "2 years",
-        validity: "3 years",
-        price: "$260",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 5,
-    country: "France",
-    products: [
-      {
-        productName: "Tourist Visa",
-        duration: "30 days",
-        validity: "3 months",
-        price: "$90",
-      },
-      {
-        productName: "Schengen Visa",
-        duration: "90 days",
-        validity: "6 months",
-        price: "$100",
-      },
-      {
-        productName: "Student Visa",
-        duration: "2 years",
-        validity: "3 years",
-        price: "$210",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 6,
-    country: "Japan",
-    products: [
-      {
-        productName: "Business Visa",
-        duration: "90 days",
-        validity: "1 year",
-        price: "$120",
-      },
-      {
-        productName: "Tourist Visa",
-        duration: "30 days",
-        validity: "3 years",
-        price: "$90",
-      },
-      {
-        productName: "Work Visa",
-        duration: "1 year",
-        validity: "3 years",
-        price: "$250",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 7,
-    country: "Australia",
-    products: [
-      {
-        productName: "Work Visa",
-        duration: "2 years",
-        validity: "3 years",
-        price: "$300",
-      },
-      {
-        productName: "Tourist Visa",
-        duration: "3 months",
-        validity: "1 year",
-        price: "$140",
-      },
-      {
-        productName: "Student Visa",
-        duration: "4 years",
-        validity: "5 years",
-        price: "$280",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 8,
-    country: "Singapore",
-    products: [
-      {
-        productName: "Tourist Visa",
-        duration: "30 days",
-        validity: "2 years",
-        price: "$50",
-      },
-      {
-        productName: "Business Visa",
-        duration: "60 days",
-        validity: "1 year",
-        price: "$90",
-      },
-      {
-        productName: "Work Visa",
-        duration: "1 year",
-        validity: "2 years",
-        price: "$180",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 9,
-    country: "Thailand",
-    products: [
-      {
-        productName: "Tourist Visa",
-        duration: "30 days",
-        validity: "3 months",
-        price: "$40",
-      },
-      {
-        productName: "Business Visa",
-        duration: "90 days",
-        validity: "6 months",
-        price: "$80",
-      },
-      {
-        productName: "Work Visa",
-        duration: "1 year",
-        validity: "1 year",
-        price: "$150",
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 10,
-    country: "UAE",
-    products: [
-      {
-        productName: "Business Visa",
-        duration: "90 days",
-        validity: "6 months",
-        price: "$250",
-      },
-      {
-        productName: "Tourist Visa",
-        duration: "30 days",
-        validity: "3 months",
-        price: "$150",
-      },
-      {
-        productName: "Freelancer Visa",
-        duration: "2 years",
-        validity: "3 years",
-        price: "$350",
-      },
-    ],
-    selected: false,
-  },
-]);
+// Initialize API
+const { getGroupedVisaProductsByCountries } = useVisaProductsApi();
+
+// Reactive state
+const visaProducts = ref<Array<GroupedVisaProductByCountry & { selected: boolean }>>([]);
+const isLoading = ref(false);
+const errorMessage = ref("");
 
 
 const searchQuery = ref("");
@@ -581,59 +354,39 @@ const selectAll = ref(false);
 const currentPage = ref(1);
 
 // Dropdown state
-const statusDropdownOpen = ref(false);
-const planDropdownOpen = ref(false);
-const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
 
-// Notifications data
-const notifications = ref([
-  {
-    id: 1,
-    title: "Your order is placed",
-    message: "Amet minim mollit non deser unt ullamco e...",
-    time: "2 days ago",
-    unread: false,
-  },
-  {
-    id: 2,
-    title: "Congratulations Darlene 🎉",
-    message: "Won the monthly best seller badge",
-    time: "11 am",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Joaquina Weisenborn",
-    message: "Requesting access permission",
-    time: "12 pm",
-    unread: true,
-    hasActions: true,
-  },
-  {
-    id: 4,
-    title: "Brooklyn Simmons",
-    message: "Added you to Top Secret Project...",
-    time: "1 pm",
-    unread: true,
-  },
-]);
-
-// Computed properties
-const sidebarClasses = computed(() => {
-  if (sidebarCollapsed.value) {
-    return "w-64 lg:w-16 -translate-x-full lg:translate-x-0";
-  } else {
-    return "w-64 lg:w-64 translate-x-0";
+// Load visa products from API
+const loadVisaProducts = async () => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    
+    const response = await getGroupedVisaProductsByCountries();
+    
+    if (response.success && response.data) {
+      // Map API data to include selected property
+      visaProducts.value = response.data.map((product) => ({
+        ...product,
+        selected: false,
+      }));
+    } else {
+      visaProducts.value = [];
+      errorMessage.value = response.message || "Failed to load visa products";
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to load visa products. Please try again.";
+    visaProducts.value = [];
+  } finally {
+    isLoading.value = false;
   }
-});
+};
 
 const filteredVisaProducts = computed(() => {
   if (!searchQuery.value) return visaProducts.value;
 
   return visaProducts.value.filter((visaProduct) =>
-    visaProduct.productName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    visaProduct.country.toLowerCase().includes(searchQuery.value.toLowerCase())
+    visaProduct.country?.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
@@ -648,7 +401,7 @@ const navigateToAddVisaProduct = () => {
   router.push("/dashboard/visaproducts/add");
 };
 
-const viewVisaProduct = (visaProduct) => {
+const viewVisaProduct = (visaProduct: GroupedVisaProductByCountry) => {
   // Navigate to country-specific visa products page
   const countrySlug = visaProduct.country.toLowerCase().replace(/\s+/g, '-');
   router.push(`/dashboard/visaproducts/country/${countrySlug}`);
@@ -696,5 +449,13 @@ watch(selectAll, (newValue) => {
   });
 });
 
-// Component mounted
+// Load visa products on mount
+onMounted(() => {
+  loadVisaProducts();
+});
+
+// Refresh visa products list when page becomes active
+onActivated(() => {
+  loadVisaProducts();
+});
 </script>

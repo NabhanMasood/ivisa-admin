@@ -3,7 +3,7 @@
     <label
       v-if="label"
       :for="id"
-      class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+      class="block text-sm font-medium text-gray-700 dark:text-white"
     >
       {{ label }}
     </label>

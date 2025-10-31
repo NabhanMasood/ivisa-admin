@@ -28,12 +28,31 @@
             Discard
           </button>
           <button
+            v-if="!isViewMode"
             @click="saveCountry"
-            class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+            :disabled="isLoading"
+            class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Save Changes
+            <span v-if="isLoading" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+            {{ isLoading ? 'Saving...' : 'Save Changes' }}
           </button>
         </div>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        v-if="errorMessage"
+        class="w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+      >
+        <p class="text-sm text-red-800 dark:text-red-200">{{ errorMessage }}</p>
+      </div>
+
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="w-full bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
+      >
+        <p class="text-sm text-green-800 dark:text-green-200">{{ successMessage }}</p>
       </div>
 
       <!-- Form Section -->
@@ -51,16 +70,22 @@
                   for="countryName"
                   class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
                 >
-                  Country Name
+                  Country Name <span class="text-red-500">*</span>
                 </label>
                 <input
                   id="countryName"
                   v-model="countryForm.name"
                   type="text"
                   placeholder="Enter Name"
-                  class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
+                  :disabled="isLoading || isViewMode"
+                  :class="[
+                    'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                    errorMessage ? 'border-red-500 dark:border-red-500' : '',
+                    isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                  ]"
                   style="border-radius: 7px"
                 />
+                <p v-if="fieldError" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ fieldError }}</p>
               </div>
             </div>
           </div>
@@ -70,9 +95,10 @@
   </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
 import { ArrowLeft } from "lucide-vue-next";
+import { useCountriesApi } from "~/composables/useCountriesApi";
 
 // Set page title
 useHead({
@@ -83,10 +109,19 @@ useHead({
 const route = useRoute();
 const router = useRouter();
 
+// Initialize API
+const { createCountry, updateCountry, getCountryById } = useCountriesApi();
+
 // Determine mode based on route parameters
 const isEditMode = computed(() => route.query.mode === 'edit');
 const isViewMode = computed(() => route.query.mode === 'view');
 const countryId = computed(() => route.query.id);
+
+// Reactive state
+const isLoading = ref(false);
+const errorMessage = ref('');
+const successMessage = ref('');
+const fieldError = ref('');
 
 // Form data
 const countryForm = ref({
@@ -95,66 +130,115 @@ const countryForm = ref({
   description: "",
 });
 
-// Sample countries data (in a real app, this would come from an API)
-const countriesData = [
-  {
-    id: 1,
-    name: "United States",
-    code: "US",
-    description: "United States of America",
-  },
-  {
-    id: 2,
-    name: "United Kingdom",
-    code: "UK",
-    description: "United Kingdom",
-  },
-  {
-    id: 3,
-    name: "Canada",
-    code: "CA",
-    description: "Canada",
-  },
-  {
-    id: 4,
-    name: "Germany",
-    code: "DE",
-    description: "Federal Republic of Germany",
-  },
-  {
-    id: 5,
-    name: "France",
-    code: "FR",
-    description: "French Republic",
-  },
-];
-
-// Load data if editing or viewing
-onMounted(() => {
-  if (countryId.value) {
-    const country = countriesData.find(c => c.id === parseInt(countryId.value));
-    if (country) {
-      countryForm.value = { ...country };
+// Load country data if editing or viewing
+const loadCountryData = async () => {
+  if (countryId.value && (isEditMode.value || isViewMode.value)) {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      
+      const response = await getCountryById(countryId.value);
+      
+      if (response.success && response.data) {
+        countryForm.value = {
+          name: response.data.countryName || '',
+          code: response.data.code || '',
+          description: response.data.description || '',
+        };
+      }
+    } catch (error) {
+      errorMessage.value = error instanceof Error ? error.message : 'Failed to load country data';
+    } finally {
+      isLoading.value = false;
     }
   }
+};
+
+// Load data on mount
+onMounted(() => {
+  loadCountryData();
 });
 
+// Navigation
 const goBack = () => {
   router.push("/dashboard/countries");
 };
 
-const saveCountry = () => {
-  // Validate form
+// Form validation
+const validateForm = (): boolean => {
+  errorMessage.value = '';
+  fieldError.value = '';
+  
   if (!countryForm.value.name.trim()) {
-    alert("Please enter a country name");
+    fieldError.value = 'Country name is required';
+    return false;
+  }
+  
+  return true;
+};
+
+// Save country (create or update)
+const saveCountry = async () => {
+  // Reset messages
+  errorMessage.value = '';
+  successMessage.value = '';
+  fieldError.value = '';
+  
+  // Validate form
+  if (!validateForm()) {
     return;
   }
-
-  // Here you would typically save to your backend
-  console.log("Saving country:", countryForm.value);
   
-  // For now, just show success and redirect
-  alert(isEditMode.value ? "Country updated successfully!" : "Country saved successfully!");
-  goBack();
+  try {
+    isLoading.value = true;
+    
+    if (isEditMode.value && countryId.value) {
+      // Update existing country
+      const response = await updateCountry(countryId.value, {
+        countryName: countryForm.value.name.trim(),
+        code: countryForm.value.code || undefined,
+        description: countryForm.value.description || undefined,
+      });
+      
+      if (response.success) {
+        successMessage.value = response.message || 'Country updated successfully!';
+        // Redirect after a short delay to show success message
+        setTimeout(() => {
+          goBack();
+        }, 1500);
+      }
+    } else {
+      // Create new country
+      const response = await createCountry({
+        countryName: countryForm.value.name.trim(),
+      });
+      
+      if (response.success) {
+        successMessage.value = response.message || 'Country created successfully!';
+        // Reset form
+        countryForm.value = {
+          name: "",
+          code: "",
+          description: "",
+        };
+        // Redirect after a short delay to show success message
+        setTimeout(() => {
+          goBack();
+        }, 1500);
+      }
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to save country. Please try again.';
+  } finally {
+    isLoading.value = false;
+  }
 };
+
+// Clear messages when form changes
+watch(() => countryForm.value.name, () => {
+  if (fieldError.value || errorMessage.value) {
+    fieldError.value = '';
+    errorMessage.value = '';
+  }
+});
 </script>

@@ -157,8 +157,38 @@
               </div>
             </div>
 
+            <!-- Loading State -->
+            <div
+              v-if="isLoading"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden flex items-center justify-center py-12"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin"></div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Loading nationalities...</p>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div
+              v-else-if="errorMessage"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <p class="text-sm text-red-600 dark:text-red-400">{{ errorMessage }}</p>
+                <button
+                  @click="loadNationalities"
+                  class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+
             <!-- Nationalities Table -->
             <div
+              v-else
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
             >
@@ -188,17 +218,18 @@
                           <span>Destinations</span>
                         </div>
                       </th>
-                      <th
-                        class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white"
-                      >
-                        <div class="flex items-center space-x-1">
-                          <span>Available Visa Permits</span>
-                        </div>
-                      </th>
                       <th class="w-20 px-4 py-3"></th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                    <tr
+                      v-if="filteredNationalities.length === 0"
+                      class="hover:bg-gray-50 dark:hover:bg-gray-900"
+                    >
+                      <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        No nationalities found
+                      </td>
+                    </tr>
                     <tr
                       v-for="nationality in filteredNationalities"
                       :key="nationality.id"
@@ -222,11 +253,7 @@
                       >
                         {{ nationality.destinations }}
                       </td>
-                      <td
-                        class="px-4 py-3 text-sm text-[#475467] dark:text-white"
-                      >
-                        {{ nationality.visaPermits }}
-                      </td>
+                     
                       <td class="px-4 py-3">
                         <div class="flex items-center space-x-2">
                           <button
@@ -318,107 +345,82 @@
         </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   Plus,
   Columns,
   Search,
 } from "lucide-vue-next";
+import { useNationalitiesApi } from "~/composables/useNationalitiesApi";
 
 // Set page title
 useHead({
   title: "Nationalities - iVisa",
 });
 
-// Sample nationalities data
-const nationalities = ref([
-  {
-    id: 1,
-    name: "Pakistani",
-    destinations: "USA, UK, Canada",
-    visaPermits: "Tourist, Business, Student",
-    selected: false,
-  },
-  {
-    id: 2,
-    name: "Indian",
-    destinations: "USA, UK, Australia",
-    visaPermits: "Tourist, Work, Student",
-    selected: false,
-  },
-  {
-    id: 3,
-    name: "Bangladeshi",
-    destinations: "UK, Canada, Germany",
-    visaPermits: "Tourist, Business, Work",
-    selected: false,
-  },
-  {
-    id: 4,
-    name: "Sri Lankan",
-    destinations: "USA, UK, Australia",
-    visaPermits: "Tourist, Student, Work",
-    selected: false,
-  },
-  {
-    id: 5,
-    name: "Nepalese",
-    destinations: "USA, UK, Canada",
-    visaPermits: "Tourist, Business, Student",
-    selected: false,
-  },
-  {
-    id: 6,
-    name: "Afghan",
-    destinations: "USA, UK, Germany",
-    visaPermits: "Tourist, Work, Student",
-    selected: false,
-  },
-  {
-    id: 7,
-    name: "Iranian",
-    destinations: "UK, Canada, Australia",
-    visaPermits: "Tourist, Business, Student",
-    selected: false,
-  },
-  {
-    id: 8,
-    name: "Iraqi",
-    destinations: "USA, UK, Canada",
-    visaPermits: "Tourist, Work, Student",
-    selected: false,
-  },
-  {
-    id: 9,
-    name: "Syrian",
-    destinations: "UK, Canada, Germany",
-    visaPermits: "Tourist, Work, Student",
-    selected: false,
-  },
-  {
-    id: 10,
-    name: "Yemeni",
-    destinations: "USA, UK, Australia",
-    visaPermits: "Tourist, Business, Student",
-    selected: false,
-  },
-]);
+// Initialize API
+const { getNationalitiesList } = useNationalitiesApi();
 
+// Reactive state
+const nationalities = ref<Array<{
+  id: string;
+  name: string;
+  destinations: number;
+  visaPermits?: string;
+  selected: boolean;
+}>>([]);
+const isLoading = ref(false);
+const errorMessage = ref("");
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
-const statusDropdownOpen = ref(false);
-const planDropdownOpen = ref(false);
-const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
+
+// Load nationalities from API
+const loadNationalities = async () => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    
+    const query = searchQuery.value.trim();
+    const response = await getNationalitiesList(query || undefined);
+    
+    if (response.success && response.data) {
+      // Map API data to include id and selected property
+      nationalities.value = response.data.map((item, index) => ({
+        id: `nationality-${index}-${item.nationality}`,
+        name: item.nationality,
+        destinations: item.destinations,
+        visaPermits: undefined, // API doesn't provide this
+        selected: false,
+      }));
+    } else {
+      nationalities.value = [];
+      errorMessage.value = response.message || "Failed to load nationalities";
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to load nationalities. Please try again.";
+    nationalities.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Debounce search
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+watch(searchQuery, (newQuery) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+  searchTimeout = setTimeout(() => {
+    loadNationalities();
+  }, 300); // 300ms debounce
+});
 
 // Computed properties
 const filteredNationalities = computed(() => {
-  if (!searchQuery.value) return nationalities.value;
-
-  return nationalities.value.filter((nationality) =>
-    nationality.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+  // API already filters by search query, so return all nationalities
+  return nationalities.value;
 });
 
 const selectedCount = computed(() => {
@@ -432,39 +434,15 @@ const navigateToAddNationality = () => {
   router.push("/dashboard/nationalities/add");
 };
 
-const viewNationality = (nationality) => {
-  router.push(`/dashboard/nationalities/add?id=${nationality.id}&mode=view`);
+const viewNationality = (nationality: { name: string }) => {
+  router.push(`/dashboard/nationalities/${encodeURIComponent(nationality.name)}/destinations`);
 };
 
 const editNationality = (nationality) => {
   router.push(`/dashboard/nationalities/add?id=${nationality.id}&mode=edit`);
 };
 
-const toggleStatusDropdown = () => {
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  statusDropdownOpen.value = !statusDropdownOpen.value;
-};
-
-const togglePlanDropdown = () => {
-  statusDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  planDropdownOpen.value = !planDropdownOpen.value;
-};
-
-const toggleRoleDropdown = () => {
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  roleDropdownOpen.value = !roleDropdownOpen.value;
-};
-
 const toggleColumnsDropdown = () => {
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
   columnsDropdownOpen.value = !columnsDropdownOpen.value;
 };
 
@@ -475,4 +453,13 @@ watch(selectAll, (newValue) => {
   });
 });
 
+// Load nationalities on mount
+onMounted(() => {
+  loadNationalities();
+});
+
+// Refresh nationalities list when page becomes active
+onActivated(() => {
+  loadNationalities();
+});
 </script>

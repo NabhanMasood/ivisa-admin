@@ -34,6 +34,11 @@
             <p class="text-lg text-gray-500 mt-4">Please sign in to your account</p>
           </div>
 
+          <!-- Error Message -->
+          <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-600">{{ errorMessage }}</p>
+          </div>
+
           <!-- Form -->
           <form
             @submit.prevent="handleSubmit"
@@ -264,7 +269,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { useAuthApi } from "~/composables/useAuthApi";
+
 // Page metadata
 useHead({
   title: "Sign In - IVisa",
@@ -278,12 +285,17 @@ useHead({
   ],
 });
 
+// Initialize API
+const { login } = useAuthApi();
+const router = useRouter();
+
 // Reactive data
 const email = ref("");
 const password = ref("");
 const emailError = ref("");
 const passwordError = ref("");
 const isLoading = ref(false);
+const errorMessage = ref("");
 
 // Computed properties
 const isFormValid = computed(() => {
@@ -324,6 +336,7 @@ const handleSubmit = async () => {
   // Reset errors
   emailError.value = "";
   passwordError.value = "";
+  errorMessage.value = "";
 
   // Validate form
   if (!email.value) {
@@ -346,46 +359,47 @@ const handleSubmit = async () => {
     return;
   }
 
-  // Simulate API call
+  // API call
   isLoading.value = true;
 
   try {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Simulate success - redirect to dashboard or home
-    console.log("Login successful:", {
-      email: email.value,
+    const response = await login({
+      email: email.value.trim(),
+      password: password.value,
     });
 
-    // Here you would typically:
-    // 1. Store authentication token
-    // 2. Redirect to dashboard
-    // 3. Handle remember me functionality
-
-    // Redirect to dashboard countries page
-    await navigateTo("/dashboard/countries");
+    if (response.success) {
+      // Success - token is already stored in cookie by login function
+      // Redirect to dashboard countries page
+      await router.push("/dashboard/countries");
+    }
   } catch (error) {
-    emailError.value = "Invalid email or password";
+    errorMessage.value = error instanceof Error ? error.message : "Invalid email or password";
+    // Also set individual field errors for better UX
+    if (errorMessage.value.toLowerCase().includes("email")) {
+      emailError.value = errorMessage.value;
+    } else {
+      passwordError.value = errorMessage.value || "Invalid email or password";
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
 // Handle social login
-const handleSocialLogin = async (provider) => {
+const handleSocialLogin = async (provider: string) => {
   isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    // Simulate social login
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
+    // TODO: Implement social login OAuth flow
     console.log(`Social login with ${provider}`);
-    alert(`${provider} login successful! (This is a demo)`);
+    errorMessage.value = `${provider} login is not yet implemented`;
     
-    // Redirect to dashboard after successful social login
-    await navigateTo("/dashboard/countries");
+    // For now, just show a message
+    // await router.push("/dashboard/countries");
   } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : `Failed to login with ${provider}`;
     console.error(`Social login error with ${provider}:`, error);
   } finally {
     isLoading.value = false;
