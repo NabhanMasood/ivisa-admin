@@ -10,6 +10,7 @@ onMounted(() => {
   const route = useRoute()
   if (route.path === '/') {
     navigateTo('/dashboard')
+    console.log("hello);
   }
 })
 </script>
