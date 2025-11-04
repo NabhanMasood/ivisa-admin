@@ -14,7 +14,7 @@
           </button>
           <div class="flex-1 min-w-0">
             <h1 class="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ customer.name }} - Customer Details
+              {{ customer?.customerName || 'Loading...' }} - Customer Details
             </h1>
           </div>
         </div>
@@ -73,25 +73,33 @@
             </label>
           </div>
               <div class="flex flex-col">
-                <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Customer Name</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.name }}</span>
+                <div v-if="isLoading" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Loading customer details...
                 </div>
-                <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Email</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.email }}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Phone</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.phone }}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Residence Country</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.nationality }}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-4 pt-5 ">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Created Date</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.registrationDate }}</span>
+                <template v-else-if="customer">
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Customer Name</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.customerName }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Email</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.email }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Phone</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.phone }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Residence Country</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.residenceCountry }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 pt-5">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Created Date</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.createdDate }}</span>
+                  </div>
+                </template>
+                <div v-else class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {{ errorMessage || 'Customer not found' }}
                 </div>
             </div>
           </div>
@@ -185,6 +193,21 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                    <!-- Loading State -->
+                    <tr v-if="isLoadingApplications">
+                      <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Loading applications...
+                      </td>
+                    </tr>
+                    
+                    <!-- Empty State -->
+                    <tr v-else-if="!isLoadingApplications && filteredCustomerApplications.length === 0">
+                      <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        No applications found for this customer.
+                      </td>
+                    </tr>
+                    
+                    <!-- Data Rows -->
                     <tr
                       v-for="application in filteredCustomerApplications"
                       :key="application.id"
@@ -209,7 +232,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ application.applicationId }}
+                        {{ application.applicationNumber || `APP-${String(application.id).padStart(5, '0')}` }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -222,7 +245,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ application.destination }}
+                        {{ application.destination || '-' }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -235,7 +258,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ application.visaProduct }}
+                        {{ application.visaProduct || '-' }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -248,7 +271,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ application.price }}
+                        {{ application.price || '-' }}
                       </td>
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <span
@@ -332,17 +355,25 @@
             </label>
           </div>
               <div class="flex flex-col">
-                <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Total Orders</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.totalApplications }}</span>
+                <div v-if="isLoadingBilling" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Loading billing information...
                 </div>
-                <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Total Spent</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.totalSpent }}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-4 py-5 ">
-                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Last Payment</span>
-                  <span class="text-sm text-gray-900 dark:text-white">{{ customer.lastActivity }}</span>
+                <template v-else-if="billingInfo">
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Total Orders</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ billingInfo.totalOrders }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Total Spent</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ billingInfo.totalSpent ? `USD ${billingInfo.totalSpent}` : 'USD 0.00' }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Last Payment</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ billingInfo.lastPayment || '-' }}</span>
+                  </div>
+                </template>
+                <div v-else class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Billing information not available
                 </div>
             </div>
           </div>
@@ -355,190 +386,108 @@
 <script setup>
 import DashboardLayout from "~/components/DashboardLayout.vue";
 import { ArrowLeft, Eye, Pencil } from "lucide-vue-next";
+import { useCustomersApi } from "~/composables/useCustomersApi";
 
-// Get route parameters
 const route = useRoute();
 const router = useRouter();
 const customerId = computed(() => route.params.id);
 
-// Active tab state
+const { getCustomerById, getCustomerBilling, getCustomerApplications } = useCustomersApi();
+
 const activeTab = ref('details');
+const customer = ref(null);
+const billingInfo = ref(null);
+const customerApplications = ref([]);
+const isLoading = ref(false);
+const isLoadingBilling = ref(false);
+const isLoadingApplications = ref(false);
+const errorMessage = ref("");
 
-// Sample customers data (same as in index page)
-const allCustomers = ref([
-  {
-    id: 1,
-    name: "Ali Raza",
-    email: "ali.raza@email.com",
-    phone: "+92 300 1234567",
-    totalApplications: 5,
-    status: "Active",
-    nationality: "Pakistan",
-    country: "Pakistan",
-    registrationDate: "2024-01-15",
-    lastActivity: "2024-12-20",
-    totalSpent: "USD 1,200",
-    billingAddress: "123 Main Street, Karachi, Pakistan",
-    paymentMethod: "Credit Card",
-    cardNumber: "**** **** **** 1234",
-    expiryDate: "12/25",
-    billingStatus: "Active"
-  },
-  {
-    id: 2,
-    name: "Sarah Khan",
-    email: "sarah.khan@email.com",
-    phone: "+92 301 2345678",
-    totalApplications: 3,
-    status: "Active",
-    nationality: "Pakistan",
-    country: "Pakistan",
-    registrationDate: "2024-02-10",
-    lastActivity: "2024-12-18",
-    totalSpent: "USD 800",
-    billingAddress: "456 Park Avenue, Lahore, Pakistan",
-    paymentMethod: "Debit Card",
-    cardNumber: "**** **** **** 5678",
-    expiryDate: "08/26",
-    billingStatus: "Active"
-  },
-  {
-    id: 3,
-    name: "John Smith",
-    email: "john.smith@email.com",
-    phone: "+1 555 1234567",
-    totalApplications: 8,
-    status: "Inactive",
-    nationality: "USA",
-    country: "USA",
-    registrationDate: "2024-01-05",
-    lastActivity: "2024-11-15",
-    totalSpent: "USD 2,400",
-    billingAddress: "789 Oak Street, New York, USA",
-    paymentMethod: "Credit Card",
-    cardNumber: "**** **** **** 9012",
-    expiryDate: "03/27",
-    billingStatus: "Inactive"
-  },
-  {
-    id: 4,
-    name: "Maria Garcia",
-    email: "maria.garcia@email.com",
-    phone: "+34 600 123456",
-    totalApplications: 2,
-    status: "Active",
-    nationality: "Spain",
-    country: "Spain",
-    registrationDate: "2024-03-20",
-    lastActivity: "2024-12-19",
-    totalSpent: "USD 600",
-    billingAddress: "321 Pine Street, Madrid, Spain",
-    paymentMethod: "PayPal",
-    cardNumber: "N/A",
-    expiryDate: "N/A",
-    billingStatus: "Active"
-  },
-  {
-    id: 5,
-    name: "Ahmed Hassan",
-    email: "ahmed.hassan@email.com",
-    phone: "+92 302 3456789",
-    totalApplications: 7,
-    status: "Active",
-    nationality: "Pakistan",
-    country: "Pakistan",
-    registrationDate: "2024-02-28",
-    lastActivity: "2024-12-21",
-    totalSpent: "USD 1,800",
-    billingAddress: "654 Elm Street, Islamabad, Pakistan",
-    paymentMethod: "Credit Card",
-    cardNumber: "**** **** **** 3456",
-    expiryDate: "11/25",
-    billingStatus: "Active"
+const loadCustomerDetails = async () => {
+  if (!customerId.value) return;
+  
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    
+    const response = await getCustomerById(customerId.value);
+    
+    if (response.success && response.data) {
+      customer.value = response.data;
+    } else {
+      errorMessage.value = response.message || "Failed to load customer details";
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to load customer details. Please try again.";
+  } finally {
+    isLoading.value = false;
   }
-]);
+};
 
-// Get current customer data based on ID
-const customer = computed(() => {
-  const id = parseInt(customerId.value);
-  return allCustomers.value.find(c => c.id === id) || allCustomers.value[0];
+const loadBillingInfo = async () => {
+  if (!customerId.value) return;
+  
+  try {
+    isLoadingBilling.value = true;
+    const response = await getCustomerBilling(customerId.value);
+    
+    if (response.success && response.data) {
+      billingInfo.value = response.data;
+    }
+  } catch (error) {
+    // Handle error silently
+  } finally {
+    isLoadingBilling.value = false;
+  }
+};
+
+const loadApplications = async () => {
+  if (!customerId.value) return;
+  
+  try {
+    isLoadingApplications.value = true;
+    const response = await getCustomerApplications(customerId.value);
+    
+    if (response.success && response.data) {
+      customerApplications.value = response.data.map((app) => ({
+        ...app,
+        selected: false,
+      }));
+    }
+  } catch (error) {
+    // Handle error silently
+  } finally {
+    isLoadingApplications.value = false;
+  }
+};
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'billing' && !billingInfo.value) {
+    loadBillingInfo();
+  }
+  if (newTab === 'applications' && customerApplications.value.length === 0) {
+    loadApplications();
+  }
 });
 
-// Set page title
 useHead({
-  title: computed(() => `${customer.value.name} - Customer Details - iVisa`),
+  title: computed(() => customer.value ? `${customer.value.customerName || 'Customer'} - Customer Details - iVisa` : 'Customer Details - iVisa'),
 });
 
-// Applications data and functionality
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
-
-// Customer applications data
-const customerApplications = ref([
-  {
-    id: 1,
-    applicationId: "APP-01245",
-    destination: "UAE",
-    visaProduct: "30-Day Visa",
-    price: "USD 100",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 2,
-    applicationId: "APP-01246",
-    destination: "Thailand",
-    visaProduct: "Tourist Visa",
-    price: "USD 150",
-    status: "In Review",
-    selected: false,
-  },
-  {
-    id: 3,
-    applicationId: "APP-01247",
-    destination: "Germany",
-    visaProduct: "Schengen Visa",
-    price: "USD 200",
-    status: "Pending",
-    selected: false,
-  },
-  {
-    id: 4,
-    applicationId: "APP-01248",
-    destination: "France",
-    visaProduct: "Tourist Visa",
-    price: "USD 180",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 5,
-    applicationId: "APP-01249",
-    destination: "Japan",
-    visaProduct: "Business Visa",
-    price: "USD 300",
-    status: "In Review",
-    selected: false,
-  },
-]);
-
 
 // Computed properties for applications
 const filteredCustomerApplications = computed(() => {
   if (!searchQuery.value) return customerApplications.value;
 
+  const search = searchQuery.value.toLowerCase();
   return customerApplications.value.filter(
     (application) =>
-      application.applicationId
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      application.destination
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      application.visaProduct
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase())
+      (application.applicationNumber || '').toLowerCase().includes(search) ||
+      (application.destination || '').toLowerCase().includes(search) ||
+      (application.visaProduct || '').toLowerCase().includes(search)
   );
 });
 
@@ -564,14 +513,20 @@ const getStatusPillClasses = (status) => {
   }
 };
 
-// Watch for select all changes
 watch(selectAll, (newValue) => {
   customerApplications.value.forEach((application) => {
     application.selected = newValue;
   });
 });
 
-// Navigation
+onMounted(() => {
+  loadCustomerDetails();
+});
+
+onActivated(() => {
+  loadCustomerDetails();
+});
+
 const goBack = () => {
   router.push("/dashboard/customers");
 };

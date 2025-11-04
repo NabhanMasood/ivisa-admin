@@ -108,6 +108,8 @@
 import DashboardLayout from "~/components/DashboardLayout.vue";
 import CustomDropdown from "~/components/ui/CustomDropdown.vue";
 import { ArrowLeft } from "lucide-vue-next";
+import { useEmbassiesApi } from "~/composables/useEmbassiesApi";
+import { useCountriesApi } from "~/composables/useCountriesApi";
 
 // Set page title
 useHead({
@@ -124,272 +126,9 @@ const isViewMode = computed(() => route.query.mode === 'view');
 const embassyId = computed(() => route.query.id);
 const countryParam = computed(() => route.query.country);
 
-
-const embassies = ref([
-  {
-    id: 1,
-    destinationCountry: "United States",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "US Embassy Islamabad", location: "Islamabad" },
-          { name: "US Consulate Karachi", location: "Karachi" },
-          { name: "US Consulate Lahore", location: "Lahore" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "US Embassy New Delhi", location: "New Delhi" },
-          { name: "US Consulate Mumbai", location: "Mumbai" },
-          { name: "US Consulate Chennai", location: "Chennai" },
-        ],
-      },
-      {
-        name: "Bangladesh",
-        embassies: [
-          { name: "US Embassy Dhaka", location: "Dhaka" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 2,
-    destinationCountry: "United Kingdom",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "British High Commission Islamabad", location: "Islamabad" },
-          { name: "British Deputy High Commission Karachi", location: "Karachi" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "British High Commission New Delhi", location: "New Delhi" },
-          { name: "British Deputy High Commission Mumbai", location: "Mumbai" },
-        ],
-      },
-      {
-        name: "Sri Lanka",
-        embassies: [
-          { name: "British High Commission Colombo", location: "Colombo" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 3,
-    destinationCountry: "Canada",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "Canadian High Commission Islamabad", location: "Islamabad" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "Canadian High Commission New Delhi", location: "New Delhi" },
-          { name: "Canadian Consulate Bangalore", location: "Bangalore" },
-        ],
-      },
-      {
-        name: "Bangladesh",
-        embassies: [
-          { name: "Canadian High Commission Dhaka", location: "Dhaka" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 4,
-    destinationCountry: "Germany",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "German Embassy Islamabad", location: "Islamabad" },
-          { name: "German Consulate Karachi", location: "Karachi" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "German Embassy New Delhi", location: "New Delhi" },
-          { name: "German Consulate Mumbai", location: "Mumbai" },
-        ],
-      },
-      {
-        name: "Afghanistan",
-        embassies: [
-          { name: "German Embassy Kabul", location: "Kabul" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 5,
-    destinationCountry: "France",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "French Embassy Islamabad", location: "Islamabad" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "French Embassy New Delhi", location: "New Delhi" },
-          { name: "French Consulate Mumbai", location: "Mumbai" },
-        ],
-      },
-      {
-        name: "Bangladesh",
-        embassies: [
-          { name: "French Embassy Dhaka", location: "Dhaka" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 6,
-    destinationCountry: "Japan",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "Japanese Embassy Islamabad", location: "Islamabad" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "Japanese Embassy New Delhi", location: "New Delhi" },
-        ],
-      },
-      {
-        name: "Sri Lanka",
-        embassies: [
-          { name: "Japanese Embassy Colombo", location: "Colombo" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 7,
-    destinationCountry: "Australia",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "Australian High Commission Islamabad", location: "Islamabad" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "Australian High Commission New Delhi", location: "New Delhi" },
-          { name: "Australian Consulate Chennai", location: "Chennai" },
-        ],
-      },
-      {
-        name: "Bangladesh",
-        embassies: [
-          { name: "Australian High Commission Dhaka", location: "Dhaka" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 8,
-    destinationCountry: "Singapore",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "Singapore High Commission Islamabad", location: "Islamabad" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "Singapore High Commission New Delhi", location: "New Delhi" },
-        ],
-      },
-      {
-        name: "Sri Lanka",
-        embassies: [
-          { name: "Singapore High Commission Colombo", location: "Colombo" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 9,
-    destinationCountry: "Thailand",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "Royal Thai Embassy Islamabad", location: "Islamabad" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "Royal Thai Embassy New Delhi", location: "New Delhi" },
-        ],
-      },
-      {
-        name: "Bangladesh",
-        embassies: [
-          { name: "Royal Thai Embassy Dhaka", location: "Dhaka" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-  {
-    id: 10,
-    destinationCountry: "UAE",
-    originCountries: [
-      {
-        name: "Pakistan",
-        embassies: [
-          { name: "UAE Embassy Islamabad", location: "Islamabad" },
-          { name: "UAE Consulate Karachi", location: "Karachi" },
-        ],
-      },
-      {
-        name: "India",
-        embassies: [
-          { name: "UAE Embassy New Delhi", location: "New Delhi" },
-          { name: "UAE Consulate Mumbai", location: "Mumbai" },
-        ],
-      },
-      {
-        name: "Bangladesh",
-        embassies: [
-          { name: "UAE Embassy Dhaka", location: "Dhaka" },
-        ],
-      },
-    ],
-    selected: false,
-  },
-]);
+// API composables
+const { createEmbassy } = useEmbassiesApi();
+const { getCountries } = useCountriesApi();
 
 // Form data
 const embassyForm = ref({
@@ -399,35 +138,93 @@ const embassyForm = ref({
   address: "",
 });
 
-// Country lists
-const destinationCountries = [
-  "United States",
-  "United Kingdom", 
-  "Canada",
-  "Germany",
-  "France",
-  "Japan",
-  "Australia",
-  "Singapore",
-  "Thailand",
-  "UAE"
-];
+// Country lists (loaded from API)
+const destinationCountries = ref([]);
+const originCountries = ref([]);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const successMessage = ref("");
 
-const originCountries = [
-  "Pakistan",
-  "India",
-  "Bangladesh",
-  "Sri Lanka",
-  "Nepal",
-  "Afghanistan",
-  "Iran",
-  "Iraq",
-  "Syria",
-  "Yemen"
-];
+// Load countries for dropdowns
+const loadCountries = async () => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    
+    // Load destination countries (from countries API)
+    const countriesResponse = await getCountries();
+    if (countriesResponse.success && countriesResponse.data) {
+      destinationCountries.value = countriesResponse.data.map(
+        (country) => country.countryName
+      );
+    } else {
+      // Fallback to default options
+      destinationCountries.value = [
+        "United States",
+        "United Kingdom",
+        "Canada",
+        "Germany",
+        "France",
+        "Japan",
+        "Australia",
+        "Singapore",
+        "Thailand",
+        "UAE"
+      ];
+    }
+
+    // For origin countries, we can use the same countries API or have a separate source
+    // For now, using the same countries list as origin countries
+    originCountries.value = destinationCountries.value.length > 0 
+      ? destinationCountries.value 
+      : [
+          "Pakistan",
+          "India",
+          "Bangladesh",
+          "Sri Lanka",
+          "Nepal",
+          "Afghanistan",
+          "Iran",
+          "Iraq",
+          "Syria",
+          "Yemen"
+        ];
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to load countries";
+    // Fallback to default options
+    destinationCountries.value = [
+      "United States",
+      "United Kingdom",
+      "Canada",
+      "Germany",
+      "France",
+      "Japan",
+      "Australia",
+      "Singapore",
+      "Thailand",
+      "UAE"
+    ];
+    originCountries.value = [
+      "Pakistan",
+      "India",
+      "Bangladesh",
+      "Sri Lanka",
+      "Nepal",
+      "Afghanistan",
+      "Iran",
+      "Iraq",
+      "Syria",
+      "Yemen"
+    ];
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 // Load data if editing or viewing
-onMounted(() => {
+onMounted(async () => {
+  await loadCountries();
+  
   if (isEditMode.value && embassyId.value) {
     // Load data from query parameters for edit mode
     embassyForm.value = {
@@ -447,7 +244,7 @@ const goBack = () => {
   router.push("/dashboard/embassies");
 };
 
-const saveEmbassy = () => {
+const saveEmbassy = async () => {
   // Validate form
   if (!embassyForm.value.destinationCountry.trim()) {
     alert("Please select a destination country");
@@ -461,12 +258,36 @@ const saveEmbassy = () => {
     alert("Please enter an embassy name");
     return;
   }
+  if (!embassyForm.value.address.trim()) {
+    alert("Please enter an address");
+    return;
+  }
 
-  // Here you would typically save to your backend
-  console.log("Saving embassy:", embassyForm.value);
-  
-  // For now, just show success and redirect
-  alert(isEditMode.value ? "Embassy updated successfully!" : "Embassy saved successfully!");
-  goBack();
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await createEmbassy({
+      destinationCountry: embassyForm.value.destinationCountry,
+      originCountry: embassyForm.value.originCountry,
+      embassyName: embassyForm.value.embassyName,
+      address: embassyForm.value.address,
+    });
+
+    if (response.success) {
+      successMessage.value = isEditMode.value ? "Embassy updated successfully!" : "Embassy saved successfully!";
+      alert(successMessage.value);
+      goBack();
+    } else {
+      errorMessage.value = response.message || "Failed to save embassy";
+      alert(errorMessage.value);
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to save embassy. Please try again.";
+    alert(errorMessage.value);
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>

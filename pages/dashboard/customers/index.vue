@@ -220,6 +220,21 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                    <!-- Loading State -->
+                    <tr v-if="isLoading">
+                      <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Loading customers...
+                      </td>
+                    </tr>
+                    
+                    <!-- Empty State -->
+                    <tr v-else-if="!isLoading && filteredCustomers.length === 0">
+                      <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        {{ errorMessage || 'No customers found.' }}
+                      </td>
+                    </tr>
+                    
+                    <!-- Data Rows -->
                     <tr
                       v-for="customer in filteredCustomers"
                       :key="customer.id"
@@ -288,9 +303,9 @@
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <span
                           :class="getStatusPillClasses(customer.status)"
-                          class="inline-flex items-center px-2.5 py-[2px] rounded-full text-xs font-normal"
+                          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
                         >
-                          {{ customer.status }}
+                          {{ getFormattedStatus(customer.status) }}
                         </span>
                       </td>
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
@@ -361,119 +376,49 @@
 import {
   Plus,
   Columns,
-  Search,
   Eye,
   Pencil,
 } from "lucide-vue-next";
+import { useCustomersApi } from "~/composables/useCustomersApi";
 
-// Set page title
 useHead({
   title: "Customers - iVisa",
 });
 
-// Sample customers data
-const customers = ref([
-  {
-    id: 1,
-    name: "Ali Raza",
-    email: "ali.raza@email.com",
-    phone: "+92 300 1234567",
-    totalApplications: 5,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 2,
-    name: "Sarah Khan",
-    email: "sarah.khan@email.com",
-    phone: "+92 301 2345678",
-    totalApplications: 3,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 3,
-    name: "John Smith",
-    email: "john.smith@email.com",
-    phone: "+1 555 1234567",
-    totalApplications: 8,
-    status: "Inactive",
-    selected: false,
-  },
-  {
-    id: 4,
-    name: "Maria Garcia",
-    email: "maria.garcia@email.com",
-    phone: "+34 600 123456",
-    totalApplications: 2,
-    status: "Inactive",
-    selected: false,
-  },
-  {
-    id: 5,
-    name: "Ahmed Hassan",
-    email: "ahmed.hassan@email.com",
-    phone: "+92 302 3456789",
-    totalApplications: 7,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 6,
-    name: "Emma Wilson",
-    email: "emma.wilson@email.com",
-    phone: "+44 20 1234 5678",
-    totalApplications: 4,
-    status: "Suspended",
-    selected: false,
-  },
-  {
-    id: 7,
-    name: "David Lee",
-    email: "david.lee@email.com",
-    phone: "+61 2 1234 5678",
-    totalApplications: 6,
-    status: "Inactive",
-    selected: false,
-  },
-  {
-    id: 8,
-    name: "Fatima Ali",
-    email: "fatima.ali@email.com",
-    phone: "+92 303 4567890",
-    totalApplications: 9,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 9,
-    name: "Michael Brown",
-    email: "michael.brown@email.com",
-    phone: "+1 555 9876543",
-    totalApplications: 1,
-    status: "Active",
-    selected: false,
-  },
-  {
-    id: 10,
-    name: "Aisha Patel",
-    email: "aisha.patel@email.com",
-    phone: "+91 98765 43210",
-    totalApplications: 3,
-    status: "Active",
-    selected: false,
-  },
-]);
+const { getAllCustomers } = useCustomersApi();
+const customers = ref([]);
 
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
-const statusDropdownOpen = ref(false);
-const planDropdownOpen = ref(false);
-const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
+const isLoading = ref(false);
+const errorMessage = ref("");
 
-// Computed properties
+const loadCustomers = async () => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = "";
+    
+    const response = await getAllCustomers();
+    
+    if (response.success && response.data) {
+      customers.value = response.data.map((customer) => ({
+        ...customer,
+        selected: false,
+      }));
+    } else {
+      customers.value = [];
+      errorMessage.value = response.message || "Failed to load customers";
+    }
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Failed to load customers. Please try again.";
+    customers.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 const filteredCustomers = computed(() => {
   if (!searchQuery.value) return customers.value;
 
@@ -488,23 +433,39 @@ const selectedCount = computed(() => {
   return customers.value.filter((customer) => customer.selected).length;
 });
 
-// Status styling functions
 const getStatusPillClasses = (status) => {
-  switch (status) {
-    case "Active":
+  const statusLower = (status || '').toLowerCase();
+  switch (statusLower) {
+    case "active":
       return "bg-black text-white border border-black";
-    case "Inactive":
+    case "inactive":
       return "bg-white text-black border border-black";
-    case "Suspended":
+    case "suspended":
       return "bg-red-500 text-white border border-red-500";
-    case "Pending":
+    case "pending":
       return "bg-orange-500 text-white border border-orange-500";
     default:
       return "bg-gray-500 text-white border border-gray-500";
   }
 };
 
-// Methods
+const getFormattedStatus = (status) => {
+  if (!status) return '';
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case "active":
+      return "Active";
+    case "inactive":
+      return "Inactive";
+    case "suspended":
+      return "Suspended";
+    case "pending":
+      return "Pending";
+    default:
+      return status;
+  }
+};
+
 const router = useRouter();
 
 const navigateToAddCustomer = () => {
@@ -519,39 +480,22 @@ const editCustomer = (customer) => {
   router.push(`/dashboard/customers/add?id=${customer.id}&mode=edit`);
 };
 
-const toggleStatusDropdown = () => {
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  statusDropdownOpen.value = !statusDropdownOpen.value;
-};
-
-const togglePlanDropdown = () => {
-  statusDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  planDropdownOpen.value = !planDropdownOpen.value;
-};
-
-const toggleRoleDropdown = () => {
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  roleDropdownOpen.value = !roleDropdownOpen.value;
-};
-
 const toggleColumnsDropdown = () => {
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
   columnsDropdownOpen.value = !columnsDropdownOpen.value;
 };
 
-// Watch for select all changes
 watch(selectAll, (newValue) => {
   customers.value.forEach((customer) => {
     customer.selected = newValue;
   });
+});
+
+onMounted(() => {
+  loadCustomers();
+});
+
+onActivated(() => {
+  loadCustomers();
 });
 
 </script>
