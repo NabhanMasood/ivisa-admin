@@ -87,6 +87,7 @@
                 :options="nationalityOptions"
                 placeholder="Select Country"
                 search-placeholder="Search nationality"
+                :disabled="isLoadingDropdowns"
               />
 
               <!-- Destination Country Dropdown -->
@@ -95,8 +96,9 @@
                 label="Destination Country"
                 v-model="nationalityForm.destinationCountry"
                 :options="destinationOptions"
-                placeholder="Select  Country"
+                placeholder="Select Country"
                 search-placeholder="Search destination country"
+                :disabled="isLoadingDropdowns"
               />
             </div>
           </div>
@@ -120,7 +122,7 @@
 
             <!-- Loading State for Visa Products -->
             <div
-              v-if="isLoading"
+              v-if="isLoadingProducts"
               class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
             >
               <div
@@ -143,22 +145,22 @@
               <div v-else class="space-y-3">
                 <div
                   v-for="product in availableVisaProducts"
-                  :key="product.id"
+                  :key="product.productName"
                   class="flex items-center"
                 >
                   <input
-                    :id="`visa-product-${product.id}`"
+                    :id="`visa-product-${product.productName}`"
                     v-model="selectedVisaProducts"
-                    :value="product.id"
+                    :value="product.productName"
                     type="checkbox"
                     :disabled="isViewMode"
                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label
-                    :for="`visa-product-${product.id}`"
+                    :for="`visa-product-${product.productName}`"
                     class="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {{ product.productName }} - ${{ product.totalAmount }}
+                    {{ product.productName }} - ${{ product.totalAmount }} ({{ product.duration }} days, Valid for {{ product.validity }} days)
                   </label>
                 </div>
               </div>
@@ -189,20 +191,20 @@
               <div v-if="customPricingEnabled" class="space-y-4">
                 <div
                   v-for="product in productsForCustomPricing"
-                  :key="`custom-${product.id}`"
+                  :key="`custom-${product.productName}`"
                   class=""
                 >
                   <div class="flex items-center mb-4">
                     <input
-                      :id="`custom-visa-product-${product.id}`"
+                      :id="`custom-visa-product-${product.productName}`"
                       v-model="customSelectedProducts"
-                      :value="product.id"
+                      :value="product.productName"
                       type="checkbox"
                       :disabled="isViewMode"
                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label
-                      :for="`custom-visa-product-${product.id}`"
+                      :for="`custom-visa-product-${product.productName}`"
                       class="ml-3 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       {{ product.productName }}
@@ -211,7 +213,7 @@
 
                   <!-- Price Inputs (shown only if product is selected) -->
                   <div
-                    v-if="customSelectedProducts.includes(product.id)"
+                    v-if="customSelectedProducts.includes(product.productName)"
                     class="mt-4 grid grid-cols-3 gap-4"
                   >
                     <div class="flex flex-col gap-2">
@@ -221,8 +223,8 @@
                         Gov't Fee <span class="text-red-500">*</span>
                       </label>
                       <input
-                        :id="`govt-fee-${product.id}`"
-                        v-model.number="customPrices[product.id].govtFee"
+                        :id="`govt-fee-${product.productName}`"
+                        v-model.number="customPrices[product.productName].govtFee"
                         type="number"
                         placeholder="e.g. 50"
                         :disabled="isLoading || isViewMode"
@@ -237,8 +239,8 @@
                         Service Fee <span class="text-red-500">*</span>
                       </label>
                       <input
-                        :id="`service-fee-${product.id}`"
-                        v-model.number="customPrices[product.id].serviceFee"
+                        :id="`service-fee-${product.productName}`"
+                        v-model.number="customPrices[product.productName].serviceFee"
                         type="number"
                         placeholder="e.g. 100"
                         :disabled="isLoading || isViewMode"
@@ -255,7 +257,7 @@
                       <div
                         class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#2F2F31] text-[#111] dark:text-white py-1 px-3 text-sm flex items-center font-semibold"
                       >
-                        {{ getCustomTotal(product.id) || "0" }}
+                        ${{ getCustomTotal(product.productName) || "0" }}
                       </div>
                     </div>
                   </div>
@@ -273,9 +275,9 @@
 import DashboardLayout from "~/components/DashboardLayout.vue";
 import CustomDropdown from "~/components/ui/CustomDropdown.vue";
 import { ArrowLeft } from "lucide-vue-next";
-import { useCountriesApi } from "~/composables/useCountriesApi";
-import { useVisaProductsApi } from "~/composables/useVisaProductsApi";
 import { useNationalitiesApi } from "~/composables/useNationalitiesApi";
+import { useVisaProductsApi } from "~/composables/useVisaProductsApi";
+import { useCountriesApi } from "~/composables/useCountriesApi";
 
 // Set page title
 useHead({
@@ -289,8 +291,7 @@ const router = useRouter();
 // Initialize APIs
 const { getCountries } = useCountriesApi();
 const { getVisaProducts, getVisaProductsByCountry } = useVisaProductsApi();
-const { createNationality, updateNationality, getNationalityById } =
-  useNationalitiesApi();
+const { createNationality } = useNationalitiesApi();
 
 // Determine mode based on route parameters
 const isEditMode = computed(() => route.query.mode === "edit");
@@ -306,9 +307,41 @@ const nationalityForm = ref({
 // Options for dropdowns (loaded from APIs)
 const nationalityOptions = ref<string[]>([]);
 const destinationOptions = ref<string[]>([]);
+const isLoadingDropdowns = ref(false);
+const isLoadingProducts = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
+
+// Visa products data
+const availableVisaProducts = ref<
+  Array<{
+    id?: number | string;
+    productName: string;
+    duration: number;
+    validity: number;
+    totalAmount: number;
+    govtFee?: number;
+    serviceFee?: number;
+  }>
+>([]);
+
+// Selected visa products
+const selectedVisaProducts = ref<string[]>([]);
+const customSelectedProducts = ref<string[]>([]);
+const customPricingEnabled = ref(false);
+
+// Custom prices for selected products
+const customPrices = ref<
+  Record<
+    string,
+    {
+      govtFee: number | null;
+      serviceFee: number | null;
+      totalAmount: number;
+    }
+  >
+>({});
 
 // Load countries for nationality dropdown (from countries API)
 const loadNationalityOptions = async () => {
@@ -321,78 +354,23 @@ const loadNationalityOptions = async () => {
     }
   } catch (error) {
     console.error("Failed to load countries:", error);
-    // Fallback to default options
-    nationalityOptions.value = [
-      "United States",
-      "United Kingdom",
-      "Canada",
-      "Germany",
-      "France",
-      "Japan",
-      "Australia",
-      "Singapore",
-      "Thailand",
-      "UAE",
-    ];
+    errorMessage.value = "Failed to load nationalities";
   }
 };
 
-// Load countries for destination dropdown (from visa products API)
 const loadDestinationOptions = async () => {
   try {
-    const response = await getVisaProducts();
+    const response = await getVisaProducts(); // ✅ Get ALL products
     if (response.success && response.data) {
       // Extract unique country names from visa products
-      const uniqueCountries = [
-        ...new Set(response.data.map((product) => product.country)),
-      ];
+      const uniqueCountries = [...new Set(response.data.map((product) => product.country))];
       destinationOptions.value = uniqueCountries.sort();
     }
   } catch (error) {
     console.error("Failed to load destination countries:", error);
-    // Fallback to default options
-    destinationOptions.value = [
-      "United States",
-      "United Kingdom",
-      "Canada",
-      "Germany",
-      "France",
-      "Japan",
-      "Australia",
-      "Singapore",
-      "Thailand",
-      "UAE",
-    ];
+    errorMessage.value = "Failed to load destinations";
   }
 };
-
-// Visa products data (loaded from API based on destination)
-const availableVisaProducts = ref<
-  Array<{
-    id: number | string;
-    productName: string;
-    totalAmount: number | string;
-    govtFee?: number | string;
-    serviceFee?: number | string;
-  }>
->([]);
-
-// Selected visa products
-const selectedVisaProducts = ref<Array<number | string>>([]);
-const customSelectedProducts = ref<Array<number | string>>([]);
-const customPricingEnabled = ref(false);
-
-// Custom prices for selected products
-const customPrices = ref<
-  Record<
-    string | number,
-    {
-      govtFee: number | null;
-      serviceFee: number | null;
-      totalAmount: number;
-    }
-  >
->({});
 
 // Load visa products when destination is selected
 const loadVisaProductsForDestination = async (destination: string) => {
@@ -405,13 +383,15 @@ const loadVisaProductsForDestination = async (destination: string) => {
   }
 
   try {
-    isLoading.value = true;
+    isLoadingProducts.value = true;
     const response = await getVisaProductsByCountry(destination);
 
     if (response.success && response.data) {
       availableVisaProducts.value = response.data.map((product) => ({
-        id: product.id!,
+        id: product.id,
         productName: product.productName,
+        duration: product.duration,
+        validity: product.validity,
         totalAmount: product.totalAmount,
         govtFee: product.govtFee,
         serviceFee: product.serviceFee,
@@ -423,25 +403,27 @@ const loadVisaProductsForDestination = async (destination: string) => {
       customPrices.value = {};
     } else {
       availableVisaProducts.value = [];
+      errorMessage.value = response.message || "Failed to load visa products";
     }
   } catch (error) {
     console.error("Failed to load visa products:", error);
     availableVisaProducts.value = [];
+    errorMessage.value = "Failed to load visa products";
   } finally {
-    isLoading.value = false;
+    isLoadingProducts.value = false;
   }
 };
 
-// Computed: Products selected for custom pricing (only those checked in Select Visa Product)
+// Computed: Products selected for custom pricing
 const productsForCustomPricing = computed(() => {
   return availableVisaProducts.value.filter((product) =>
-    selectedVisaProducts.value.includes(product.id)
+    selectedVisaProducts.value.includes(product.productName)
   );
 });
 
 // Computed: Calculate total amount for custom prices
-const getCustomTotal = (productId: number | string) => {
-  const price = customPrices.value[productId];
+const getCustomTotal = (productName: string) => {
+  const price = customPrices.value[productName];
   if (!price) return 0;
   const govtFee = Number(price.govtFee) || 0;
   const serviceFee = Number(price.serviceFee) || 0;
@@ -452,10 +434,10 @@ const getCustomTotal = (productId: number | string) => {
 watch(
   () => [customPrices.value],
   () => {
-    Object.keys(customPrices.value).forEach((productId) => {
-      const price = customPrices.value[productId];
+    Object.keys(customPrices.value).forEach((productName) => {
+      const price = customPrices.value[productName];
       if (price) {
-        price.totalAmount = getCustomTotal(productId);
+        price.totalAmount = getCustomTotal(productName);
       }
     });
   },
@@ -482,12 +464,12 @@ watch(
   customSelectedProducts,
   (newSelected, oldSelected) => {
     // Add new products to customPrices
-    newSelected.forEach((productId) => {
-      if (!customPrices.value[productId]) {
+    newSelected.forEach((productName) => {
+      if (!customPrices.value[productName]) {
         const product = availableVisaProducts.value.find(
-          (p) => p.id === productId
+          (p) => p.productName === productName
         );
-        customPrices.value[productId] = {
+        customPrices.value[productName] = {
           govtFee: product?.govtFee ? Number(product.govtFee) : null,
           serviceFee: product?.serviceFee ? Number(product.serviceFee) : null,
           totalAmount: product?.totalAmount ? Number(product.totalAmount) : 0,
@@ -496,9 +478,9 @@ watch(
     });
 
     // Remove unselected products from customPrices
-    oldSelected?.forEach((productId) => {
-      if (!newSelected.includes(productId)) {
-        delete customPrices.value[productId];
+    oldSelected?.forEach((productName) => {
+      if (!newSelected.includes(productName)) {
+        delete customPrices.value[productName];
       }
     });
   },
@@ -507,20 +489,11 @@ watch(
 
 // Load dropdown options on mount
 onMounted(async () => {
-  isLoading.value = true;
+  isLoadingDropdowns.value = true;
   try {
     await Promise.all([loadNationalityOptions(), loadDestinationOptions()]);
   } finally {
-    isLoading.value = false;
-  }
-
-  // Load data if editing or viewing
-  if (nationalityId.value) {
-    // TODO: Load nationality data from API if editing/viewing
-    // const nationality = await getNationalityById(nationalityId.value);
-    // if (nationality) {
-    //   nationalityForm.value = { ...nationality };
-    // }
+    isLoadingDropdowns.value = false;
   }
 });
 
@@ -551,8 +524,8 @@ const saveNationality = async () => {
 
   // Validate custom prices if enabled
   if (customPricingEnabled.value && customSelectedProducts.value.length > 0) {
-    for (const productId of customSelectedProducts.value) {
-      const price = customPrices.value[productId];
+    for (const productName of customSelectedProducts.value) {
+      const price = customPrices.value[productName];
       if (!price || price.govtFee === null || price.serviceFee === null) {
         errorMessage.value = `Please fill all custom price fields for selected products`;
         return;
@@ -563,19 +536,19 @@ const saveNationality = async () => {
   try {
     isLoading.value = true;
 
-    // Prepare products for API calls - one call per product (as per test file structure)
-    const productsToCreate = selectedVisaProducts.value.map((productId) => {
+    // Prepare products for API calls - one call per product
+    const productsToCreate = selectedVisaProducts.value.map((productName) => {
       const product = availableVisaProducts.value.find(
-        (p) => p.id === productId
+        (p) => p.productName === productName
       );
       const isCustomPriced =
         customPricingEnabled.value &&
-        customSelectedProducts.value.includes(productId);
-      const customPrice = customPrices.value[productId];
+        customSelectedProducts.value.includes(productName);
+      const customPrice = customPrices.value[productName];
 
       return {
         nationality: nationalityForm.value.name.trim(),
-        destination: nationalityForm.value.destinationCountry.trim(), // Note: "destination" not "destinationCountry"
+        destination: nationalityForm.value.destinationCountry.trim(),
         productName: product?.productName || "",
         govtFee: isCustomPriced && customPrice
           ? Number(customPrice.govtFee)
@@ -589,7 +562,7 @@ const saveNationality = async () => {
       };
     });
 
-    // Make multiple API calls - one for each product (as per test file structure)
+    // Make multiple API calls - one for each product
     const results = [];
     let hasError = false;
 
@@ -609,7 +582,7 @@ const saveNationality = async () => {
           error instanceof Error
             ? error.message
             : "Failed to create nationality. Please try again.";
-        break; // Stop on first error
+        break;
       }
     }
 

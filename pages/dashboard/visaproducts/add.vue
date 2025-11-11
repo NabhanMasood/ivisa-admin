@@ -143,6 +143,31 @@
                 <p v-if="fieldErrors.validity" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ fieldErrors.validity }}</p>
               </div>
 
+              <!-- Entry Type Dropdown -->
+                <div>
+                  <label
+                    for="entryType"
+                    class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                  >
+                    Entry Type <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="entryType"
+                    v-model="visaProductForm.entryType"
+                    :disabled="isLoading || isViewMode"
+                    :class="[
+                      'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                      fieldErrors.entryType ? 'border-red-500 dark:border-red-500' : '',
+                      isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                    ]"
+                  >
+                    <option value="" disabled>Select entry type</option>
+                    <option value="single">Single Entry</option>
+                    <option value="multiple">Multiple Entry</option>
+                  </select>
+                  <p v-if="fieldErrors.entryType" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ fieldErrors.entryType }}</p>
+                </div>
+
               <!-- Government Fee Input -->
               <div>
                 <label
@@ -205,17 +230,176 @@
               </div>
             </div>
           </div>
+
+          <!-- Processing Fees Section -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                Processing Fees
+              </h3>
+            </div>
+            
+            <div class="space-y-4">
+              <!-- Processing Fee Cards -->
+              <div
+                v-for="(fee, index) in visaProductForm.processingFees"
+                :key="index"
+                class="border rounded-[6px] bg-white dark:bg-[#18181B]"
+                :class="[
+                  'border-gray-300 dark:border-gray-700',
+                  isViewMode ? 'bg-gray-50 dark:bg-gray-900' : ''
+                ]"
+              >
+                <!-- Card Header - Clickable -->
+                <button
+                    @click="toggleProcessingFee(index)"
+                    type="button"
+                    class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#27272A] transition-colors rounded-t-[6px]"
+                    :class="{ 'rounded-b-[6px]': !expandedProcessingFees[index] }"
+                  >
+                    <div class="flex items-center gap-3 flex-1">
+                      <svg 
+                        class="w-5 h-5 transition-transform text-gray-600 dark:text-gray-400"
+                        :class="{ 'rotate-180': expandedProcessingFees[index] }"
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <div class="text-left">
+                        <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                          Processing Option {{ index + 1 }}
+                        </h4>
+                        <p v-if="fee.feeType" class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ fee.feeType }} - {{ fee.timeValue }} {{ fee.timeUnit }} - ${{ fee.amount }}
+                        </p>
+                      </div>
+                    </div>
+  
+  <!-- Better Remove Button with trash icon and text -->
+  <button
+    v-if="visaProductForm.processingFees.length > 1 && !isViewMode"
+    @click.stop="removeProcessingFee(index)"
+    type="button"
+    class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+    title="Remove processing fee"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+    <span>Remove</span>
+  </button>
+</button>
+
+                <!-- Card Content - Collapsible -->
+                <div 
+                  v-show="expandedProcessingFees[index]"
+                  class="p-4 pt-0 space-y-4"
+                >
+                  <!-- Fee Type -->
+                  <div>
+                    <label
+                      :for="`feeType-${index}`"
+                      class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                    >
+                      Processing Type
+                    </label>
+                    <input
+                      :id="`feeType-${index}`"
+                      v-model="fee.feeType"
+                      type="text"
+                      placeholder="e.g., Standard, Express, Rush"
+                      :disabled="isLoading || isViewMode"
+                      :class="[
+                        'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                        isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                      ]"
+                    />
+                  </div>
+
+                  <!-- Time Value and Unit -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                      Processing Time
+                    </label>
+                    <div class="grid grid-cols-2 gap-4">
+                      <input
+                        v-model.number="fee.timeValue"
+                        type="number"
+                        min="1"
+                        placeholder="Time"
+                        :disabled="isLoading || isViewMode"
+                        :class="[
+                          'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                          isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                        ]"
+                      />
+                      <select
+                        v-model="fee.timeUnit"
+                        :disabled="isLoading || isViewMode"
+                        :class="[
+                          'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                          isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                        ]"
+                      >
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Amount -->
+                  <div>
+                    <label
+                      :for="`amount-${index}`"
+                      class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                    >
+                      Processing Fee Amount ($)
+                    </label>
+                    <input
+                      :id="`amount-${index}`"
+                      v-model.number="fee.amount"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      :disabled="isLoading || isViewMode"
+                      :class="[
+                        'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                        isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                      ]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add Another Processing Fee Button -->
+              <button
+                v-if="!isViewMode"
+                @click="addProcessingFee"
+                type="button"
+                class="w-full border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-[6px] p-4 hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#18181B] transition-all flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span class="text-sm font-medium">Add Another Processing Option</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </DashboardLayout>
 </template>
 
+
 <script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
 import CustomDropdown from "~/components/ui/CustomDropdown.vue";
 import { ArrowLeft } from "lucide-vue-next";
-import { useVisaProductsApi } from "~/composables/useVisaProductsApi";
+import { useVisaProductsApi, type ProcessingFee } from "~/composables/useVisaProductsApi";
 import { useCountriesApi } from "~/composables/useCountriesApi";
 
 // Set page title
@@ -234,8 +418,17 @@ const { getCountries } = useCountriesApi();
 // Determine mode based on route parameters
 const isEditMode = computed(() => route.query.mode === 'edit');
 const isViewMode = computed(() => route.query.mode === 'view');
-const productId = computed(() => route.query.id);
-const countryParam = computed(() => route.query.country); 
+
+// ✅ Fixed: Handle array query params
+const productId = computed(() => {
+  const id = route.query.id;
+  return Array.isArray(id) ? id[0] : id;
+});
+
+const countryParam = computed(() => {
+  const country = route.query.country;
+  return Array.isArray(country) ? country[0] : country;
+});
 
 // Reactive state
 const isLoading = ref(false);
@@ -246,8 +439,14 @@ const fieldErrors = ref({
   productName: '',
   duration: '',
   validity: '',
+  entryType: '',
   govtFee: '',
   serviceFee: '',
+});
+
+// Processing fees expanded state
+const expandedProcessingFees = ref<Record<number, boolean>>({
+  0: true, // First one is expanded by default
 });
 
 // Form data
@@ -256,8 +455,17 @@ const visaProductForm = ref({
   productName: '',
   duration: null as number | null,
   validity: null as number | null,
+  entryType: '' as string, 
   govtFee: null as number | null,
   serviceFee: null as number | null,
+  processingFees: [
+    {
+      feeType: '',
+      timeValue: 1,
+      timeUnit: 'days' as 'hours' | 'days',
+      amount: 0,
+    },
+  ] as ProcessingFee[],
 });
 
 // Country options (will be loaded from API)
@@ -265,10 +473,49 @@ const countryOptions = ref<string[]>([]);
 
 // Computed: Calculate total amount
 const totalAmount = computed(() => {
-  const govtFee = visaProductForm.value.govtFee || 0;
-  const serviceFee = visaProductForm.value.serviceFee || 0;
-  return govtFee + serviceFee;
+  const govtFee = Number(visaProductForm.value.govtFee) || 0;
+  const serviceFee = Number(visaProductForm.value.serviceFee) || 0;
+  const total = govtFee + serviceFee;
+  
+  // Return 0 if NaN
+  return isNaN(total) ? 0 : total;
 });
+
+// Processing Fees Methods
+const toggleProcessingFee = (index: number) => {
+  expandedProcessingFees.value[index] = !expandedProcessingFees.value[index];
+};
+
+const addProcessingFee = () => {
+  const newIndex = visaProductForm.value.processingFees.length;
+  visaProductForm.value.processingFees.push({
+    feeType: '',
+    timeValue: 1,
+    timeUnit: 'days',
+    amount: 0,
+  });
+  // Expand the newly added card
+  expandedProcessingFees.value[newIndex] = true;
+};
+
+const removeProcessingFee = (index: number) => {
+  if (visaProductForm.value.processingFees.length > 1) {
+    visaProductForm.value.processingFees.splice(index, 1);
+    // Clean up expanded state
+    delete expandedProcessingFees.value[index];
+    // Re-index the expanded states
+    const newExpanded: Record<number, boolean> = {};
+    Object.keys(expandedProcessingFees.value).forEach((key) => {
+      const numKey = parseInt(key);
+      if (numKey < index) {
+        newExpanded[numKey] = expandedProcessingFees.value[numKey];
+      } else if (numKey > index) {
+        newExpanded[numKey - 1] = expandedProcessingFees.value[numKey];
+      }
+    });
+    expandedProcessingFees.value = newExpanded;
+  }
+};
 
 // Load countries from API
 const loadCountries = async () => {
@@ -277,14 +524,13 @@ const loadCountries = async () => {
     if (response.success && response.data) {
       countryOptions.value = response.data.map(country => country.countryName);
       
-      // Pre-fill country if coming from country-specific page
-      if (countryParam.value && countryOptions.value.includes(countryParam.value)) {
-        visaProductForm.value.country = countryParam.value;
+      // ✅ Fixed: Pre-fill country if coming from country-specific page
+      if (countryParam.value && countryOptions.value.includes(countryParam.value as string)) {
+        visaProductForm.value.country = countryParam.value as string;
       }
     }
   } catch (error) {
     console.error('Failed to load countries:', error);
-    // Fallback to default options
     countryOptions.value = [
       "United States",
       "United Kingdom",
@@ -310,14 +556,33 @@ const loadVisaProductData = async () => {
       const response = await getVisaProductById(productId.value);
       
       if (response.success && response.data) {
+        const processingFeesData = response.data.processingFees && response.data.processingFees.length > 0
+          ? response.data.processingFees
+          : [
+              {
+                feeType: '',
+                timeValue: 1,
+                timeUnit: 'days' as 'hours' | 'days',
+                amount: 0,
+              },
+            ];
+        
         visaProductForm.value = {
           country: response.data.country || '',
           productName: response.data.productName || '',
           duration: response.data.duration || null,
           validity: response.data.validity || null,
+          entryType: response.data.entryType || '',
           govtFee: response.data.govtFee || null,
           serviceFee: response.data.serviceFee || null,
+          processingFees: processingFeesData,
         };
+        
+        // Initialize expanded states for all processing fees
+        expandedProcessingFees.value = {};
+        processingFeesData.forEach((_, index) => {
+          expandedProcessingFees.value[index] = index === 0; // Only first one expanded
+        });
       }
     } catch (error) {
       errorMessage.value = error instanceof Error ? error.message : 'Failed to load visa product data';
@@ -326,7 +591,6 @@ const loadVisaProductData = async () => {
     }
   }
 };
-
 
 // Navigation
 const goBack = () => {
@@ -340,6 +604,7 @@ const validateForm = (): boolean => {
     productName: '',
     duration: '',
     validity: '',
+    entryType: '',
     govtFee: '',
     serviceFee: '',
   };
@@ -366,6 +631,11 @@ const validateForm = (): boolean => {
     isValid = false;
   }
   
+  if (!visaProductForm.value.entryType || !visaProductForm.value.entryType.trim()) {
+    fieldErrors.value.entryType = 'Entry type is required';
+    isValid = false;
+  }
+  
   if (!visaProductForm.value.govtFee || visaProductForm.value.govtFee < 0) {
     fieldErrors.value.govtFee = 'Government fee is required and must be 0 or greater';
     isValid = false;
@@ -379,13 +649,10 @@ const validateForm = (): boolean => {
   return isValid;
 };
 
-// Save visa product (create or update)
 const saveVisaProduct = async () => {
-  // Reset messages
   errorMessage.value = '';
   successMessage.value = '';
   
-  // Validate form
   if (!validateForm()) {
     errorMessage.value = 'Please fill in all required fields correctly';
     return;
@@ -394,21 +661,49 @@ const saveVisaProduct = async () => {
   try {
     isLoading.value = true;
     
-    // Calculate total amount
-    const totalAmountValue = totalAmount.value;
+    // Calculate total with explicit number conversion
+    const govtFee = Number(visaProductForm.value.govtFee!) || 0;
+    const serviceFee = Number(visaProductForm.value.serviceFee!) || 0;
+    const totalAmountValue = govtFee + serviceFee;
     
+    console.log('💰 Fee calculation:', {
+      govtFee,
+      serviceFee,
+      total: totalAmountValue,
+      isNaN: isNaN(totalAmountValue)
+    });
+    
+    // Filter out empty processing fees and ensure ALL values are numbers
+    const validProcessingFees = visaProductForm.value.processingFees
+      .filter(fee => fee.feeType.trim() && fee.timeValue > 0 && fee.amount >= 0)
+      .map(fee => ({
+        ...(fee.id ? { id: Number(fee.id) } : {}), // Include ID only if it exists (for edit mode)
+        feeType: fee.feeType.trim(),
+        timeValue: Number(fee.timeValue),
+        timeUnit: fee.timeUnit,
+        amount: Number(fee.amount)
+      }));
+    
+    // Ensure ALL numeric fields are actually numbers, not strings
     const payload = {
       country: visaProductForm.value.country.trim(),
       productName: visaProductForm.value.productName.trim(),
-      duration: visaProductForm.value.duration!,
-      validity: visaProductForm.value.validity!,
-      govtFee: visaProductForm.value.govtFee!,
-      serviceFee: visaProductForm.value.serviceFee!,
+      duration: Number(visaProductForm.value.duration!),
+      validity: Number(visaProductForm.value.validity!),
+      entryType: visaProductForm.value.entryType.trim(), 
+      govtFee: govtFee,
+      serviceFee: serviceFee,
       totalAmount: totalAmountValue,
+      processingFees: validProcessingFees.length > 0 ? validProcessingFees : undefined,
     };
     
+    console.log('📤 Payload being sent:', payload);
+    console.log('📤 Type check - govtFee:', typeof payload.govtFee, payload.govtFee);
+    console.log('📤 Type check - serviceFee:', typeof payload.serviceFee, payload.serviceFee);
+    console.log('📤 Type check - totalAmount:', typeof payload.totalAmount, payload.totalAmount);
+    console.log('📤 Processing fees:', payload.processingFees);
+    
     if (isEditMode.value && productId.value) {
-      // Update existing visa product
       const response = await updateVisaProduct(productId.value, payload);
       
       if (response.success) {
@@ -418,19 +713,27 @@ const saveVisaProduct = async () => {
         }, 1500);
       }
     } else {
-      // Create new visa product
       const response = await createVisaProduct(payload);
       
       if (response.success) {
         successMessage.value = response.message || 'Visa product created successfully!';
         // Reset form
         visaProductForm.value = {
-          country: countryParam.value || '',
+          country: (countryParam.value as string) || '',
           productName: '',
           duration: null,
           validity: null,
+          entryType: '', 
           govtFee: null,
           serviceFee: null,
+          processingFees: [
+            {
+              feeType: '',
+              timeValue: 1,
+              timeUnit: 'days',
+              amount: 0,
+            },
+          ],
         };
         setTimeout(() => {
           goBack();
@@ -439,6 +742,7 @@ const saveVisaProduct = async () => {
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to save visa product. Please try again.';
+    console.error('❌ Save error:', error);
   } finally {
     isLoading.value = false;
   }
@@ -467,6 +771,10 @@ watch(() => visaProductForm.value.govtFee, () => {
 
 watch(() => visaProductForm.value.serviceFee, () => {
   if (fieldErrors.value.serviceFee) fieldErrors.value.serviceFee = '';
+});
+
+watch(() => visaProductForm.value.entryType, () => {
+  if (fieldErrors.value.entryType) fieldErrors.value.entryType = '';
 });
 
 // Load data on mount

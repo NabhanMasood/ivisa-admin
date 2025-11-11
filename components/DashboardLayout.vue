@@ -223,6 +223,8 @@
             </Transition>
           </div>
 
+          
+
           <!-- Embassies -->
           <div>
             <button
@@ -277,6 +279,68 @@
               </div>
             </Transition>
           </div>
+
+
+          <!-- Coupons -->
+<div>
+  <button
+    @click="toggleCoupons"
+    class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+    :class="[
+      sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+    ]"
+  >
+    <Coupons class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+    <span v-show="!sidebarCollapsed" class="truncate">Coupons</span>
+    <ChevronDown
+      v-show="!sidebarCollapsed"
+      :class="couponsOpen ? 'rotate-180' : ''"
+      class="ml-auto h-4 w-4 transition-transform"
+    />
+  </button>
+
+  <Transition
+    enter-active-class="transition-all duration-300 ease-out"
+    enter-from-class="opacity-0 transform -translate-y-2"
+    enter-to-class="opacity-100 transform translate-y-0"
+    leave-active-class="transition-all duration-200 ease-in"
+    leave-from-class="opacity-100 transform translate-y-0"
+    leave-to-class="opacity-0 transform -translate-y-2"
+  >
+    <div
+      v-if="couponsOpen && !sidebarCollapsed"
+      class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+    >
+      <a
+        href="/dashboard/coupons"
+        :class="[
+          'block px-3 py-1.5 text-sm transition-colors',
+          isCouponsListActive 
+            ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+            : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+        ]"
+        style="border-radius: 5px"
+      >
+        List of Coupons
+      </a>
+      <a
+        href="/dashboard/coupons/add"
+        :class="[
+          'block px-3 py-1.5 text-sm transition-colors',
+          isCouponsAddActive 
+            ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+            : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+        ]"
+        style="border-radius: 5px"
+      >
+        Add Coupon
+      </a>
+    </div>
+  </Transition>
+</div>
+
+
+          
 
           <!-- Customers -->
           <div>
@@ -1083,6 +1147,7 @@ import Customers from "./svg/customers.vue";
 import Applications from "./svg/applications.vue";
 import Finances from "./svg/finances.vue";
 import Dashboard from "./svg/dashboard.vue";
+import Coupons from "./svg/coupons.vue";
 
 const props = defineProps({
   pageTitle: {
@@ -1100,6 +1165,7 @@ const countriesOpen = ref(false);
 const visaproductsOpen = ref(false);
 const nationalitiesOpen = ref(false);
 const embassiesOpen = ref(false);
+const couponsOpen = ref(false);
 
 // Route detection for active states
 const route = useRoute()
@@ -1113,6 +1179,9 @@ const isEmbassiesActive = computed(() => route.path.startsWith('/dashboard/embas
 const isCustomersActive = computed(() => route.path.startsWith('/dashboard/customers'))
 const isApplicationsActive = computed(() => route.path.startsWith('/dashboard/applications'))
 const isFinancesActive = computed(() => route.path.startsWith('/dashboard/finances'))
+const isCouponsActive = computed(() => route.path.startsWith('/dashboard/coupons'))
+const isCouponsListActive = computed(() => route.path === '/dashboard/coupons')
+const isCouponsAddActive = computed(() => route.path === '/dashboard/coupons/add')
 
 // Individual dropdown item active states
 const isCountriesListActive = computed(() => route.path === '/dashboard/countries')
@@ -1155,6 +1224,12 @@ onMounted(() => {
     } else {
       embassiesOpen.value = localStorage.getItem('embassiesOpen') === 'true'
     }
+    if (isCouponsActive.value) {
+    couponsOpen.value = true
+      localStorage.setItem('couponsOpen', 'true')
+    } else {
+     couponsOpen.value = localStorage.getItem('couponsOpen') === 'true'
+}
   }
 });
 
@@ -1198,6 +1273,17 @@ watch(() => route.path, (newPath) => {
       localStorage.setItem('visaproductsOpen', 'false')
       localStorage.setItem('nationalitiesOpen', 'false')
       localStorage.setItem('embassiesOpen', 'true')
+    } else if (newPath.startsWith('/dashboard/coupons')) {
+      countriesOpen.value = false
+      visaproductsOpen.value = false
+      nationalitiesOpen.value = false
+      embassiesOpen.value = false
+      couponsOpen.value = true
+      localStorage.setItem('countriesOpen', 'false')
+      localStorage.setItem('visaproductsOpen', 'false')
+      localStorage.setItem('nationalitiesOpen', 'false')
+      localStorage.setItem('embassiesOpen', 'false')
+      localStorage.setItem('couponsOpen', 'true')
     }
   }
 }, { immediate: true });
@@ -1375,6 +1461,23 @@ const toggleEmbassies = () => {
     localStorage.setItem('countriesOpen', 'false');
     localStorage.setItem('visaproductsOpen', 'false');
     localStorage.setItem('nationalitiesOpen', 'false');
+  }
+};
+
+const toggleCoupons = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  couponsOpen.value = !couponsOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('couponsOpen', couponsOpen.value.toString());
+    localStorage.setItem('countriesOpen', 'false');
+    localStorage.setItem('visaproductsOpen', 'false');
+    localStorage.setItem('nationalitiesOpen', 'false');
+    localStorage.setItem('embassiesOpen', 'false');
   }
 };
 

@@ -1,6 +1,17 @@
 import { useApi, handleApiError, type ApiResponse } from './useApi'
 
 /**
+ * Processing Fee interface
+ */
+export interface ProcessingFee {
+  id?: number
+  feeType: string
+  timeValue: number
+  timeUnit: 'hours' | 'days'
+  amount: number
+}
+
+/**
  * Visa Product interface
  */
 export interface VisaProduct {
@@ -9,9 +20,11 @@ export interface VisaProduct {
   productName: string
   duration: number
   validity: number
+  entryType: string
   govtFee: number
   serviceFee: number
   totalAmount: number
+  processingFees?: ProcessingFee[]
   createdAt?: string
   updatedAt?: string
 }
@@ -24,9 +37,11 @@ export interface CreateVisaProductDto {
   productName: string
   duration: number
   validity: number
+  entryType: string
   govtFee: number
   serviceFee: number
   totalAmount: number
+  processingFees?: ProcessingFee[]
 }
 
 /**
@@ -37,9 +52,11 @@ export interface UpdateVisaProductDto {
   productName?: string
   duration?: number
   validity?: number
+  entryType?: string
   govtFee?: number
   serviceFee?: number
   totalAmount?: number
+  processingFees?: ProcessingFee[]
 }
 
 /**
@@ -326,4 +343,3 @@ export const useVisaProductsApi = () => {
     getVisaProductsByCountry,
   }
 }
-

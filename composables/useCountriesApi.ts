@@ -6,6 +6,7 @@ import { useApi, handleApiError, type ApiResponse } from './useApi'
 export interface Country {
   id?: number | string
   countryName: string
+  logoUrl?: string | null
   code?: string
   description?: string
   createdAt?: string
@@ -23,17 +24,28 @@ export interface CountriesListResponse {
 }
 
 /**
- * Create Country DTO
+ * Backend API response wrapper
  */
-export interface CreateCountryDto {
-  countryName: string
+interface BackendApiResponse<T> {
+  status: boolean
+  message: string
+  data: T
 }
 
 /**
- * Update Country DTO
+ * Create Country DTO (for JSON payload)
+ */
+export interface CreateCountryDto {
+  countryName: string
+  logoUrl?: string
+}
+
+/**
+ * Update Country DTO (for JSON payload)
  */
 export interface UpdateCountryDto {
   countryName?: string
+  logoUrl?: string
   code?: string
   description?: string
 }
@@ -44,18 +56,37 @@ export interface UpdateCountryDto {
  */
 export const useCountriesApi = () => {
   const api = useApi()
+  const config = useRuntimeConfig()
 
   /**
-   * Create a new country
+   * Create a new country (supports FormData for file upload)
    */
-  const createCountry = async (data: CreateCountryDto): Promise<ApiResponse<Country>> => {
+  const createCountry = async (data: CreateCountryDto | FormData): Promise<ApiResponse<Country>> => {
     try {
-      const response = await api.post<Country>('/countries', data)
-      
-      return {
-        data: response.data,
-        message: 'Country created successfully',
-        success: true,
+      if (data instanceof FormData) {
+        // Handle FormData (file upload) - use $fetch directly
+        const response = await $fetch<BackendApiResponse<Country>>(
+          `${config.public.apiBase}/countries`,
+          {
+            method: 'POST',
+            body: data,
+          }
+        )
+
+        return {
+          data: response.data,
+          message: response.message || 'Country created successfully',
+          success: response.status ?? true,
+        }
+      } else {
+        // Handle JSON payload - use api wrapper
+        const response = await api.post<BackendApiResponse<Country>>('/countries', data)
+        
+        return {
+          data: response.data.data,
+          message: response.data.message || 'Country created successfully',
+          success: response.data.status ?? true,
+        }
       }
     } catch (error) {
       throw new Error(handleApiError(error))
@@ -69,7 +100,6 @@ export const useCountriesApi = () => {
     try {
       const response = await api.get<CountriesListResponse>('/countries')
       
-      // Handle the API response structure with status, message, count, and data
       if (response.data.status && response.data.data) {
         return {
           data: response.data.data,
@@ -90,68 +120,64 @@ export const useCountriesApi = () => {
 
   /**
    * Get a single country by ID
-   * GET http://localhost:5000/countries/:id
    */
   const getCountryById = async (id: number | string): Promise<ApiResponse<Country>> => {
     try {
-      const response = await api.get<Country | { status: boolean; message: string; data: Country }>(`/countries/${id}`)
+      const response = await api.get<BackendApiResponse<Country>>(`/countries/${id}`)
       
-      // Handle different response structures
-      let countryData: Country
-      
-      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
-        // Response has wrapper structure { status, message, data }
-        const wrappedResponse = response.data as { status: boolean; message: string; data: Country }
-        if (wrappedResponse.status && wrappedResponse.data) {
-          countryData = wrappedResponse.data
-        } else {
-          throw new Error(wrappedResponse.message || 'Country not found')
+      if (response.data.status && response.data.data) {
+        return {
+          data: response.data.data,
+          message: response.data.message,
+          success: true,
         }
-      } else {
-        // Direct country object
-        countryData = response.data as Country
       }
       
-      return {
-        data: countryData,
-        success: true,
-      }
+      throw new Error(response.data.message || 'Country not found')
     } catch (error) {
       throw new Error(handleApiError(error))
     }
   }
 
   /**
-   * Update a country by ID using PATCH
-   * PATCH http://localhost:5000/countries/:id
+   * Update a country by ID (supports FormData for file upload)
    */
   const updateCountry = async (
     id: number | string,
-    data: UpdateCountryDto
+    data: UpdateCountryDto | FormData
   ): Promise<ApiResponse<Country>> => {
     try {
-      const response = await api.patch<Country | { status: boolean; message: string; data: Country }>(`/countries/${id}`, data)
-      
-      // Handle different response structures
-      let countryData: Country
-      
-      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
-        // Response has wrapper structure { status, message, data }
-        const wrappedResponse = response.data as { status: boolean; message: string; data: Country }
-        if (wrappedResponse.status && wrappedResponse.data) {
-          countryData = wrappedResponse.data
-        } else {
-          throw new Error(wrappedResponse.message || 'Failed to update country')
+      if (data instanceof FormData) {
+        // Handle FormData (file upload) - use $fetch directly
+        const response = await $fetch<BackendApiResponse<Country>>(
+          `${config.public.apiBase}/countries/${id}`,
+          {
+            method: 'PATCH',
+            body: data,
+          }
+        )
+
+        return {
+          data: response.data,
+          message: response.message || 'Country updated successfully',
+          success: response.status ?? true,
         }
       } else {
-        // Direct country object
-        countryData = response.data as Country
-      }
-      
-      return {
-        data: countryData,
-        message: 'Country updated successfully',
-        success: true,
+        // Handle JSON payload - use api wrapper
+        const response = await api.patch<BackendApiResponse<Country>>(
+          `/countries/${id}`,
+          data
+        )
+        
+        if (response.data.status && response.data.data) {
+          return {
+            data: response.data.data,
+            message: response.data.message || 'Country updated successfully',
+            success: true,
+          }
+        }
+        
+        throw new Error(response.data.message || 'Failed to update country')
       }
     } catch (error) {
       throw new Error(handleApiError(error))
@@ -183,4 +209,3 @@ export const useCountriesApi = () => {
     deleteCountry,
   }
 }
-

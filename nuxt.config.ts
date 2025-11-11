@@ -27,7 +27,9 @@ export default defineNuxtConfig({
   // Runtime config for API
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL ?? 'https://ivisa123-backend-production.up.railway.app',
+      // apiBase: process.env.API_BASE_URL ?? 'https://ivisa123-backend-production.up.railway.app',
+      apiBase: process.env.API_BASE_URL ?? 'http://localhost:5001',
+
     },
   },
 });
