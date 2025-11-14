@@ -10,6 +10,7 @@ export interface Coupon {
   value?: number
   usageLimit?: number | null
   usageCount?: number
+  status?: 'enable' | 'disable'
   createdAt?: string
   updatedAt?: string
 }
@@ -20,6 +21,7 @@ export interface CreateCouponDto {
   validity: string
   value?: number
   usageLimit?: number | null
+  status?: 'enable' | 'disable'
 }
 
 export interface UpdateCouponDto {
@@ -28,6 +30,7 @@ export interface UpdateCouponDto {
   validity?: string
   value?: number
   usageLimit?: number | null
+  status?: 'enable' | 'disable'
 }
 
 export interface CouponsListResponse {

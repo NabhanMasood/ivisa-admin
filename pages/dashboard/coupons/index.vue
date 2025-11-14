@@ -113,6 +113,9 @@
                 <th class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white">
                   Usage
                 </th>
+                <th class="px-4 py-3 text-left text-sm font-medium text-[#475467] dark:text-white">
+                  Status
+                </th>
                 <th class="w-20 px-4 py-3"></th>
               </tr>
             </thead>
@@ -147,6 +150,17 @@
                 </td>
                 <td class="px-4 py-3 text-sm text-[#475467] dark:text-white">
                   {{ formatUsage(coupon) }}
+                </td>
+                <td class="px-4 py-3 text-sm text-[#475467] dark:text-white">
+                  <span
+                    :class="{
+                      'px-2 py-1 rounded text-xs font-medium': true,
+                      'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300': coupon.status === 'enable',
+                      'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300': coupon.status === 'disable' || !coupon.status
+                    }"
+                  >
+                    {{ coupon.status === 'enable' ? 'Enabled' : 'Disabled' }}
+                  </span>
                 </td>
                 <td class="px-4 py-3">
                   <div class="flex items-center space-x-2">

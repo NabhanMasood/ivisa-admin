@@ -5,11 +5,21 @@ export interface Customer {
   name?: string
   customerName?: string
   email: string
-  phone: string
+  phone?: string
+  phoneNumber?: string 
   fullname?: string
   residenceCountry?: string
+  nationality?: string 
+  passportNumber?: string 
+  passportNationality?: string 
+  passportExpiryDate?: string | Date 
+  dateOfBirth?: string | Date
+  numberOfTravellers?: number
+  hasSchengenVisa?: boolean | string
+  hasValidVisaOrResidencePermit?: boolean | string
   totalApplications?: number
-  status?: string
+  status?: string 
+  role?: string 
   createdDate?: string
   createdAt?: string
   updatedAt?: string
@@ -18,8 +28,40 @@ export interface Customer {
 export interface CreateCustomerDto {
   fullname: string
   email: string
-  phone: string
+  phone?: string
+  phoneNumber?: string 
   residenceCountry: string
+  nationality?: string 
+  passportNumber?: string 
+  passportNationality?: string 
+  passportExpiryDate?: string | Date 
+}
+
+export interface CustomerDetailResponse {
+  status: boolean
+  message: string
+  data: {
+    id: number
+    customerName: string
+    fullname?: string  
+    email: string
+    phone?: string 
+    phoneNumber?: string 
+    residenceCountry?: string
+    nationality?: string 
+    passportNumber?: string 
+    passportNationality?: string 
+    passportExpiryDate?: string | Date 
+    dateOfBirth?: string | Date
+    numberOfTravellers?: number
+    hasSchengenVisa?: boolean | string
+    hasValidVisaOrResidencePermit?: boolean | string
+    status?: string 
+    role?: string 
+    createdDate: string
+    createdAt: string
+    updatedAt: string
+  }
 }
 
 export interface CustomersListResponse {
@@ -34,21 +76,6 @@ export interface CustomersListResponse {
     totalApplications: number
     status: string
   }>
-}
-
-export interface CustomerDetailResponse {
-  status: boolean
-  message: string
-  data: {
-    id: number
-    customerName: string
-    email: string
-    phone: string
-    residenceCountry: string
-    createdDate: string
-    createdAt: string
-    updatedAt: string
-  }
 }
 
 export interface BillingInfoResponse {

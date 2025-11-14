@@ -34,6 +34,17 @@
           Customer Details
         </button>
         <button
+          @click="activeTab = 'history'"
+          :class="[
+            activeTab === 'history'
+              ? 'bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+            'px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200'
+          ]"
+        >
+          Customer History
+        </button>
+        <button
           @click="activeTab = 'applications'"
           :class="[
             activeTab === 'applications'
@@ -78,8 +89,12 @@
                 </div>
                 <template v-else-if="customer">
                   <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
-                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Customer Name</span>
-                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.customerName }}</span>
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">First/Middle Name</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ getFirstName(customer.fullname || customer.customerName) }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Last Name</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ getLastName(customer.fullname || customer.customerName) }}</span>
                   </div>
                   <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
                     <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Email</span>
@@ -90,8 +105,25 @@
                     <span class="text-sm text-gray-900 dark:text-white">{{ customer.phone }}</span>
                   </div>
                   <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Date of Birth</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ formatDate(customer.dateOfBirth) }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Nationality</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.nationality || '-' }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Passport Number</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.passportNumber || '-' }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                    <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Passport Expiry Date</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ formatDate(customer.passportExpiryDate) }}</span>
+                  </div>
+                
+                  <div class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700">
                     <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Residence Country</span>
-                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.residenceCountry }}</span>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ customer.residenceCountry || '-' }}</span>
                   </div>
                   <div class="grid grid-cols-2 gap-4 pt-5">
                     <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400">Created Date</span>
@@ -101,6 +133,44 @@
                 <div v-else class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                   {{ errorMessage || 'Customer not found' }}
                 </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer History Tab -->
+        <div v-if="activeTab === 'history'" class="p-6">
+          <div class="space-y-6">
+            <div class="flex-1 min-w-0">
+              <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Customer History
+              </h1>
+              <label class="text-[#475467] dark:text-white text-[14px] sm:text-base leading-[12px] sm:leading-6"
+                style="font-weight: 400; letter-spacing: 0%">
+                Here you can see the customer history.
+              </label>
+            </div>
+            <div class="flex flex-col">
+              <div v-if="isLoading" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                Loading customer history...
+              </div>
+              <template v-else-if="customer">
+                <div class="space-y-4">
+                  <div class="bg-gray-50 dark:bg-[#18181B] rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white mb-4">
+                      Do you have a valid visa or residence permit from the Schengen Area, USA, Australia, Canada, UK, Japan, Norway, New Zealand, Ireland, or Switzerland?
+                    </p>
+                    <div class="mt-4">
+                      <span class="text-sm font-medium text-[#020617] dark:text-gray-400 mr-2">Response:</span>
+                      <span class="text-sm text-gray-900 dark:text-white">
+                        {{ formatVisaResponse(getVisaResponseValue(customer)) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <div v-else class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                {{ errorMessage || 'Customer not found' }}
+              </div>
             </div>
           </div>
         </div>
@@ -398,9 +468,11 @@ const activeTab = ref('details');
 const customer = ref(null);
 const billingInfo = ref(null);
 const customerApplications = ref([]);
+const customerHistory = ref([]);
 const isLoading = ref(false);
 const isLoadingBilling = ref(false);
 const isLoadingApplications = ref(false);
+const isLoadingHistory = ref(false);
 const errorMessage = ref("");
 
 const loadCustomerDetails = async () => {
@@ -461,12 +533,33 @@ const loadApplications = async () => {
   }
 };
 
+const loadCustomerHistory = async () => {
+  if (!customerId.value) return;
+  
+  try {
+    isLoadingHistory.value = true;
+    // TODO: Implement getCustomerHistory API call when available
+    // const response = await getCustomerHistory(customerId.value);
+    // if (response.success && response.data) {
+    //   customerHistory.value = response.data;
+    // }
+    customerHistory.value = [];
+  } catch (error) {
+    // Handle error silently
+  } finally {
+    isLoadingHistory.value = false;
+  }
+};
+
 watch(activeTab, (newTab) => {
   if (newTab === 'billing' && !billingInfo.value) {
     loadBillingInfo();
   }
   if (newTab === 'applications' && customerApplications.value.length === 0) {
     loadApplications();
+  }
+  if (newTab === 'history' && customerHistory.value.length === 0) {
+    loadCustomerHistory();
   }
 });
 
@@ -529,5 +622,69 @@ onActivated(() => {
 
 const goBack = () => {
   router.push("/dashboard/customers");
+};
+
+// Helper function to get first/middle name
+const getFirstName = (fullName) => {
+  if (!fullName) return '-';
+  const nameParts = fullName.trim().split(/\s+/);
+  if (nameParts.length <= 1) return fullName;
+  // Return all parts except the last one (which is the last name)
+  return nameParts.slice(0, -1).join(' ');
+};
+
+// Helper function to get last name
+const getLastName = (fullName) => {
+  if (!fullName) return '-';
+  const nameParts = fullName.trim().split(/\s+/);
+  if (nameParts.length <= 1) return '-';
+  // Return the last part
+  return nameParts[nameParts.length - 1];
+};
+
+// Helper function to format date
+const formatDate = (date) => {
+  if (!date) return '-';
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '-';
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return date.toString();
+  }
+};
+
+// Helper function to get visa response value from customer object
+const getVisaResponseValue = (customer) => {
+  if (!customer) return null;
+  
+  // The field name from the database is 'hasSchengenVisa'
+  return customer.hasSchengenVisa;
+};
+
+// Helper function to format visa/residence permit response
+const formatVisaResponse = (response) => {
+  if (response === null || response === undefined) return 'Not provided';
+  
+  if (typeof response === 'boolean') {
+    return response ? 'Yes' : 'No';
+  }
+  
+  if (typeof response === 'string') {
+    const lowerResponse = response.toLowerCase().trim();
+    if (lowerResponse === 'true' || lowerResponse === 'yes' || lowerResponse === '1') {
+      return 'Yes';
+    }
+    if (lowerResponse === 'false' || lowerResponse === 'no' || lowerResponse === '0') {
+      return 'No';
+    }
+    return response;
+  }
+  
+  return 'Not provided';
 };
 </script>

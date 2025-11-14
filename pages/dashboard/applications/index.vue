@@ -204,14 +204,14 @@
                   class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
                   <div class="flex items-center space-x-1">
-                    <span>Visa Product</span>
+                    <span>Visa Type</span>
                   </div>
                 </th>
                 <th
                   class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
                   <div class="flex items-center space-x-1">
-                    <span>Price</span>
+                    <span>Amount</span>
                   </div>
                 </th>
                 <th
@@ -228,6 +228,21 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+              <!-- Loading State -->
+              <tr v-if="applicationLoading">
+                <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Loading applications...
+                </td>
+              </tr>
+              
+              <!-- Empty State -->
+              <tr v-else-if="!applicationLoading && filteredApplications.length === 0">
+                <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {{ applicationError || 'No applications found.' }}
+                </td>
+              </tr>
+              
+              <!-- Data Rows -->
               <tr
                 v-for="application in filteredApplications"
                 :key="application.id"
@@ -252,7 +267,7 @@
                     letter-spacing: 0;
                   "
                 >
-                  {{ application.applicationId }}
+                  {{ getApplicationId(application) }}
                 </td>
                 <td
                   class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -265,7 +280,7 @@
                     letter-spacing: 0;
                   "
                 >
-                  {{ application.customerName }}
+                  {{ getCustomerName(application) }}
                 </td>
                 <td
                   class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -278,7 +293,7 @@
                     letter-spacing: 0;
                   "
                 >
-                  {{ application.destination }}
+                  {{ application.destinationCountry || application.destination || '-' }}
                 </td>
                 <td
                   class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -291,7 +306,7 @@
                     letter-spacing: 0;
                   "
                 >
-                  {{ application.visaProduct }}
+                  {{ application.visaType || '-' }}
                 </td>
                 <td
                   class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -304,14 +319,14 @@
                     letter-spacing: 0;
                   "
                 >
-                  {{ application.price }}
+                  {{ formatAmount(application) }}
                 </td>
                 <td class="px-2 sm:px-3 lg:px-4 py-2">
                   <span
                     :class="getStatusPillClasses(application.status)"
                     class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
                   >
-                    {{ application.status }}
+                    {{ getFormattedStatus(application.status) }}
                   </span>
                 </td>
                 <td class="px-2 sm:px-3 lg:px-4 py-2">
@@ -379,99 +394,76 @@
   </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   Plus,
   Columns,
-  Search,
   Eye,
   Pencil,
 } from "lucide-vue-next";
+import { useApplication } from "~/composables/useApplication";
 
 // Set page title
 useHead({
   title: "Applications - iVisa",
 });
 
-// Sample applications data
-const applications = ref([
-  {
-    id: 1,
-    applicationId: "APP-01245",
-    customerName: "Ali Raza",
-    destination: "UAE",
-    visaProduct: "30-Day Visa",
-    price: "USD 100",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 2,
-    applicationId: "APP-01246",
-    customerName: "Sarah Khan",
-    destination: "Thailand",
-    visaProduct: "Tourist Visa",
-    price: "USD 150",
-    status: "In Review",
-    selected: false,
-  },
-  {
-    id: 3,
-    applicationId: "APP-01247",
-    customerName: "John Smith",
-    destination: "Germany",
-    visaProduct: "Schengen Visa",
-    price: "USD 200",
-    status: "Pending",
-    selected: false,
-  },
-  {
-    id: 4,
-    applicationId: "APP-01248",
-    customerName: "Maria Garcia",
-    destination: "France",
-    visaProduct: "Tourist Visa",
-    price: "USD 180",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 5,
-    applicationId: "APP-01249",
-    customerName: "Ahmed Hassan",
-    destination: "Japan",
-    visaProduct: "Business Visa",
-    price: "USD 300",
-    status: "In Review",
-    selected: false,
-  },
-]);
+const { getAllApplications, loading: applicationLoading, error: applicationError } = useApplication();
+const applications = ref([]);
 
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
-
-// Dropdown states for page-specific filters
-const statusDropdownOpen = ref(false);
-const planDropdownOpen = ref(false);
-const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
+
+// Load applications from API
+const loadApplications = async () => {
+  try {
+    const data = await getAllApplications(searchQuery.value || undefined);
+    if (Array.isArray(data)) {
+      applications.value = data.map((app) => ({
+        ...app,
+        selected: false,
+      }));
+    } else {
+      applications.value = [];
+    }
+  } catch (error) {
+    console.error("Failed to load applications:", error);
+    applications.value = [];
+  }
+};
+
+// Debounce search
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+watch(searchQuery, () => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+  searchTimeout = setTimeout(() => {
+    loadApplications();
+  }, 300); // 300ms debounce
+});
 
 // Computed properties
 const filteredApplications = computed(() => {
+  // If search is handled by API, return all applications
+  // Otherwise, filter client-side
   if (!searchQuery.value) return applications.value;
 
   return applications.value.filter(
-    (application) =>
-      application.applicationId
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      application.customerName
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      application.destination
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase())
+    (application) => {
+      const applicationId = getApplicationId(application).toLowerCase();
+      const customerName = getCustomerName(application).toLowerCase();
+      const destination = (application.destinationCountry || application.destination || '').toLowerCase();
+      const searchLower = searchQuery.value.toLowerCase();
+      
+      return (
+        applicationId.includes(searchLower) ||
+        customerName.includes(searchLower) ||
+        destination.includes(searchLower)
+      );
+    }
   );
 });
 
@@ -480,50 +472,86 @@ const selectedCount = computed(() => {
     .length;
 });
 
+// Helper functions to extract data from API response
+const getApplicationId = (application) => {
+  if (application.applicationId) return application.applicationId;
+  if (application.applicationNumber) return application.applicationNumber;
+  if (application.id) return `APP-${application.id}`;
+  return '-';
+};
+
+const getCustomerName = (application) => {
+  if (application.customerName) return application.customerName;
+  if (application.customer?.fullname) return application.customer.fullname;
+  if (application.customer?.name) return application.customer.name;
+  if (application.customer?.customerName) return application.customer.customerName;
+  return '-';
+};
+
+const formatAmount = (application) => {
+  if (application.totalAmount) {
+    // Format as currency if it's a number
+    if (typeof application.totalAmount === 'number') {
+      return `USD ${application.totalAmount.toFixed(2)}`;
+    }
+    // Return as is if it's already a string
+    return application.totalAmount;
+  }
+  if (application.price) return application.price;
+  if (application.totalPrice) return application.totalPrice;
+  if (application.processingFee) return `USD ${application.processingFee}`;
+  return '-';
+};
+
 // Status styling functions
 const getStatusPillClasses = (status) => {
-  switch (status) {
-    case "Approved":
+  if (!status) return "bg-gray-500 text-white border border-gray-500";
+  
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case "approved":
       return "bg-black text-white border border-black";
-    case "In Review":
+    case "in review":
+    case "in_review":
       return "bg-white text-black border border-black";
-    case "Pending":
+    case "pending":
       return "bg-orange-500 text-white border border-orange-500";
-    case "Rejected":
+    case "rejected":
       return "bg-red-500 text-white border border-red-500";
-    case "On Hold":
+    case "on hold":
+    case "on_hold":
       return "bg-gray-500 text-white border border-gray-500";
+    case "active":
+      return "bg-black text-white border border-black";
     default:
       return "bg-gray-500 text-white border border-gray-500";
   }
 };
 
-// Dropdown toggle functions for page-specific filters
-const toggleStatusDropdown = () => {
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  statusDropdownOpen.value = !statusDropdownOpen.value;
-};
-
-const togglePlanDropdown = () => {
-  statusDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  planDropdownOpen.value = !planDropdownOpen.value;
-};
-
-const toggleRoleDropdown = () => {
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
-  roleDropdownOpen.value = !roleDropdownOpen.value;
+const getFormattedStatus = (status) => {
+  if (!status) return '';
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case "approved":
+      return "Approved";
+    case "in review":
+    case "in_review":
+      return "In Review";
+    case "pending":
+      return "Pending";
+    case "rejected":
+      return "Rejected";
+    case "on hold":
+    case "on_hold":
+      return "On Hold";
+    case "active":
+      return "Active";
+    default:
+      return status;
+  }
 };
 
 const toggleColumnsDropdown = () => {
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
   columnsDropdownOpen.value = !columnsDropdownOpen.value;
 };
 
@@ -543,5 +571,14 @@ watch(selectAll, (newValue) => {
   applications.value.forEach((application) => {
     application.selected = newValue;
   });
+});
+
+// Load applications on mount
+onMounted(() => {
+  loadApplications();
+});
+
+onActivated(() => {
+  loadApplications();
 });
 </script>
