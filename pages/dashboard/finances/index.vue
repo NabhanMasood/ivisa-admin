@@ -164,7 +164,7 @@
                 <div class="grid grid-cols-2 gap-7">
                   <div class="text-nowrap whitespace-nowrap">
                     <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Total Revenue</p>
-                    <p class="text-2xl font-medium text-[#020617] dark:text-white">$245,000</p>
+                    <p class="text-2xl font-medium text-[#020617] dark:text-white">{{ formatCurrency(analytics.totalRevenue) }}</p>
                   </div>
                   <div class="w-full h-12">
                     <canvas ref="revenueChart"></canvas>
@@ -177,7 +177,7 @@
                 <div class="grid grid-cols-2 gap-7">
                   <div class="text-nowrap whitespace-nowrap">
                     <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Total Orders</p>
-                    <p class="text-2xl font-medium text-[#020617] dark:text-white">1,245</p>
+                    <p class="text-2xl font-medium text-[#020617] dark:text-white">{{ formatNumber(analytics.totalOrders) }}</p>
                   </div>
                   <div class="w-full h-12">
                     <canvas ref="ordersChart"></canvas>
@@ -190,7 +190,7 @@
                 <div class="grid grid-cols-2 gap-7">
                   <div class="text-nowrap whitespace-nowrap">
                     <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Pending Payments</p>
-                    <p class="text-2xl font-medium text-[#020617] dark:text-white">48</p>
+                    <p class="text-2xl font-medium text-[#020617] dark:text-white">{{ formatNumber(analytics.pendingPayments) }}</p>
                   </div>
                   <div class="w-full h-12">
                     <canvas ref="pendingPaymentsChart"></canvas>
@@ -203,7 +203,7 @@
                 <div class="grid grid-cols-2 gap-7">
                   <div class="text-nowrap whitespace-nowrap">
                     <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Refunded Orders</p>
-                    <p class="text-2xl font-medium text-[#020617] dark:text-white">$682.5</p>
+                    <p class="text-2xl font-medium text-[#020617] dark:text-white">{{ formatNumber(analytics.refundedOrders) }}</p>
                   </div>
                   <div class="w-full h-12">
                     <canvas ref="refundedOrdersChart"></canvas>
@@ -260,13 +260,6 @@
                         class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                       >
                         <div class="flex items-center space-x-1">
-                          <span>Destination</span>
-                        </div>
-                      </th>
-                      <th
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
-                      >
-                        <div class="flex items-center space-x-1">
                           <span>Amount</span>
                         </div>
                       </th>
@@ -288,7 +281,18 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                    <tr v-if="isLoading" class="hover:bg-gray-50 dark:hover:bg-gray-900">
+                      <td colspan="8" class="px-2 sm:px-3 lg:px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Loading payments...
+                      </td>
+                    </tr>
+                    <tr v-else-if="filteredOrders.length === 0" class="hover:bg-gray-50 dark:hover:bg-gray-900">
+                      <td colspan="8" class="px-2 sm:px-3 lg:px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        {{ errorMessage || 'No payments found' }}
+                      </td>
+                    </tr>
                     <tr
+                      v-else
                       v-for="order in filteredOrders"
                       :key="order.id"
                       class="hover:bg-gray-50 dark:hover:bg-gray-900"
@@ -312,7 +316,17 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ order.orderId }}
+                        <div class="flex items-center gap-2">
+                          <span>{{ truncatePaymentIntent(order.paymentIntentId || order.transactionId || order.orderId || `ORD-${order.id}`) }}</span>
+                          <button
+                            @click="copyToClipboard(order.paymentIntentId || order.transactionId || order.orderId || `ORD-${order.id}`, order.id)"
+                            class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                            :title="copiedIds[order.id] ? 'Copied!' : 'Copy full payment intent ID'"
+                          >
+                            <Check v-if="copiedIds[order.id]" class="h-3 w-3 text-green-600 dark:text-green-400" />
+                            <Copy v-else class="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                          </button>
+                        </div>
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -325,7 +339,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ order.customerName }}
+                        {{ order.customerName || order.customer?.name || order.customer?.fullname || 'N/A' }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -338,7 +352,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ order.application }}
+                        {{ order.application || order.applicationNumber || order.visaApplication?.applicationNumber || 'N/A' }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -351,7 +365,7 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ order.destination }}
+                        {{ formatPaymentAmount(order.amount, order.currency) }}
                       </td>
                       <td
                         class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
@@ -364,27 +378,14 @@
                           letter-spacing: 0;
                         "
                       >
-                        {{ order.amount }}
-                      </td>
-                      <td
-                        class="px-2 sm:px-3 lg:px-4 py-2 text-xs sm:text-sm text-[#475467] dark:text-white"
-                        style="
-                          font-size: 14px;
-                          font-weight: 400;
-                          font-style: normal;
-                          line-height: 20px;
-                          font-family: 'Geist', sans-serif;
-                          letter-spacing: 0;
-                        "
-                      >
-                        {{ order.datePaid }}
+                        {{ formatDate(order.datePaid || order.paidAt) }}
                       </td>
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
                         <span
                           :class="getStatusPillClasses(order.status)"
                           class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
                         >
-                          {{ order.status }}
+                          {{ formatStatus(order.status) }}
                         </span>
                       </td>
                       <td class="px-2 sm:px-3 lg:px-4 py-2">
@@ -450,15 +451,19 @@
         </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   Plus,
   Columns,
   Search,
   Eye,
   Pencil,
+  Copy,
+  Check,
 } from "lucide-vue-next";
 import { Chart, registerables } from 'chart.js';
+import { usePaymentsApi } from '~/composables/usePaymentsApi';
+import type { Payment } from '~/composables/usePaymentsApi';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -466,6 +471,28 @@ Chart.register(...registerables);
 // Set page title
 useHead({
   title: "Finances - iVisa",
+});
+
+// API composable
+const { getAllPayments, calculateAnalytics } = usePaymentsApi();
+
+// Loading and error states
+const isLoading = ref(false);
+const errorMessage = ref("");
+
+// Payments data
+const payments = ref<Payment[]>([]);
+const orders = ref<any[]>([]);
+
+// Copy state
+const copiedIds = ref<Record<number | string, boolean>>({});
+
+// Analytics
+const analytics = ref({
+  totalRevenue: 0,
+  totalOrders: 0,
+  pendingPayments: 0,
+  refundedOrders: 0,
 });
 
 // Chart refs
@@ -480,9 +507,34 @@ let ordersChartInstance = null;
 let pendingPaymentsChartInstance = null;
 let refundedOrdersChartInstance = null;
 
-// Chart data
+// Chart data - generate from payments if available
 const getChartData = () => {
-  return [20, 25, 30, 22, 28, 35, 40, 38, 42, 45, 38, 35, 30, 25, 20, 22, 28, 32, 35, 30, 25, 20, 18, 22, 25, 28, 30, 25, 20, 22];
+  if (payments.value.length === 0) {
+    return [20, 25, 30, 22, 28, 35, 40, 38, 42, 45, 38, 35, 30, 25, 20, 22, 28, 32, 35, 30, 25, 20, 18, 22, 25, 28, 30, 25, 20, 22];
+  }
+  
+  // Generate chart data from payments by grouping by date
+  const last30Days = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (29 - i));
+    return date.toISOString().split('T')[0];
+  });
+
+  return last30Days.map(date => {
+    const dayPayments = payments.value.filter(p => {
+      const paymentDate = p.paidAt || p.createdAt;
+      if (!paymentDate) return false;
+      const paymentDateStr = new Date(paymentDate).toISOString().split('T')[0];
+      return paymentDateStr === date && (p.status?.toLowerCase() === 'paid' || p.status?.toLowerCase() === 'approved');
+    });
+    
+    return dayPayments.reduce((sum, p) => {
+      const amount = typeof p.amount === 'string' 
+        ? parseFloat(p.amount.replace(/[^0-9.-]+/g, '')) || 0
+        : p.amount || 0;
+      return sum + amount;
+    }, 0);
+  });
 };
 
 // Create revenue chart (stacked bar chart)
@@ -579,8 +631,41 @@ const initializeCharts = () => {
   refundedOrdersChartInstance = createLineChart(refundedOrdersChart, '#8B5CF6');
 };
 
-// Initialize charts on mount
-onMounted(() => {
+// Update charts with new data
+const updateCharts = () => {
+  if (revenueChartInstance) {
+    const data = getChartData();
+    revenueChartInstance.data.labels = data.map((_, i) => i + 1);
+    revenueChartInstance.data.datasets[0].data = data.map(val => val * 0.6);
+    revenueChartInstance.data.datasets[1].data = data.map(val => val * 0.4);
+    revenueChartInstance.update();
+  }
+  
+  if (ordersChartInstance) {
+    const data = getChartData();
+    ordersChartInstance.data.labels = data.map((_, i) => i + 1);
+    ordersChartInstance.data.datasets[0].data = data;
+    ordersChartInstance.update();
+  }
+  
+  if (pendingPaymentsChartInstance) {
+    const data = getChartData();
+    pendingPaymentsChartInstance.data.labels = data.map((_, i) => i + 1);
+    pendingPaymentsChartInstance.data.datasets[0].data = data;
+    pendingPaymentsChartInstance.update();
+  }
+  
+  if (refundedOrdersChartInstance) {
+    const data = getChartData();
+    refundedOrdersChartInstance.data.labels = data.map((_, i) => i + 1);
+    refundedOrdersChartInstance.data.datasets[0].data = data;
+    refundedOrdersChartInstance.update();
+  }
+};
+
+// Initialize charts on mount and load data
+onMounted(async () => {
+  await loadPayments();
   nextTick(() => {
     initializeCharts();
   });
@@ -594,119 +679,59 @@ onUnmounted(() => {
   if (refundedOrdersChartInstance) refundedOrdersChartInstance.destroy();
 });
 
-// Sample orders data matching the image
-const orders = ref([
-  {
-    id: 1,
-    orderId: "ORD - 1001",
-    customerName: "Ali Raza",
-    application: "APP-001245",
-    destination: "Thailand",
-    amount: "USD 100",
-    datePaid: "01/01/2024",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 2,
-    orderId: "ORD - 1002",
-    customerName: "Sarah Khan",
-    application: "APP-001246",
-    destination: "UAE",
-    amount: "USD 250",
-    datePaid: "-",
-    status: "In Review",
-    selected: false,
-  },
-  {
-    id: 3,
-    orderId: "ORD - 1003",
-    customerName: "John Smith",
-    application: "APP-001247",
-    destination: "Germany",
-    amount: "USD 400",
-    datePaid: "-",
-    status: "Pending",
-    selected: false,
-  },
-  {
-    id: 4,
-    orderId: "ORD - 1004",
-    customerName: "Maria Garcia",
-    application: "APP-001248",
-    destination: "France",
-    amount: "USD 150",
-    datePaid: "02/01/2024",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 5,
-    orderId: "ORD - 1005",
-    customerName: "Ahmed Hassan",
-    application: "APP-001249",
-    destination: "Japan",
-    amount: "USD 300",
-    datePaid: "-",
-    status: "Rejected",
-    selected: false,
-  },
-  {
-    id: 6,
-    orderId: "ORD - 1006",
-    customerName: "Emma Wilson",
-    application: "APP-001250",
-    destination: "Canada",
-    amount: "USD 200",
-    datePaid: "03/01/2024",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 7,
-    orderId: "ORD - 1007",
-    customerName: "David Lee",
-    application: "APP-001251",
-    destination: "Australia",
-    amount: "USD 180",
-    datePaid: "-",
-    status: "On Hold",
-    selected: false,
-  },
-  {
-    id: 8,
-    orderId: "ORD - 1008",
-    customerName: "Fatima Ali",
-    application: "APP-001252",
-    destination: "UK",
-    amount: "USD 350",
-    datePaid: "04/01/2024",
-    status: "Approved",
-    selected: false,
-  },
-  {
-    id: 9,
-    orderId: "ORD - 1009",
-    customerName: "Michael Brown",
-    application: "APP-001253",
-    destination: "Singapore",
-    amount: "USD 80",
-    datePaid: "-",
-    status: "In Review",
-    selected: false,
-  },
-  {
-    id: 10,
-    orderId: "ORD - 1010",
-    customerName: "Aisha Patel",
-    application: "APP-001254",
-    destination: "India",
-    amount: "USD 120",
-    datePaid: "05/01/2024",
-    status: "Approved",
-    selected: false,
-  },
-]);
+// Load payments from API
+const loadPayments = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+  
+  try {
+    const result = await getAllPayments();
+    
+    if (result.success && result.data) {
+      payments.value = result.data;
+      
+      // Transform payments to orders format for display
+      orders.value = payments.value.map((payment) => ({
+        id: payment.id,
+        orderId: payment.orderId || payment.transactionId || `ORD-${payment.id}`,
+        customerName: payment.customerName || payment.customer?.name || payment.customer?.fullname || 'N/A',
+        application: payment.application || payment.applicationNumber || payment.visaApplication?.applicationNumber || 'N/A',
+        destination: payment.destination || payment.destinationCountry || payment.visaApplication?.destinationCountry || 'N/A',
+        amount: payment.amount,
+        currency: payment.currency,
+        datePaid: payment.datePaid || payment.paidAt,
+        status: payment.status || 'Pending',
+        selected: false,
+        // Keep original payment data
+        ...payment,
+      }));
+      
+      // Calculate analytics
+      analytics.value = calculateAnalytics(payments.value);
+      
+      // Debug logging
+      if (process.dev) {
+        console.log('Payments loaded:', payments.value.length);
+        console.log('Analytics calculated:', analytics.value);
+        console.log('Sample payment:', payments.value[0]);
+      }
+      
+      // Update charts with new data
+      nextTick(() => {
+        updateCharts();
+      });
+    } else {
+      errorMessage.value = result.message || 'Failed to load payments';
+      orders.value = [];
+    }
+  } catch (error: any) {
+    console.error('Error loading payments:', error);
+    errorMessage.value = error.message || 'Failed to load payments';
+    orders.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 const searchQuery = ref("");
 const selectAll = ref(false);
@@ -780,15 +805,19 @@ onMounted(() => {
 const filteredOrders = computed(() => {
   if (!searchQuery.value) return orders.value;
 
+  const query = searchQuery.value.toLowerCase();
   return orders.value.filter(
-    (order) =>
-      order.orderId
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      order.customerName
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase()) ||
-      order.destination.toLowerCase().includes(searchQuery.value.toLowerCase())
+    (order) => {
+      const paymentIntentId = (order.paymentIntentId || order.transactionId || order.orderId || `ORD-${order.id}`).toLowerCase();
+      const customerName = (order.customerName || order.customer?.name || order.customer?.fullname || '').toLowerCase();
+      const application = (order.application || order.applicationNumber || order.visaApplication?.applicationNumber || '').toLowerCase();
+      
+      return (
+        paymentIntentId.includes(query) ||
+        customerName.includes(query) ||
+        application.includes(query)
+      );
+    }
   );
 });
 
@@ -797,19 +826,121 @@ const selectedCount = computed(() => {
 });
 
 const getStatusPillClasses = (status) => {
-  switch (status) {
-    case "Approved":
+  if (!status) return "bg-gray-500 text-white border border-gray-500";
+  
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case "approved":
+    case "paid":
+    case "completed":
       return "bg-black text-white border border-black";
-    case "In Review":
+    case "in review":
+    case "processing":
+    case "review":
       return "bg-white text-black border border-black";
-    case "Pending":
+    case "pending":
       return "bg-orange-500 text-white border border-orange-500";
-    case "Rejected":
+    case "rejected":
+    case "failed":
+    case "declined":
       return "bg-red-500 text-white border border-red-500";
-    case "On Hold":
+    case "on hold":
+    case "hold":
       return "bg-gray-500 text-white border border-gray-500";
+    case "refunded":
+    case "refund":
+      return "bg-yellow-500 text-white border border-yellow-500";
     default:
       return "bg-gray-500 text-white border border-gray-500";
+  }
+};
+
+// Format status for display
+const formatStatus = (status) => {
+  if (!status) return 'Pending';
+  return status.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+};
+
+// Format payment amount
+const formatPaymentAmount = (amount, currency = 'USD') => {
+  if (!amount && amount !== 0) return '-';
+  
+  const numAmount = typeof amount === 'string' 
+    ? parseFloat(amount.replace(/[^0-9.-]+/g, '')) || 0
+    : amount;
+  
+  if (numAmount === 0) return '-';
+  
+  return `${currency || 'USD'} ${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+// Format currency for display
+const formatCurrency = (amount) => {
+  return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+// Format number for display
+const formatNumber = (num) => {
+  return num.toLocaleString('en-US');
+};
+
+// Format date for display
+const formatDate = (dateString) => {
+  if (!dateString || dateString === '-') return '-';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
+    
+    return date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    });
+  } catch (error) {
+    return '-';
+  }
+};
+
+// Truncate payment intent ID to first 5-6 characters
+const truncatePaymentIntent = (paymentIntentId: string | undefined | null) => {
+  if (!paymentIntentId) return 'N/A';
+  const id = String(paymentIntentId);
+  if (id.length <= 6) return id;
+  return id.substring(0, 6) + '...';
+};
+
+// Copy to clipboard function
+const copyToClipboard = async (text: string, orderId: number | string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    copiedIds.value[orderId] = true;
+    
+    // Reset the copied state after 2 seconds
+    setTimeout(() => {
+      copiedIds.value[orderId] = false;
+    }, 2000);
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      copiedIds.value[orderId] = true;
+      setTimeout(() => {
+        copiedIds.value[orderId] = false;
+      }, 2000);
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+    }
+    document.body.removeChild(textArea);
   }
 };
 

@@ -32,7 +32,7 @@
             :to="`/dashboard/applications/${applicationId}`"
             class="px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200"
             :class="[
-              $route.path === `/dashboard/applications/${applicationId}`
+              !$route.path.includes('/travellers')
                 ? 'bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
             ]"
@@ -40,28 +40,38 @@
             Application Details
           </NuxtLink>
           <button
-            class="px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200 bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm"
+            class="px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200"
+            :class="[
+              $route.path.includes('/travellers')
+                ? 'bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+            ]"
           >
             Travelers
           </button>
           <NuxtLink
-            :to="`/dashboard/applications/${applicationId}`"
+            :to="`/dashboard/applications/${applicationId}?tab=additional-info`"
             class="px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200"
             :class="[
-              $route.path === `/dashboard/applications/${applicationId}` && $route.query.tab === 'documents'
-                ? 'bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+              'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+            ]"
+          >
+            Additional Info
+          </NuxtLink>
+          <NuxtLink
+            :to="`/dashboard/applications/${applicationId}?tab=documents`"
+            class="px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200"
+            :class="[
+              'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
             ]"
           >
             Documents
           </NuxtLink>
           <NuxtLink
-            :to="`/dashboard/applications/${applicationId}`"
+            :to="`/dashboard/applications/${applicationId}?tab=payment`"
             class="px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200"
             :class="[
-              $route.path === `/dashboard/applications/${applicationId}` && $route.query.tab === 'payment'
-                ? 'bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+              'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
             ]"
           >
             Payment

@@ -58,7 +58,9 @@
           <div class="grid grid-cols-2 gap-7">
             <div>
                 <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Total Revenue</p>
-              <p class="text-2xl font-medium text-[#020617] dark:text-white">$245,000</p>
+              <p class="text-2xl font-medium text-[#020617] dark:text-white">
+                {{ isLoading ? '...' : formatCurrency(metrics.totalRevenue) }}
+              </p>
             </div>
               <div class="w-full h-12">
               <canvas ref="revenueChart"></canvas>
@@ -71,7 +73,9 @@
           <div class="grid grid-cols-2 gap-7">
             <div>
                 <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Total Applications</p>
-              <p class="text-2xl font-medium text-[#020617] dark:text-white">1,245</p>
+              <p class="text-2xl font-medium text-[#020617] dark:text-white">
+                {{ isLoading ? '...' : formatNumber(metrics.totalApplications) }}
+              </p>
             </div>
             <div class="w-full h-12">
               <canvas ref="applicationsChart"></canvas>
@@ -84,7 +88,9 @@
           <div class="grid grid-cols-2 gap-7">
             <div>
                 <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Open Applications</p>
-              <p class="text-2xl font-medium text-[#020617] dark:text-white">48</p>
+              <p class="text-2xl font-medium text-[#020617] dark:text-white">
+                {{ isLoading ? '...' : formatNumber(metrics.openApplications) }}
+              </p>
             </div>
             <div class="w-full h-12">
               <canvas ref="openApplicationsChart"></canvas>
@@ -97,7 +103,9 @@
           <div class="grid grid-cols-2 gap-7">
             <div>
               <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Approved Applications</p>
-              <p class="text-2xl font-medium text-[#020617] dark:text-white">870</p>
+              <p class="text-2xl font-medium text-[#020617] dark:text-white">
+                {{ isLoading ? '...' : formatNumber(metrics.approvedApplications) }}
+              </p>
             </div>
             <div class="w-full h-12">
               <canvas ref="approvedApplicationsChart"></canvas>
@@ -110,7 +118,9 @@
           <div class="grid grid-cols-2 gap-7">
             <div>
               <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Total Customers</p>
-              <p class="text-2xl font-medium text-[#020617] dark:text-white">540</p>
+              <p class="text-2xl font-medium text-[#020617] dark:text-white">
+                {{ isLoading ? '...' : formatNumber(metrics.totalCustomers) }}
+              </p>
             </div>
             <div class="w-full h-12">
               <canvas ref="customersChart"></canvas>
@@ -123,7 +133,9 @@
           <div class="grid grid-cols-2 gap-7">
             <div>
               <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Pending Payments</p>
-              <p class="text-2xl font-medium text-[#020617] dark:text-white">48</p>
+              <p class="text-2xl font-medium text-[#020617] dark:text-white">
+                {{ isLoading ? '...' : formatNumber(metrics.pendingPayments) }}
+              </p>
             </div>
             <div class="w-full h-12">
               <canvas ref="pendingPaymentsChart"></canvas>
@@ -135,8 +147,11 @@
   </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Chart, registerables } from 'chart.js';
+import { usePaymentsApi, type Payment } from '~/composables/usePaymentsApi';
+import { useApplication } from '~/composables/useApplication';
+import { useCustomersApi } from '~/composables/useCustomersApi';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -146,8 +161,165 @@ useHead({
   title: "Dashboard - iVisa",
 });
 
+// API composables
+const { getAllPayments, calculateAnalytics } = usePaymentsApi();
+const { getAllApplications, getApplicationSummary } = useApplication();
+const { getAllCustomers, getCustomerSummary } = useCustomersApi();
+
 // Date period selection
 const selectedPeriod = ref('30d');
+
+// Loading state
+const isLoading = ref(false);
+const errorMessage = ref('');
+
+// Dashboard data
+const payments = ref<Payment[]>([]);
+const applications = ref<any[]>([]);
+const customers = ref<any[]>([]);
+const applicationSummary = ref<any>(null);
+const customerSummary = ref<{
+  totalCustomers: number
+  activeCustomers: number
+  inactiveCustomers: number
+  suspendedCustomers: number
+  totalApplications: number
+} | null>(null);
+
+// Dashboard metrics
+const metrics = computed(() => {
+  const paymentAnalytics = calculateAnalytics(payments.value);
+  const filteredPayments = filterByPeriod(payments.value, selectedPeriod.value);
+  const filteredApplications = filterByPeriod(applications.value, selectedPeriod.value);
+  const filteredCustomers = filterByPeriod(customers.value, selectedPeriod.value);
+  
+  // Calculate revenue for selected period
+  const periodRevenue = filteredPayments.reduce((sum, payment) => {
+    const status = payment.status?.toLowerCase() || '';
+    const hasPaidAt = !!(payment.paidAt || payment.datePaid);
+    const isSuccessfulPayment = 
+      status === 'paid' || 
+      status === 'approved' || 
+      status === 'succeeded' || 
+      status === 'completed' ||
+      status === 'success' ||
+      hasPaidAt;
+    const isRefunded = status === 'refunded' || status === 'refund';
+    
+    if (isSuccessfulPayment && !isRefunded) {
+      const amount = typeof payment.amount === 'string' 
+        ? parseFloat(payment.amount.replace(/[^0-9.-]+/g, '')) || 0
+        : (payment.amount || 0);
+      return sum + Math.abs(amount);
+    }
+    return sum;
+  }, 0);
+
+  // Count applications by status
+  const openApplications = filteredApplications.filter(app => {
+    const status = app.status?.toLowerCase() || '';
+    return status === 'open' || status === 'in review' || status === 'pending' || status === 'processing';
+  }).length;
+
+  const approvedApplications = filteredApplications.filter(app => {
+    const status = app.status?.toLowerCase() || '';
+    return status === 'approved' || status === 'completed' || status === 'success';
+  }).length;
+
+  const pendingPayments = filteredPayments.filter(payment => {
+    const status = payment.status?.toLowerCase() || '';
+    const hasPaidAt = !!(payment.paidAt || payment.datePaid);
+    const isSuccessfulPayment = 
+      status === 'paid' || 
+      status === 'approved' || 
+      status === 'succeeded' || 
+      status === 'completed' ||
+      status === 'success' ||
+      hasPaidAt;
+    const isRefunded = status === 'refunded' || status === 'refund';
+    
+    return !isSuccessfulPayment && !isRefunded && 
+           (status === 'pending' || status === 'in review' || status === 'processing' || status === 'processing_payment' || !status);
+  }).length;
+
+  // Use customer summary if available, otherwise fall back to filtered count
+  const totalCustomers = customerSummary.value?.totalCustomers ?? filteredCustomers.length;
+
+  return {
+    totalRevenue: periodRevenue,
+    totalApplications: filteredApplications.length,
+    openApplications,
+    approvedApplications,
+    totalCustomers,
+    pendingPayments,
+  };
+});
+
+// Filter data by period
+const filterByPeriod = (data: any[], period: string): any[] => {
+  const now = new Date();
+  const cutoffDate = new Date();
+  
+  if (period === '24h') {
+    cutoffDate.setHours(now.getHours() - 24);
+  } else if (period === '7d') {
+    cutoffDate.setDate(now.getDate() - 7);
+  } else if (period === '30d') {
+    cutoffDate.setDate(now.getDate() - 30);
+  }
+  
+  return data.filter(item => {
+    const itemDate = item.createdAt ? new Date(item.createdAt) : 
+                     item.datePaid ? new Date(item.datePaid) : 
+                     item.paidAt ? new Date(item.paidAt) : null;
+    
+    if (!itemDate) return false;
+    return itemDate >= cutoffDate;
+  });
+};
+
+// Generate time-series data for charts
+const generateTimeSeriesData = (data: any[], period: string, valueExtractor: (item: any) => number): number[] => {
+  const filtered = filterByPeriod(data, period);
+  const now = new Date();
+  const startDate = new Date();
+  
+  let intervals: number;
+  let intervalMs: number;
+  
+  if (period === '24h') {
+    intervals = 24;
+    intervalMs = 60 * 60 * 1000; // 1 hour
+    startDate.setHours(now.getHours() - 24);
+  } else if (period === '7d') {
+    intervals = 7;
+    intervalMs = 24 * 60 * 60 * 1000; // 1 day
+    startDate.setDate(now.getDate() - 7);
+  } else {
+    intervals = 30;
+    intervalMs = 24 * 60 * 60 * 1000; // 1 day
+    startDate.setDate(now.getDate() - 30);
+  }
+  
+  const series: number[] = new Array(intervals).fill(0);
+  
+  filtered.forEach(item => {
+    const itemDate = item.createdAt ? new Date(item.createdAt) : 
+                     item.datePaid ? new Date(item.datePaid) : 
+                     item.paidAt ? new Date(item.paidAt) : null;
+    
+    if (!itemDate || itemDate < startDate) return;
+    
+    const diff = itemDate.getTime() - startDate.getTime();
+    const index = Math.floor(diff / intervalMs);
+    
+    if (index >= 0 && index < intervals) {
+      series[index] += valueExtractor(item);
+    }
+  });
+  
+  return series;
+};
 
 // Chart refs
 const revenueChart = ref(null);
@@ -165,16 +337,6 @@ let approvedApplicationsChartInstance = null;
 let customersChartInstance = null;
 let pendingPaymentsChartInstance = null;
 
-// Chart data based on selected period
-const getChartData = (period) => {
-  const baseData = {
-    '30d': [20, 25, 30, 22, 28, 35, 40, 38, 42, 45, 38, 35, 30, 25, 20, 22, 28, 32, 35, 30, 25, 20, 18, 22, 25, 28, 30, 25, 20, 22],
-    '7d': [20, 25, 30, 22, 28, 35, 40],
-    '24h': [20, 22, 25, 28, 30, 32, 35, 38, 40, 42, 45, 48, 50, 52, 55, 58, 60, 62, 65, 68, 70, 72, 75, 78]
-  };
-  return baseData[period] || baseData['30d'];
-};
-
 // Create revenue chart (stacked bar chart)
 const createRevenueChart = () => {
   if (revenueChart.value) {
@@ -185,22 +347,45 @@ const createRevenueChart = () => {
     }
     
     const ctx = revenueChart.value.getContext('2d');
-    const data = getChartData(selectedPeriod.value);
+    const revenueData = generateTimeSeriesData(payments.value, selectedPeriod.value, (payment) => {
+      const status = payment.status?.toLowerCase() || '';
+      const hasPaidAt = !!(payment.paidAt || payment.datePaid);
+      const isSuccessfulPayment = 
+        status === 'paid' || 
+        status === 'approved' || 
+        status === 'succeeded' || 
+        status === 'completed' ||
+        status === 'success' ||
+        hasPaidAt;
+      const isRefunded = status === 'refunded' || status === 'refund';
+      
+      if (isSuccessfulPayment && !isRefunded) {
+        const amount = typeof payment.amount === 'string' 
+          ? parseFloat(payment.amount.replace(/[^0-9.-]+/g, '')) || 0
+          : (payment.amount || 0);
+        return Math.abs(amount);
+      }
+      return 0;
+    });
+    
+    // Normalize data for visualization (scale down for better display)
+    const maxValue = Math.max(...revenueData, 1);
+    const normalizedData = revenueData.map(val => (val / maxValue) * 100);
     
     revenueChartInstance = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: data.map((_, i) => i + 1),
+        labels: revenueData.map((_, i) => i + 1),
         datasets: [
           {
             label: 'Revenue',
-            data: data.map(val => val * 0.6),
+            data: normalizedData.map(val => val * 0.6),
             backgroundColor: '#10B981',
             borderWidth: 0
           },
           {
             label: 'Additional',
-            data: data.map(val => val * 0.4),
+            data: normalizedData.map(val => val * 0.4),
             backgroundColor: '#F59E0B',
             borderWidth: 0
           }
@@ -222,8 +407,8 @@ const createRevenueChart = () => {
 };
 
 // Create line charts for other metrics
-const createLineChart = (canvasRef, color = '#8B5CF6') => {
-  if (canvasRef.value) {
+const createLineChart = (canvasRef: any, dataArray: number[], color = '#8B5CF6') => {
+  if (canvasRef.value && dataArray.length > 0) {
     // Destroy existing chart if it exists
     const existingChart = Chart.getChart(canvasRef.value);
     if (existingChart) {
@@ -231,14 +416,17 @@ const createLineChart = (canvasRef, color = '#8B5CF6') => {
     }
     
     const ctx = canvasRef.value.getContext('2d');
-    const data = getChartData(selectedPeriod.value);
+    
+    // Normalize data for visualization
+    const maxValue = Math.max(...dataArray, 1);
+    const normalizedData = dataArray.map(val => (val / maxValue) * 100);
     
     return new Chart(ctx, {
       type: 'line',
       data: {
-        labels: data.map((_, i) => i + 1),
+        labels: dataArray.map((_, i) => i + 1),
         datasets: [{
-          data: data,
+          data: normalizedData,
           borderColor: color,
           backgroundColor: color + '20',
           borderWidth: 2,
@@ -266,11 +454,98 @@ const createLineChart = (canvasRef, color = '#8B5CF6') => {
 // Initialize all charts
 const initializeCharts = () => {
   createRevenueChart();
-  applicationsChartInstance = createLineChart(applicationsChart, '#8B5CF6');
-  openApplicationsChartInstance = createLineChart(openApplicationsChart, '#8B5CF6');
-  approvedApplicationsChartInstance = createLineChart(approvedApplicationsChart, '#8B5CF6');
-  customersChartInstance = createLineChart(customersChart, '#8B5CF6');
-  pendingPaymentsChartInstance = createLineChart(pendingPaymentsChart, '#8B5CF6');
+  
+  const applicationsData = generateTimeSeriesData(applications.value, selectedPeriod.value, () => 1);
+  applicationsChartInstance = createLineChart(applicationsChart, applicationsData, '#8B5CF6');
+  
+  const openAppsData = generateTimeSeriesData(
+    applications.value.filter(app => {
+      const status = app.status?.toLowerCase() || '';
+      return status === 'open' || status === 'in review' || status === 'pending' || status === 'processing';
+    }), 
+    selectedPeriod.value, 
+    () => 1
+  );
+  openApplicationsChartInstance = createLineChart(openApplicationsChart, openAppsData, '#8B5CF6');
+  
+  const approvedAppsData = generateTimeSeriesData(
+    applications.value.filter(app => {
+      const status = app.status?.toLowerCase() || '';
+      return status === 'approved' || status === 'completed' || status === 'success';
+    }), 
+    selectedPeriod.value, 
+    () => 1
+  );
+  approvedApplicationsChartInstance = createLineChart(approvedApplicationsChart, approvedAppsData, '#8B5CF6');
+  
+  const customersData = generateTimeSeriesData(customers.value, selectedPeriod.value, () => 1);
+  customersChartInstance = createLineChart(customersChart, customersData, '#8B5CF6');
+  
+  const pendingPaymentsData = generateTimeSeriesData(
+    payments.value.filter(payment => {
+      const status = payment.status?.toLowerCase() || '';
+      const hasPaidAt = !!(payment.paidAt || payment.datePaid);
+      const isSuccessfulPayment = 
+        status === 'paid' || 
+        status === 'approved' || 
+        status === 'succeeded' || 
+        status === 'completed' ||
+        status === 'success' ||
+        hasPaidAt;
+      const isRefunded = status === 'refunded' || status === 'refund';
+      
+      return !isSuccessfulPayment && !isRefunded && 
+             (status === 'pending' || status === 'in review' || status === 'processing' || status === 'processing_payment' || !status);
+    }), 
+    selectedPeriod.value, 
+    () => 1
+  );
+  pendingPaymentsChartInstance = createLineChart(pendingPaymentsChart, pendingPaymentsData, '#8B5CF6');
+};
+
+// Load dashboard data
+const loadDashboardData = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
+  
+  try {
+    // Fetch all data in parallel
+    const [paymentsResult, applicationsResult, customersResult, summaryResult] = await Promise.all([
+      getAllPayments().catch(() => ({ success: false, data: [] })),
+      getAllApplications().catch(() => []),
+      getAllCustomers().catch(() => ({ success: false, data: [] })),
+      getCustomerSummary().catch(() => ({ success: false, data: null })),
+    ]);
+    
+    payments.value = paymentsResult.success ? paymentsResult.data : [];
+    applications.value = Array.isArray(applicationsResult) ? applicationsResult : [];
+    customers.value = customersResult.success ? customersResult.data : [];
+    customerSummary.value = summaryResult.success ? summaryResult.data : null;
+    
+    // Initialize charts after data is loaded
+    await nextTick();
+    initializeCharts();
+  } catch (error: any) {
+    console.error('Error loading dashboard data:', error);
+    errorMessage.value = error.message || 'Failed to load dashboard data';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Format currency
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+// Format number
+const formatNumber = (num: number) => {
+  return new Intl.NumberFormat('en-US').format(num);
 };
 
 // Watch for period changes
@@ -280,11 +555,9 @@ watch(selectedPeriod, () => {
   });
 });
 
-// Initialize charts on mount
+// Initialize on mount
 onMounted(() => {
-  nextTick(() => {
-    initializeCharts();
-  });
+  loadDashboardData();
 });
 
 // Cleanup on unmount

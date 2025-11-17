@@ -102,6 +102,18 @@ export interface ApplicationsResponse {
   }>
 }
 
+export interface CustomerSummaryResponse {
+  status: boolean
+  message: string
+  data: {
+    totalCustomers: number
+    activeCustomers: number
+    inactiveCustomers: number
+    suspendedCustomers: number
+    totalApplications: number
+  }
+}
+
 export const useCustomersApi = () => {
   const api = useApi()
 
@@ -202,12 +214,39 @@ export const useCustomersApi = () => {
     }
   }
 
+  const getCustomerSummary = async (): Promise<ApiResponse<CustomerSummaryResponse['data']>> => {
+    try {
+      const response = await api.get<CustomerSummaryResponse>('/customers/summary')
+      if (response.data.status && response.data.data) {
+        return {
+          data: response.data.data,
+          message: response.data.message,
+          success: true,
+        }
+      }
+      return {
+        data: {
+          totalCustomers: 0,
+          activeCustomers: 0,
+          inactiveCustomers: 0,
+          suspendedCustomers: 0,
+          totalApplications: 0,
+        },
+        message: response.data.message || 'Customer summary not found',
+        success: false,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
   return {
     createCustomer,
     getAllCustomers,
     getCustomerById,
     getCustomerBilling,
     getCustomerApplications,
+    getCustomerSummary,
   }
 }
 

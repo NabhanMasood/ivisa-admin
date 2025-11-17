@@ -239,37 +239,16 @@ export const useApplication = () => {
     try {
       const config = useRuntimeConfig()
       const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      // Try alternative endpoints if the first one fails
-      let response
-      let result
-      
-      // Try the travelers endpoint first
-      try {
-        response = await fetch(`${baseUrl}/visa-applications/${applicationId}/travelers`)
-        result = await response.json()
 
-        if (response.ok && result.status && result.data) {
-          return result.data
-        }
-      } catch (e) {
-        console.log("First travelers endpoint failed, trying alternative...", e)
-      }
-      
-      // Try alternative endpoint: travelers (without /visa-applications prefix)
-      try {
-        response = await fetch(`${baseUrl}/travelers/application/${applicationId}`)
-        result = await response.json()
+      // Fetch the whole application and return its travelers array
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}`)
+      const result = await response.json()
 
-        if (response.ok && result.status) {
-          return result.data || result
-        }
-      } catch (e) {
-        console.log("Alternative travelers endpoint failed", e)
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to fetch application')
       }
-      
-      // If both endpoints fail, throw error
-      throw new Error(result?.message || 'Failed to fetch travelers')
+
+      return Array.isArray(result.data?.travelers) ? result.data.travelers : []
     } catch (err: any) {
       error.value = err.message || 'An error occurred'
       throw err
@@ -302,6 +281,137 @@ export const useApplication = () => {
     }
   }
 
+  type AdminCustomField = {
+    fieldType: 'text' | 'number' | 'date' | 'dropdown' | 'upload' | 'textarea'
+    question: string
+    isRequired?: boolean
+    options?: string[]
+    minLength?: number
+    maxLength?: number
+    allowedFileTypes?: string[]
+    maxFileSize?: number
+    travelerId?: number
+  }
+
+
+  const getActiveResubmissionRequests = async (applicationId: number | string) => {
+    loading.value = true
+    error.value = null
+  
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
+      
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/resubmission-requests/active`)
+      const result = await response.json()
+  
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to fetch resubmission requests')
+      }
+  
+      return result
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  
+  const requestResubmission = async (
+    applicationId: number | string,
+    requests: Array<{
+      target: 'application' | 'traveler'
+      travelerId?: number
+      fieldIds: number[]
+      note?: string | null
+    }>
+  ) => {
+    loading.value = true
+    error.value = null
+  
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
+  
+      try {
+        console.log('🔵 requestResubmission called', {
+          applicationId,
+          url: `${baseUrl}/visa-applications/${applicationId}/resubmission-requests`,
+          requestsCount: requests.length,
+          requests: requests.map(r => ({
+            target: r.target,
+            travelerId: r.travelerId,
+            fieldIdsCount: r.fieldIds.length,
+            hasNote: !!r.note
+          }))
+        })
+      } catch {}
+  
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/resubmission-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requests }),
+      })
+  
+      const result = await response.json()
+  
+      try {
+        console.log('🟢 requestResubmission response', {
+          ok: response.ok,
+          status: response.status,
+          result
+        })
+      } catch {}
+  
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to request resubmission')
+      }
+  
+      return result.data
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
+
+  const updateApplicationStatus = async (id: number | string, status: string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
+      
+      const response = await fetch(`${baseUrl}/visa-applications/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to update application status')
+      }
+
+      return result.data
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading,
     error,
@@ -312,6 +422,8 @@ export const useApplication = () => {
     getApplicationSummary,
     getApplicationTravelers,
     getApplicationPayment,
+    requestResubmission,
+    getActiveResubmissionRequests,
+    updateApplicationStatus,
   }
 }
-

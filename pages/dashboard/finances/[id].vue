@@ -18,7 +18,7 @@
             <h1
               class="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white"
             >
-              {{ order.orderId }}
+              {{ payment?.orderId || payment?.transactionId || `ORD-${orderId}` }}
             </h1>
           </div>
         </div>
@@ -54,7 +54,13 @@
             </label>
           </div>
 
-          <div class="flex flex-col">
+          <div v-if="isLoading" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            Loading payment details...
+          </div>
+          <div v-else-if="errorMessage" class="py-8 text-center text-sm text-red-500 dark:text-red-400">
+            {{ errorMessage }}
+          </div>
+          <div v-else-if="payment" class="flex flex-col">
             <div
               class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
             >
@@ -63,32 +69,11 @@
                 >Customer Name</span
               >
               <span class="text-sm text-gray-900 dark:text-white">{{
-                order.customerName
+                payment.customerName || payment.customer?.name || payment.customer?.fullname || 'N/A'
               }}</span>
             </div>
             <div
-              class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
-            >
-              <span
-                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
-                >Application</span
-              >
-              <span class="text-sm text-gray-900 dark:text-white">{{
-                order.application
-              }}</span>
-            </div>
-            <div
-              class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
-            >
-              <span
-                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
-                >Destination</span
-              >
-              <span class="text-sm text-gray-900 dark:text-white">{{
-                order.destination
-              }}</span>
-            </div>
-            <div
+              v-if="payment.visaApplication?.visaProduct"
               class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
             >
               <span
@@ -96,18 +81,7 @@
                 >Visa Product</span
               >
               <span class="text-sm text-gray-900 dark:text-white">{{
-                order.visaProduct
-              }}</span>
-            </div>
-            <div
-              class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
-            >
-              <span
-                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
-                >Travelers</span
-              >
-              <span class="text-sm text-gray-900 dark:text-white">{{
-                order.travelers
+                payment.visaApplication.visaProduct
               }}</span>
             </div>
             <div
@@ -118,22 +92,11 @@
                 >Total Amount</span
               >
               <span class="text-sm text-gray-900 dark:text-white">{{
-                order.amount
+                formatPaymentAmount(payment.amount, payment.currency)
               }}</span>
             </div>
             <div
-              class="mx-4 flex flex-col gap-2 py-5  dark:border-gray-700"
-            >
-              <CustomDropdown
-                id="finance-status"
-                label="Status"
-                v-model="financeStatus"
-                :options="financeStatusOptions"
-                placeholder="Select status"
-                search-placeholder="Search status"
-              />
-            </div>
-            <div
+              v-if="payment.stripePaymentId || payment.paymentIntentId || payment.transactionId"
               class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
             >
               <span
@@ -141,7 +104,43 @@
                 >Stripe Payment ID</span
               >
               <span class="text-sm text-gray-900 dark:text-white">{{
-                order.stripeId
+                payment.stripePaymentId || payment.paymentIntentId || payment.transactionId || 'N/A'
+              }}</span>
+            </div>
+            <div
+              v-if="payment.paymentGateway"
+              class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+            >
+              <span
+                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                >Payment Gateway</span
+              >
+              <span class="text-sm text-gray-900 dark:text-white">{{
+                payment.paymentGateway
+              }}</span>
+            </div>
+            <div
+              v-if="payment.paymentMethod"
+              class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+            >
+              <span
+                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                >Payment Method</span
+              >
+              <span class="text-sm text-gray-900 dark:text-white">{{
+                payment.paymentMethod
+              }}</span>
+            </div>
+            <div
+              v-if="payment.cardholderName || payment.cardLast4"
+              class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+            >
+              <span
+                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                >Card Details</span
+              >
+              <span class="text-sm text-gray-900 dark:text-white">{{
+                formatCardDetails(payment.cardholderName, payment.cardLast4, payment.cardBrand)
               }}</span>
             </div>
             <div class="grid grid-cols-2 gap-4 py-5">
@@ -150,7 +149,19 @@
                 >Date Paid</span
               >
               <span class="text-sm text-gray-900 dark:text-white">{{
-                order.datePaid
+                formatDate(payment.datePaid || payment.paidAt)
+              }}</span>
+            </div>
+            <div
+              v-if="payment.failedAt || payment.failureReason"
+              class="grid grid-cols-2 gap-4 py-5 border-t border-gray-200 dark:border-gray-700 mt-4"
+            >
+              <span
+                class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                >Failure Reason</span
+              >
+              <span class="text-sm text-red-600 dark:text-red-400">{{
+                payment.failureReason || 'N/A'
               }}</span>
             </div>
           </div>
@@ -160,10 +171,11 @@
   </DashboardLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import CustomDropdown from "~/components/ui/CustomDropdown.vue";
 import { ArrowLeft, Download } from "lucide-vue-next";
+import { usePaymentsApi } from '~/composables/usePaymentsApi';
+import type { Payment } from '~/composables/usePaymentsApi';
 
 // Get route parameters
 const route = useRoute();
@@ -172,95 +184,105 @@ const router = useRouter();
 // Get order ID from route params
 const orderId = computed(() => route.params.id);
 
-// Status dropdown
-const financeStatus = ref("Paid");
+// API composable
+const { getPaymentById } = usePaymentsApi();
 
-// Status options
-const financeStatusOptions = [
-  "Paid",
-  "Pending",
-  "In Review",
-  "Rejected"
-];
+// Loading and error states
+const isLoading = ref(false);
+const errorMessage = ref("");
 
-// Sample orders data
-const allOrders = ref([
-  {
-    id: 1,
-    orderId: "ORD-1001",
-    customerName: "Ali Raza",
-    application: "APP-01245",
-    destination: "Thailand",
-    visaProduct: "30-Day Visa",
-    travelers: "2",
-    amount: "USD 300",
-    status: "Paid",
-    stripeId: "P1-ABN78GFYBEIA",
-    datePaid: "01/01/2025",
-  },
-  {
-    id: 2,
-    orderId: "ORD-1002",
-    customerName: "Sarah Khan",
-    application: "APP-01246",
-    destination: "UAE",
-    visaProduct: "60-Day Visa",
-    travelers: "1",
-    amount: "USD 250",
-    status: "Pending",
-    stripeId: "P2-ABN78GFYBEIB",
-    datePaid: "-",
-  },
-  {
-    id: 3,
-    orderId: "ORD-1003",
-    customerName: "John Smith",
-    application: "APP-01247",
-    destination: "Germany",
-    visaProduct: "90-Day Visa",
-    travelers: "3",
-    amount: "USD 400",
-    status: "In Review",
-    stripeId: "P3-ABN78GFYBEIC",
-    datePaid: "-",
-  },
-  {
-    id: 4,
-    orderId: "ORD-1004",
-    customerName: "Maria Garcia",
-    application: "APP-01248",
-    destination: "France",
-    visaProduct: "30-Day Visa",
-    travelers: "1",
-    amount: "USD 150",
-    status: "Paid",
-    stripeId: "P4-ABN78GFYBEID",
-    datePaid: "02/01/2025",
-  },
-  {
-    id: 5,
-    orderId: "ORD-1005",
-    customerName: "Ahmed Hassan",
-    application: "APP-01249",
-    destination: "Japan",
-    visaProduct: "15-Day Visa",
-    travelers: "2",
-    amount: "USD 300",
-    status: "Paid",
-    stripeId: "P5-ABN78GFYBEIE",
-    datePaid: "03/01/2025",
-  },
-]);
+// Payment data
+const payment = ref<Payment | null>(null);
 
-// Find the specific order
-const order = computed(() => {
-  const id = parseInt(orderId.value);
-  return allOrders.value.find((o) => o.id === id) || allOrders.value[0];
-});
+// Load payment from API
+const loadPayment = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+  
+  try {
+    const result = await getPaymentById(orderId.value);
+    
+    if (result.success && result.data) {
+      payment.value = result.data;
+    } else {
+      errorMessage.value = result.message || 'Payment not found';
+      payment.value = null;
+    }
+  } catch (error: any) {
+    console.error('Error loading payment:', error);
+    errorMessage.value = error.message || 'Failed to load payment details';
+    payment.value = null;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Format payment amount
+const formatPaymentAmount = (amount, currency = 'USD') => {
+  if (!amount && amount !== 0) return 'N/A';
+  
+  const numAmount = typeof amount === 'string' 
+    ? parseFloat(amount.replace(/[^0-9.-]+/g, '')) || 0
+    : amount;
+  
+  if (numAmount === 0) return 'N/A';
+  
+  return `${currency || 'USD'} ${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+// Format date for display
+const formatDate = (dateString) => {
+  if (!dateString || dateString === '-') return '-';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
+    
+    return date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (error) {
+    return '-';
+  }
+};
+
+// Format card details
+const formatCardDetails = (cardholderName, cardLast4, cardBrand) => {
+  if (!cardholderName && !cardLast4) return 'N/A';
+  
+  let details = '';
+  if (cardBrand) {
+    details += cardBrand;
+  }
+  if (cardLast4) {
+    if (details) details += ' ';
+    details += `****${cardLast4}`;
+  }
+  if (cardholderName) {
+    if (details) details += ' - ';
+    details += cardholderName;
+  }
+  
+  return details || 'N/A';
+};
 
 // Set page title
 useHead({
-  title: computed(() => `${order.value.orderId} - Order Details - iVisa`),
+  title: computed(() => {
+    if (payment.value) {
+      return `${payment.value.orderId || payment.value.transactionId || `ORD-${orderId.value}`} - Payment Details - iVisa`;
+    }
+    return `Payment Details - iVisa`;
+  }),
+});
+
+// Load payment on mount
+onMounted(() => {
+  loadPayment();
 });
 
 // Navigation
