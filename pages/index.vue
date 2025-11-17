@@ -24,6 +24,6 @@ useHead({
 onMounted(() => {
   setTimeout(() => {
     navigateTo('/login')
-  }, 2000) // 2 second delay to show the welcome message +1
+  }, 2000) // 2.0 second delay to show the welcome message +1
 })
 </script>
