@@ -1,58 +1,61 @@
 // composables/useApplication.ts
-import { ref } from 'vue'
-import { useRuntimeConfig } from '#app'
+import { ref } from "vue";
+import { useRuntimeConfig } from "#app";
 
 export interface TravelerData {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  dateOfBirth: string
-  gender: 'Male' | 'Female' | 'Other'
-  passportNationality: string
-  passportNumber: string
-  passportExpiryDate: string
-  residenceCountry: string
-  hasSchengenVisa: boolean
-  placeOfBirth?: string
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: "Male" | "Female" | "Other";
+  passportNationality: string;
+  passportNumber: string;
+  passportExpiryDate: string;
+  residenceCountry: string;
+  hasSchengenVisa: boolean;
+  placeOfBirth?: string;
 }
 
 export interface PaymentData {
-  cardholderName: string
-  cardLast4?: string
-  cardBrand?: string
-  transactionId?: string
-  paymentIntentId?: string
-  paymentGateway?: string
+  cardholderName: string;
+  cardLast4?: string;
+  cardBrand?: string;
+  transactionId?: string;
+  paymentIntentId?: string;
+  paymentGateway?: string;
 }
 
 export interface CompleteApplicationData {
-  customerId?: number
-  visaProductId: number
-  nationality: string
-  destinationCountry: string
-  visaType: '180-single' | '180-multiple' | '90-single'
-  numberOfTravelers: number
-  travelers: TravelerData[]
-  processingType: 'standard' | 'rush' | 'super-rush'
-  processingFee: number
-  payment: PaymentData
-  notes?: string
+  customerId?: number;
+  visaProductId: number;
+  nationality: string;
+  destinationCountry: string;
+  visaType: "180-single" | "180-multiple" | "90-single";
+  numberOfTravelers: number;
+  travelers: TravelerData[];
+  processingType: "standard" | "rush" | "super-rush";
+  processingFee: number;
+  payment: PaymentData;
+  notes?: string;
 }
 
 export const useApplication = () => {
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
   const createCustomerFromTraveler = async (traveler: TravelerData) => {
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
       const response = await fetch(`${baseUrl}/customers`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fullname: `${traveler.firstName} ${traveler.lastName}`,
@@ -60,357 +63,415 @@ export const useApplication = () => {
           phone: traveler.phone,
           residenceCountry: traveler.residenceCountry,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to create customer')
+        throw new Error(result.message || "Failed to create customer");
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      throw new Error(err.message || 'Failed to create customer')
+      throw new Error(err.message || "Failed to create customer");
     }
-  }
+  };
 
   const submitCompleteApplication = async (data: CompleteApplicationData) => {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      let customerId = data.customerId
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
+      let customerId = data.customerId;
 
       if (!customerId && data.travelers.length > 0) {
-        const firstTraveler = data.travelers[0]
+        const firstTraveler = data.travelers[0];
         if (!firstTraveler) {
-          throw new Error('At least one traveler is required')
+          throw new Error("At least one traveler is required");
         }
-        const customer = await createCustomerFromTraveler(firstTraveler)
-        customerId = customer.id
+        const customer = await createCustomerFromTraveler(firstTraveler);
+        customerId = customer.id;
       }
 
       if (!customerId) {
-        throw new Error('Unable to create or find customer')
+        throw new Error("Unable to create or find customer");
       }
 
-      const response = await fetch(`${baseUrl}/visa-applications/submit-complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          customerId,
-        }),
-      })
+      const response = await fetch(
+        `${baseUrl}/visa-applications/submit-complete`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...data,
+            customerId,
+          }),
+        }
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to submit application')
+        throw new Error(result.message || "Failed to submit application");
       }
 
       return {
         ...result.data,
         customerId,
-      }
+      };
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const getAllApplications = async (search?: string) => {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const url = new URL(`${baseUrl}/visa-applications`)
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
+      const url = new URL(`${baseUrl}/visa-applications`);
       if (search) {
-        url.searchParams.append('search', search)
+        url.searchParams.append("search", search);
       }
 
-      const response = await fetch(url.toString())
-      const result = await response.json()
+      const response = await fetch(url.toString());
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch applications')
+        throw new Error(result.message || "Failed to fetch applications");
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const getApplication = async (id: number) => {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const response = await fetch(`${baseUrl}/visa-applications/${id}`)
-      const result = await response.json()
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
+      const response = await fetch(`${baseUrl}/visa-applications/${id}`);
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch application')
+        throw new Error(result.message || "Failed to fetch application");
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
-  const getCustomerApplications = async (customerId: number, search?: string) => {
-    loading.value = true
-    error.value = null
+  const getCustomerApplications = async (
+    customerId: number,
+    search?: string
+  ) => {
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const url = new URL(`${baseUrl}/visa-applications/customer/${customerId}`)
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
+      const url = new URL(
+        `${baseUrl}/visa-applications/customer/${customerId}`
+      );
       if (search) {
-        url.searchParams.append('search', search)
+        url.searchParams.append("search", search);
       }
 
-      const response = await fetch(url.toString())
-      const result = await response.json()
+      const response = await fetch(url.toString());
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch customer applications')
+        throw new Error(
+          result.message || "Failed to fetch customer applications"
+        );
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const getApplicationSummary = async () => {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const response = await fetch(`${baseUrl}/visa-applications/summary`)
-      const result = await response.json()
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
+      const response = await fetch(`${baseUrl}/visa-applications/summary`);
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch summary')
+        throw new Error(result.message || "Failed to fetch summary");
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const getApplicationTravelers = async (applicationId: number | string) => {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
 
       // Fetch the whole application and return its travelers array
-      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}`)
-      const result = await response.json()
+      const response = await fetch(
+        `${baseUrl}/visa-applications/${applicationId}`
+      );
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch application')
+        throw new Error(result.message || "Failed to fetch application");
       }
 
-      return Array.isArray(result.data?.travelers) ? result.data.travelers : []
+      return Array.isArray(result.data?.travelers) ? result.data.travelers : [];
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const getApplicationPayment = async (applicationId: number | string) => {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const response = await fetch(`${baseUrl}/payments/application/${applicationId}`)
-      const result = await response.json()
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
+      const response = await fetch(
+        `${baseUrl}/payments/application/${applicationId}`
+      );
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch payment')
+        throw new Error(result.message || "Failed to fetch payment");
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   type AdminCustomField = {
-    fieldType: 'text' | 'number' | 'date' | 'dropdown' | 'upload' | 'textarea'
-    question: string
-    isRequired?: boolean
-    options?: string[]
-    minLength?: number
-    maxLength?: number
-    allowedFileTypes?: string[]
-    maxFileSize?: number
-    travelerId?: number
-  }
+    fieldType: "text" | "number" | "date" | "dropdown" | "upload" | "textarea";
+    question: string;
+    isRequired?: boolean;
+    options?: string[];
+    minLength?: number;
+    maxLength?: number;
+    allowedFileTypes?: string[];
+    maxFileSize?: number;
+    travelerId?: number;
+  };
 
+  const getActiveResubmissionRequests = async (
+    applicationId: number | string
+  ) => {
+    loading.value = true;
+    error.value = null;
 
-  const getActiveResubmissionRequests = async (applicationId: number | string) => {
-    loading.value = true
-    error.value = null
-  
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/resubmission-requests/active`)
-      const result = await response.json()
-  
-      if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to fetch resubmission requests')
-      }
-  
-      return result
-    } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
 
-  
+      const response = await fetch(
+        `${baseUrl}/visa-applications/${applicationId}/resubmission-requests/active`
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.status) {
+        throw new Error(
+          result.message || "Failed to fetch resubmission requests"
+        );
+      }
+
+      return result;
+    } catch (err: any) {
+      error.value = err.message || "An error occurred";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const requestResubmission = async (
     applicationId: number | string,
     requests: Array<{
-      target: 'application' | 'traveler'
-      travelerId?: number
-      fieldIds: number[]
-      note?: string | null
+      target: "application" | "traveler";
+      travelerId?: number;
+      fieldIds: number[];
+      note?: string | null;
     }>
   ) => {
-    loading.value = true
-    error.value = null
-  
+    loading.value = true;
+    error.value = null;
+
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-  
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
+
       try {
-        console.log('🔵 requestResubmission called', {
+        console.log("🔵 requestResubmission called", {
           applicationId,
           url: `${baseUrl}/visa-applications/${applicationId}/resubmission-requests`,
           requestsCount: requests.length,
-          requests: requests.map(r => ({
+          requests: requests.map((r) => ({
             target: r.target,
             travelerId: r.travelerId,
             fieldIdsCount: r.fieldIds.length,
-            hasNote: !!r.note
-          }))
-        })
+            hasNote: !!r.note,
+          })),
+        });
       } catch {}
-  
-      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/resubmission-requests`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ requests }),
-      })
-  
-      const result = await response.json()
-  
+
+      const response = await fetch(
+        `${baseUrl}/visa-applications/${applicationId}/resubmission-requests`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ requests }),
+        }
+      );
+
+      const result = await response.json();
+
       try {
-        console.log('🟢 requestResubmission response', {
+        console.log("🟢 requestResubmission response", {
           ok: response.ok,
           status: response.status,
-          result
-        })
+          result,
+        });
       } catch {}
-  
-      if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to request resubmission')
-      }
-  
-      return result.data
-    } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-  
 
-  const updateApplicationStatus = async (id: number | string, status: string) => {
-    loading.value = true
-    error.value = null
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Failed to request resubmission");
+      }
+
+      return result.data;
+    } catch (err: any) {
+      error.value = err.message || "An error occurred";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updateApplicationStatus = async (
+    id: number | string,
+    status: string
+  ) => {
+    loading.value = true;
+    error.value = null;
 
     try {
-      const config = useRuntimeConfig()
-      const baseUrl = config.public.apiBase.replace(/\/+$/, '')
-      
-      const response = await fetch(`${baseUrl}/visa-applications/${id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status }),
-      })
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.NUXT_PUBLIC_API_BASE_URL.replace(
+        /\/+$/,
+        ""
+      );
 
-      const result = await response.json()
+      const response = await fetch(
+        `${baseUrl}/visa-applications/${id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+
+      const result = await response.json();
 
       if (!response.ok || !result.status) {
-        throw new Error(result.message || 'Failed to update application status')
+        throw new Error(
+          result.message || "Failed to update application status"
+        );
       }
 
-      return result.data
+      return result.data;
     } catch (err: any) {
-      error.value = err.message || 'An error occurred'
-      throw err
+      error.value = err.message || "An error occurred";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   return {
     loading,
@@ -425,5 +486,5 @@ export const useApplication = () => {
     requestResubmission,
     getActiveResubmissionRequests,
     updateApplicationStatus,
-  }
-}
+  };
+};
