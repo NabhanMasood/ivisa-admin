@@ -18,9 +18,18 @@ export const useApi = () => {
 
   // Create instance if it doesn't exist
   if (!apiInstance) {
+    // Prioritize API_BASE_URL (Vercel env var), then NUXT_PUBLIC_API_BASE_URL
+    const baseURL =
+      config.public.API_BASE_URL || config.public.NUXT_PUBLIC_API_BASE_URL;
+
+    if (!baseURL) {
+      console.error(
+        "API base URL is not configured. Please set API_BASE_URL or NUXT_PUBLIC_API_BASE_URL environment variable."
+      );
+    }
+
     apiInstance = axios.create({
-      baseURL:
-        config.public.NUXT_PUBLIC_API_BASE_URL || config.public.API_BASE_URL,
+      baseURL: baseURL || "http://localhost:5001",
       timeout: 30000, // 30 seconds
       headers: {
         "Content-Type": "application/json",

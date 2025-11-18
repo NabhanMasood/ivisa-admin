@@ -27,9 +27,13 @@ export default defineNuxtConfig({
   // Runtime config for API
   runtimeConfig: {
     public: {
-      NUXT_PUBLIC_API_BASE_URL:
-        process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:5001",
+      // Prioritize API_BASE_URL (Vercel env var), then NUXT_PUBLIC_API_BASE_URL, then fallback
       API_BASE_URL:
+        process.env.API_BASE_URL ||
+        process.env.NUXT_PUBLIC_API_BASE_URL ||
+        "http://localhost:5001",
+      // Also expose as NUXT_PUBLIC_API_BASE_URL for backward compatibility
+      NUXT_PUBLIC_API_BASE_URL:
         process.env.API_BASE_URL ||
         process.env.NUXT_PUBLIC_API_BASE_URL ||
         "http://localhost:5001",
