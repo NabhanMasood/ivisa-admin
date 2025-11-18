@@ -27,8 +27,12 @@ export default defineNuxtConfig({
   // Runtime config for API
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:5001",
-      // apiBase: process.env.API_BASE_URL ?? 'http://localhost:5001',
+      NUXT_PUBLIC_API_BASE_URL:
+        process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:5001",
+      API_BASE_URL:
+        process.env.API_BASE_URL ||
+        process.env.NUXT_PUBLIC_API_BASE_URL ||
+        "http://localhost:5001",
     },
   },
 });
