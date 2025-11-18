@@ -20,9 +20,7 @@ export const useApi = () => {
   if (!apiInstance) {
     apiInstance = axios.create({
       baseURL:
-        config.public.NUXT_PUBLIC_API_BASE_URL ||
-        config.public.API_BASE_URL ||
-        "https://ivisa123-backend-production.up.railway.app",
+        config.public.NUXT_PUBLIC_API_BASE_URL || config.public.API_BASE_URL,
       timeout: 30000, // 30 seconds
       headers: {
         "Content-Type": "application/json",
