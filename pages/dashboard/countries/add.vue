@@ -135,7 +135,7 @@
                       type="file"
                       accept="image/*"
                       @change="handleFileSelect"
-                      :disabled="isLoading || isViewMode"
+                      :disabled="isLoading || isViewMode || isUploadingLogo"
                       class="hidden"
                     />
 
@@ -143,10 +143,11 @@
                       <button
                         v-if="!isViewMode"
                         @click="triggerFileInput"
-                        :disabled="isLoading"
-                        class="px-4 py-2 text-sm font-medium rounded-[6px] text-gray-700 dark:text-gray-300 bg-white dark:bg-[#18181B] border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        :disabled="isLoading || isUploadingLogo"
+                        class="px-4 py-2 text-sm font-medium rounded-[6px] text-gray-700 dark:text-gray-300 bg-white dark:bg-[#18181B] border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
-                        {{ logoPreview ? "Change Logo" : "Upload Logo" }}
+                        <span v-if="isUploadingLogo" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                        {{ isUploadingLogo ? 'Uploading...' : logoPreview ? 'Change Logo' : 'Upload Logo' }}
                       </button>
 
                       <button
@@ -169,6 +170,13 @@
                       class="text-xs text-red-600 dark:text-red-400"
                     >
                       {{ logoError }}
+                    </p>
+                    
+                    <p v-if="countryForm.logoUrl && !logoError && !isUploadingLogo" class="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Logo uploaded successfully
                     </p>
                   </div>
                 </div>
@@ -247,6 +255,7 @@ const logoError = ref("");
 const logoPreview = ref("");
 const logoFile = ref<File | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const isUploadingLogo = ref(false);
 
 // Form data
 const countryForm = ref({
@@ -261,8 +270,8 @@ const triggerFileInput = () => {
   fileInput.value?.click();
 };
 
-// Handle file selection
-const handleFileSelect = (event: Event) => {
+// Handle file selection and upload to backend
+const handleFileSelect = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
 
@@ -290,13 +299,86 @@ const handleFileSelect = (event: Event) => {
     logoPreview.value = e.target?.result as string;
   };
   reader.readAsDataURL(file);
+  
+  // Upload to backend (backend handles Cloudinary upload)
+  await uploadToBackend(file);
+};
+
+// Upload file to backend - backend handles Cloudinary upload
+// Backend should upload to Cloudinary and return:
+// {
+//   status: true,
+//   data: {
+//     logoUrl: "https://res.cloudinary.com/...", // Cloudinary URL (full URL)
+//     fileName: "logo.png",
+//     fileSize: 12345
+//   }
+// }
+const uploadToBackend = async (file: File) => {
+  try {
+    isUploadingLogo.value = true;
+    logoError.value = '';
+    
+    // Create FormData for backend upload
+    const formData = new FormData();
+    formData.append('logo', file);
+    
+    // Upload to backend endpoint using $fetch (handles CORS better)
+    const baseUrl = (config.public.apiBase as string).replace(/\/+$/, '');
+    const uploadEndpoint = `${baseUrl}/countries/upload`;
+    
+    const result = await $fetch<{
+      status: boolean;
+      message?: string;
+      data: {
+        logoUrl?: string;
+        url?: string;
+        cloudinaryUrl?: string;
+        fileName?: string;
+        fileSize?: number;
+      };
+    }>(uploadEndpoint, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!result.status || !result.data) {
+      throw new Error(result.message || 'Invalid response from server');
+    }
+    
+    // Store Cloudinary URL (or local path if backend still returns it)
+    const logoUrl = result.data.logoUrl || result.data.url || result.data.cloudinaryUrl;
+    if (!logoUrl) {
+      throw new Error('File upload succeeded but no logo URL was returned');
+    }
+    
+    countryForm.value.logoUrl = logoUrl;
+    
+    console.log('✅ Logo uploaded successfully:', {
+      logoUrl: logoUrl,
+      isCloudinaryUrl: logoUrl.startsWith('http://') || logoUrl.startsWith('https://'),
+    });
+    
+  } catch (error) {
+    console.error('Logo upload error:', error);
+    logoError.value = error instanceof Error ? error.message : 'Failed to upload logo. Please try again.';
+    // Reset file selection on error
+    logoFile.value = null;
+    logoPreview.value = '';
+    if (fileInput.value) {
+      fileInput.value.value = '';
+    }
+  } finally {
+    isUploadingLogo.value = false;
+  }
 };
 
 // Remove logo
 const removeLogo = () => {
   logoFile.value = null;
-  logoPreview.value = "";
-  countryForm.value.logoUrl = "";
+  logoPreview.value = '';
+  countryForm.value.logoUrl = '';
+  logoError.value = '';
   if (fileInput.value) {
     fileInput.value.value = "";
   }
@@ -377,22 +459,25 @@ const saveCountry = async () => {
 
   try {
     isLoading.value = true;
-
-    // Create FormData for file upload
-    const formData = new FormData();
-    formData.append("countryName", countryForm.value.name.trim());
-
-    if (logoFile.value) {
-      formData.append("logo", logoFile.value);
-    } else if (countryForm.value.logoUrl && !logoFile.value) {
-      // Keep existing logo URL if no new file is selected
-      formData.append("logoUrl", countryForm.value.logoUrl);
+    
+    // Validate that logo is uploaded if a file was selected
+    if (logoFile.value && !countryForm.value.logoUrl) {
+      errorMessage.value = 'Please wait for the logo to finish uploading';
+      isLoading.value = false;
+      return;
     }
-
+    
+    // Since we already uploaded the file and got the Cloudinary URL,
+    // send the data as JSON (not FormData) with the logoUrl
+    const countryData = {
+      countryName: countryForm.value.name.trim(),
+      ...(countryForm.value.logoUrl ? { logoUrl: countryForm.value.logoUrl } : {}),
+    };
+    
     if (isEditMode.value && countryId.value) {
       // Update existing country
-      const response = await updateCountry(countryId.value, formData);
-
+      const response = await updateCountry(countryId.value, countryData);
+      
       if (response.success) {
         successMessage.value =
           response.message || "Country updated successfully!";
@@ -403,8 +488,8 @@ const saveCountry = async () => {
       }
     } else {
       // Create new country
-      const response = await createCountry(formData);
-
+      const response = await createCountry(countryData);
+      
       if (response.success) {
         successMessage.value =
           response.message || "Country created successfully!";

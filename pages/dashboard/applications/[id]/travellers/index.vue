@@ -78,16 +78,7 @@
           </NuxtLink>
         </div>
         <div class="flex justify-center gap-2.5 sm:justify-end w-full sm:w-auto">
-          <button
-            class="px-4 py-2 text-sm font-medium rounded-[6px] text-gray-700 dark:text-gray-300 border bg-white dark:bg-[#18181B] dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors"
-          >
-            Refund
-          </button>
-          <button
-            class="px-4 py-2 text-sm font-medium rounded-[6px] text-gray-700 dark:text-gray-300 border bg-white dark:bg-[#18181B] dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors"
-          >
-            Download Docs
-          </button>
+        
           <button
             class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
           >

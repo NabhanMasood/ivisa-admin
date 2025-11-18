@@ -399,14 +399,7 @@
                               class="h-4 w-4 text-gray-600 dark:text-gray-400"
                             />
                           </button>
-                          <button
-                            class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                            title="Edit"
-                          >
-                            <Pencil
-                              class="h-4 w-4 text-gray-600 dark:text-gray-400"
-                            />
-                          </button>
+                         
                         </div>
                       </td>
                     </tr>
@@ -457,11 +450,12 @@ import {
   Columns,
   Search,
   Eye,
-  Pencil,
   Copy,
   Check,
 } from "lucide-vue-next";
 import { Chart, registerables } from 'chart.js';
+import { usePaymentsApi } from '~/composables/usePaymentsApi';
+import type { Payment } from '~/composables/usePaymentsApi';
 import { usePaymentsApi } from '~/composables/usePaymentsApi';
 import type { Payment } from '~/composables/usePaymentsApi';
 

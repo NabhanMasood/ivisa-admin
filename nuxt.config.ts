@@ -27,16 +27,11 @@ export default defineNuxtConfig({
   // Runtime config for API
   runtimeConfig: {
     public: {
-      // Prioritize API_BASE_URL (Vercel env var), then NUXT_PUBLIC_API_BASE_URL, then fallback
-      API_BASE_URL:
-        process.env.API_BASE_URL ||
-        process.env.NUXT_PUBLIC_API_BASE_URL ||
-        "http://localhost:5001",
-      // Also expose as NUXT_PUBLIC_API_BASE_URL for backward compatibility
-      NUXT_PUBLIC_API_BASE_URL:
-        process.env.API_BASE_URL ||
-        process.env.NUXT_PUBLIC_API_BASE_URL ||
-        "http://localhost:5001",
+      // apiBase: process.env.API_BASE_URL ?? 'https://ivisa123-backend-production.up.railway.app',
+      apiBase: process.env.API_BASE_URL ?? 'http://localhost:5001',
+      // Cloudinary configuration (for client-side uploads if needed)
+      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
+      cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET ?? '',
     },
   },
 });
