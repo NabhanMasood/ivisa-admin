@@ -1,6 +1,21 @@
 import { useApi, handleApiError, type ApiResponse } from './useApi'
 
 /**
+ * Permission interface
+ */
+export interface Permission {
+  countries: boolean
+  visaProducts: boolean
+  nationalities: boolean
+  embassies: boolean
+  coupons: boolean
+  additionalInfo: boolean
+  customers: boolean
+  applications: boolean
+  finances: boolean
+}
+
+/**
  * Admin/User interface
  */
 export interface Admin {
@@ -8,6 +23,8 @@ export interface Admin {
   fullName: string
   email: string
   password?: string
+  role?: string
+  permissions?: Permission
   createdAt?: string
   updatedAt?: string
 }
@@ -60,7 +77,7 @@ export const useAuthApi = () => {
   const register = async (data: RegisterDto): Promise<ApiResponse<RegisterResponse>> => {
     try {
       const response = await api.post<RegisterResponse>('/auth/register', data)
-      
+
       return {
         data: response.data,
         message: response.data.message || 'Registration successful',
@@ -78,25 +95,25 @@ export const useAuthApi = () => {
   const login = async (data: LoginDto): Promise<ApiResponse<LoginResponse>> => {
     try {
       const response = await api.post<LoginResponse>('/auth/login', data)
-      
+
       // Store token in cookie
       if (response.data.token) {
-        const tokenCookie = useCookie('auth_token', {
+        const tokenCookie = useCookie('admin_auth_token', {
           maxAge: 60 * 60 * 24 * 7, // 7 days
           secure: true,
           sameSite: 'strict',
         })
         tokenCookie.value = response.data.token
-        
-        // Also store admin info if needed
-        const adminCookie = useCookie('admin_info', {
+
+        // Also store admin info (useCookie handles serialization automatically)
+        const adminCookie = useCookie<Admin>('admin_user_info', {
           maxAge: 60 * 60 * 24 * 7,
           secure: true,
           sameSite: 'strict',
         })
-        adminCookie.value = JSON.stringify(response.data.admin)
+        adminCookie.value = response.data.admin
       }
-      
+
       return {
         data: response.data,
         message: response.data.message || 'Login successful',
@@ -111,9 +128,9 @@ export const useAuthApi = () => {
    * Logout user
    */
   const logout = () => {
-    const tokenCookie = useCookie('auth_token')
-    const adminCookie = useCookie('admin_info')
-    
+    const tokenCookie = useCookie('admin_auth_token')
+    const adminCookie = useCookie('admin_user_info')
+
     tokenCookie.value = null
     adminCookie.value = null
   }
@@ -122,13 +139,9 @@ export const useAuthApi = () => {
    * Get current user from token
    */
   const getCurrentUser = (): Admin | null => {
-    const adminCookie = useCookie('admin_info')
+    const adminCookie = useCookie<Admin>('admin_user_info')
     if (adminCookie.value) {
-      try {
-        return JSON.parse(adminCookie.value) as Admin
-      } catch {
-        return null
-      }
+      return adminCookie.value
     }
     return null
   }
@@ -137,8 +150,37 @@ export const useAuthApi = () => {
    * Check if user is authenticated
    */
   const isAuthenticated = (): boolean => {
-    const tokenCookie = useCookie('auth_token')
+    const tokenCookie = useCookie('admin_auth_token')
     return !!tokenCookie.value
+  }
+
+  /**
+   * Get admin profile by ID from backend
+   * Useful for refreshing current user data
+   */
+  const getAdminProfile = async (adminId: number): Promise<ApiResponse<{ admin: Admin }>> => {
+    try {
+      const api = useApi()
+      const response = await api.get<{ status: boolean; admin: Admin }>(`/auth/profile/${adminId}`)
+
+      // Update local cookie with fresh data
+      if (response.data.status && response.data.admin) {
+        const adminCookie = useCookie<Admin>('admin_user_info', {
+          maxAge: 60 * 60 * 24 * 7,
+          secure: true,
+          sameSite: 'strict',
+        })
+        adminCookie.value = response.data.admin
+      }
+
+      return {
+        data: response.data,
+        message: 'Profile fetched successfully',
+        success: response.data.status === true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
   }
 
   return {
@@ -147,6 +189,7 @@ export const useAuthApi = () => {
     logout,
     getCurrentUser,
     isAuthenticated,
+    getAdminProfile,
   }
 }
 

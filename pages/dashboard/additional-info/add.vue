@@ -758,13 +758,14 @@ const loadFields = async () => {
 // Add a new field
 const addField = () => {
   const tempId = `temp-${++tempIdCounter}`;
-  fields.value.push({
+  // Add new field at the beginning (index 0) so user doesn't have to scroll
+  fields.value.unshift({
     tempId: tempId,
     question: '',
     fieldType: 'text',
     isRequired: false,
     isActive: true,
-    displayOrder: fields.value.length,
+    displayOrder: 0, // Will be recalculated below
     optionsText: '',
     minLength: undefined,
     maxLength: undefined,
@@ -772,10 +773,23 @@ const addField = () => {
     maxFileSizeMB: undefined,
   });
   
+  // Update display orders for all fields
+  fields.value.forEach((f, idx) => {
+    f.displayOrder = idx;
+  });
+  
   // Auto-expand new fields in edit mode so user can immediately edit them
   if (isEditMode.value) {
     expandedFields.value.add(tempId);
   }
+  
+  // Scroll to the top to show the newly added field
+  nextTick(() => {
+    const fieldsContainer = document.querySelector('.space-y-4');
+    if (fieldsContainer) {
+      fieldsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
 };
 
 // Remove a field

@@ -18,18 +18,17 @@ export const useApi = () => {
 
   // Create instance if it doesn't exist
   if (!apiInstance) {
-    // Prioritize API_BASE_URL (Vercel env var), then NUXT_PUBLIC_API_BASE_URL
-    const baseURL =
-      config.public.API_BASE_URL || config.public.NUXT_PUBLIC_API_BASE_URL;
+    const configBaseUrl = config.public.apiBase as string | undefined;
+    const baseURL = (typeof configBaseUrl === 'string' && configBaseUrl) ? configBaseUrl : "http://localhost:5001";
 
-    if (!baseURL) {
+    if (!configBaseUrl) {
       console.error(
-        "API base URL is not configured. Please set API_BASE_URL or NUXT_PUBLIC_API_BASE_URL environment variable."
+        "API base URL is not configured. Please set NUXT_PUBLIC_API_BASE environment variable."
       );
     }
 
     apiInstance = axios.create({
-      baseURL: baseURL || "http://localhost:5001",
+      baseURL: baseURL,
       timeout: 30000, // 30 seconds
       headers: {
         "Content-Type": "application/json",
@@ -40,7 +39,7 @@ export const useApi = () => {
     apiInstance.interceptors.request.use(
       (config) => {
         // Add authentication token if available
-        const token = useCookie("auth_token");
+        const token = useCookie("admin_auth_token");
         if (token.value) {
           config.headers.Authorization = `Bearer ${token.value}`;
         }

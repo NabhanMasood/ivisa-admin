@@ -101,10 +101,10 @@ export const useVisaProductsApi = () => {
   const createVisaProduct = async (data: CreateVisaProductDto): Promise<ApiResponse<VisaProduct>> => {
     try {
       const response = await api.post<VisaProduct | { status: boolean; message: string; data: VisaProduct }>('/visa-product', data)
-      
+
       // Handle different response structures
       let productData: VisaProduct
-      
+
       if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
         // Response has wrapper structure { status, message, data }
         const wrappedResponse = response.data as { status: boolean; message: string; data: VisaProduct }
@@ -117,7 +117,7 @@ export const useVisaProductsApi = () => {
         // Direct product object
         productData = response.data as VisaProduct
       }
-      
+
       return {
         data: productData,
         message: 'Visa product created successfully',
@@ -135,7 +135,7 @@ export const useVisaProductsApi = () => {
   const getVisaProducts = async (): Promise<ApiResponse<VisaProduct[]>> => {
     try {
       const response = await api.get<VisaProductsListResponse | VisaProduct[]>('/visa-product')
-      
+
       // Handle different response structures
       if (Array.isArray(response.data)) {
         // Direct array response
@@ -159,7 +159,7 @@ export const useVisaProductsApi = () => {
           success: false,
         }
       }
-      
+
       return {
         data: [],
         message: 'No visa products found',
@@ -177,10 +177,10 @@ export const useVisaProductsApi = () => {
   const getVisaProductById = async (id: number | string): Promise<ApiResponse<VisaProduct>> => {
     try {
       const response = await api.get<VisaProduct | { status: boolean; message: string; data: VisaProduct }>(`/visa-product/${id}`)
-      
+
       // Handle different response structures
       let productData: VisaProduct
-      
+
       if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
         // Response has wrapper structure { status, message, data }
         const wrappedResponse = response.data as { status: boolean; message: string; data: VisaProduct }
@@ -193,7 +193,7 @@ export const useVisaProductsApi = () => {
         // Direct product object
         productData = response.data as VisaProduct
       }
-      
+
       return {
         data: productData,
         success: true,
@@ -213,10 +213,10 @@ export const useVisaProductsApi = () => {
   ): Promise<ApiResponse<VisaProduct>> => {
     try {
       const response = await api.patch<VisaProduct | { status: boolean; message: string; data: VisaProduct }>(`/visa-product/${id}`, data)
-      
+
       // Handle different response structures
       let productData: VisaProduct
-      
+
       if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
         // Response has wrapper structure { status, message, data }
         const wrappedResponse = response.data as { status: boolean; message: string; data: VisaProduct }
@@ -229,7 +229,7 @@ export const useVisaProductsApi = () => {
         // Direct product object
         productData = response.data as VisaProduct
       }
-      
+
       return {
         data: productData,
         message: 'Visa product updated successfully',
@@ -246,7 +246,7 @@ export const useVisaProductsApi = () => {
   const deleteVisaProduct = async (id: number | string): Promise<ApiResponse<void>> => {
     try {
       await api.delete(`/visa-product/${id}`)
-      
+
       return {
         data: undefined,
         message: 'Visa product deleted successfully',
@@ -264,13 +264,13 @@ export const useVisaProductsApi = () => {
   const getUniqueCountriesFromVisaProducts = async (): Promise<string[]> => {
     try {
       const response = await getVisaProducts()
-      
+
       if (response.success && response.data) {
         // Extract unique countries from visa products
         const uniqueCountries = [...new Set(response.data.map(product => product.country))]
         return uniqueCountries.sort()
       }
-      
+
       return []
     } catch (error) {
       console.error('Failed to get unique countries from visa products:', error)
@@ -285,7 +285,7 @@ export const useVisaProductsApi = () => {
   const getGroupedVisaProductsByCountries = async (): Promise<ApiResponse<GroupedVisaProductByCountry[]>> => {
     try {
       const response = await api.get<GroupedVisaProductsResponse>('/visa-product/grouped/countries')
-      
+
       // Handle the response structure
       if (response.data.status && response.data.data) {
         return {
@@ -294,7 +294,7 @@ export const useVisaProductsApi = () => {
           success: true,
         }
       }
-      
+
       return {
         data: [],
         message: response.data.message || 'No visa products found',
@@ -305,14 +305,10 @@ export const useVisaProductsApi = () => {
     }
   }
 
-  /**
-   * Get visa products by country name
-   * GET http://localhost:5000/visa-product/by-country?country=name
-   */
   const getVisaProductsByCountry = async (country: string): Promise<ApiResponse<VisaProduct[]>> => {
     try {
       const response = await api.get<VisaProductsListResponse>(`/visa-product/by-country?country=${encodeURIComponent(country)}`)
-      
+
       // Handle the response structure
       if (response.data.status && response.data.data) {
         return {
@@ -321,7 +317,7 @@ export const useVisaProductsApi = () => {
           success: true,
         }
       }
-      
+
       return {
         data: [],
         message: response.data.message || 'No visa products found for this country',

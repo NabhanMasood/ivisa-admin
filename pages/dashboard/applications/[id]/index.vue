@@ -86,20 +86,20 @@
           >
             Travelers
           </NuxtLink>
-        <button
+          <button
             @click="activeTab = 'additional-info'"
             :class="[
               activeTab === 'additional-info'
                 ? 'bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-              'px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200 relative',  /* ADD relative */
+              'px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200 relative',
             ]"
           >
             Additional Info
-             <span v-if="activeResubmissionRequestsCount > 0"
-                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {{ activeResubmissionRequestsCount }}
-              </span>
+            <span v-if="activeResubmissionRequestsCount > 0"
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {{ activeResubmissionRequestsCount }}
+            </span>
           </button>
           <button
             @click="activeTab = 'documents'"
@@ -127,7 +127,6 @@
         <div v-if="activeTab !== 'documents' && activeTab !== 'additional-info'"
             class="flex justify-center gap-2.5 sm:justify-end w-full sm:w-auto"
           >
-       
             <button
               @click="openStatusUpdateModal"
               class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
@@ -292,13 +291,12 @@
                 <CustomDropdown
                   id="application-status"
                   label="Status"
-                  v-model="applicationStatus"
-                  :options="applicationStatusOptions"
-                  placeholder="Select status"
-                  search-placeholder="Search status"
-                  disabled
-                  disabled
-                />
+                v-model="applicationStatus"
+                :options="applicationStatusOptions"
+                placeholder="Select status"
+                search-placeholder="Search status"
+                disabled
+              />
               </div>
               <div class="grid grid-cols-2 gap-4 pt-5">
                 <span
@@ -324,13 +322,12 @@
           <div
             class="flex justify-center gap-2.5 sm:justify-end w-full sm:w-auto"
           >
-          
-              <button
-                @click="openBulkResubmitModal"
-                class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-              >
-                Request Additional Info
-              </button>
+            <button
+              @click="openBulkResubmitModal"
+              class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+            >
+              Request Additional Info
+            </button>
           </div>
         </div>
 
@@ -356,11 +353,12 @@
             ]"
           >
               {{ person.name }}
-                <span v-if="getPersonPendingRequestsCount(person) > 0"
-                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span 
+                v-if="getPersonPendingRequestsCount(person) > 0"
+                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+              >
                 {{ getPersonPendingRequestsCount(person) }}
               </span>
-
             </button>
           </div>
 
@@ -376,44 +374,45 @@
                 Loading field definitions...
               </div>
               
+              
               <!-- Additional Info Fields -->
               <div v-else-if="additionalInfoFields.length > 0" class="space-y-4">
-            <div
-  v-for="field in additionalInfoFields"
-  :key="field.fieldId"
-  :class="[
-    'grid grid-cols-2 gap-4 py-3 border-b border-gray-200 dark:border-gray-700',
-    isFieldRequested(field.fieldId) ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-l-yellow-500 pl-4' : ''
-  ]"
->
-  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400 flex items-center gap-2">
-    {{ field.question }}
-    <span v-if="isFieldRequested(field.fieldId)"
-      class="text-xs px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded whitespace-nowrap">
-      Resubmission Requested
-    </span>
-  </span>
-  <div class="text-sm text-gray-900 dark:text-white">
-    <!-- File Upload Display -->
-<div v-if="field.isFile" class="flex items-center gap-2">
-  <a
-    :href="getFileUrl(field.value.filePath)"
-    target="_blank"
-    class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors inline-flex items-center gap-2"
-  >
-    <span>{{ field.value.fileName }}</span>
-    <span class="text-xs text-gray-500 dark:text-gray-400">
-      ({{ formatFileSize(field.value.fileSize) }})
-    </span>
-  </a>
-</div>
-    <!-- Regular Value Display -->
-    <span v-else>{{ field.value || '-' }}</span>
-    <div v-if="field.submittedAt" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-      Submitted: {{ formatDate(field.submittedAt) }}
-    </div>
-  </div>
-</div>
+                <div
+                  v-for="field in additionalInfoFields"
+                  :key="field.fieldId"
+                  :class="[
+                    'grid grid-cols-2 gap-4 py-3 border-b border-gray-200 dark:border-gray-700',
+                    isFieldRequested(field.fieldId) ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-l-yellow-500 pl-4' : ''
+                  ]"
+                >
+                  <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400 flex items-center gap-2">
+                    {{ field.question }}
+                    <span v-if="isFieldRequested(field.fieldId)"
+                      class="text-xs px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded whitespace-nowrap">
+                      Resubmission Requested
+                    </span>
+                  </span>
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    <!-- File Upload Display -->
+                    <div v-if="field.isFile" class="flex items-center gap-2">
+                      <a
+                        :href="getFileUrl(field.value.filePath)"
+                        target="_blank"
+                        class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors inline-flex items-center gap-2"
+                      >
+                        <span>{{ field.value.fileName }}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                          ({{ formatFileSize(field.value.fileSize) }})
+                        </span>
+                      </a>
+                    </div>
+                    <!-- Regular Value Display -->
+                    <span v-else>{{ field.value || '-' }}</span>
+                    <div v-if="field.submittedAt" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Submitted: {{ formatDate(field.submittedAt) }}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Empty state -->
@@ -435,14 +434,13 @@
           <div class="w-full sm:w-[40%] flex flex-col sm:flex-row gap-2">
             <!-- Search Bar -->
             <div class="relative flex-1 w-full sm:w-[30%]">
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search Documents"
-                placeholder="Search Documents"
-                class="w-full h-[36px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-black focus:shadow-[0_0_10px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.2)]"
-                style="border-radius: 7px"
-              />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search Documents"
+              class="w-full h-[36px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-black focus:shadow-[0_0_10px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.2)]"
+              style="border-radius: 7px"
+            />
             </div>
           </div>
 
@@ -451,12 +449,16 @@
             class="flex justify-center gap-2.5 sm:justify-end w-full sm:w-auto"
           >
          
+         
             <button
               @click="openStatusUpdateModal"
               class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
               Update Status
             </button>
+            <button
+              class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors hidden"
+            />
             <button
               class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors hidden"
             />
@@ -532,13 +534,12 @@
                   <th class="w-10 sm:w-12 px-2 sm:px-3 lg:px-4 py-2"></th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-                <tr
-                  v-for="document in filteredDocumentsForSelectedTraveler"
-                  v-for="document in filteredDocumentsForSelectedTraveler"
-                  :key="document.id"
-                  class="hover:bg-gray-50 dark:hover:bg-gray-900"
-                >
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+              <tr
+                v-for="document in filteredDocumentsForSelectedTraveler"
+                :key="document.id"
+                class="hover:bg-gray-50 dark:hover:bg-gray-900"
+              >
                   <td class="px-2 sm:px-3 lg:px-4 py-2">
                     <input
                       type="checkbox"
@@ -569,12 +570,11 @@
                         class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
                       >
                         {{ document.fieldName || 'Document' }}
-                      </a>
-                      <button
-                        v-else
-                        v-else
-                        class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                      >
+                    </a>
+                    <button
+                      v-else
+                      class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                    >
                         Documentation
                       </button>
                       <span class="text-sm text-gray-500 dark:text-gray-400">{{
@@ -620,7 +620,7 @@
               </tbody>
             </table>
           </div>
-          </div>
+        </div>
 
           <!-- Pagination -->
           <div
@@ -630,8 +630,7 @@
             <div
               class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap"
             >
-              {{ selectedDocumentsCount }} of {{ documentsForSelectedTraveler.length }} row(s)
-              selected.
+              {{ selectedDocumentsCount }} of {{ documentsForSelectedTraveler.length }} row(s) selected.
             </div>
 
             <!-- Navigation Buttons -->
@@ -646,26 +645,6 @@
               >
                 Previous
               </button>
-            <!-- Navigation Buttons -->
-            <div class="flex items-center space-x-2">
-              <button
-                class="border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-2 sm:px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs sm:text-sm"
-                :disabled="currentPage === 1"
-                :class="{
-                  'opacity-50 cursor-not-allowed': currentPage === 1,
-                }"
-                style="border-radius: 7px"
-              >
-                Previous
-              </button>
-
-              <button
-                class="border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-2 sm:px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs sm:text-sm"
-                style="border-radius: 7px"
-              >
-                Next
-              </button>
-            </div>
               <button
                 class="border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-2 sm:px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs sm:text-sm"
                 style="border-radius: 7px"
@@ -675,7 +654,6 @@
             </div>
           </div>
         </div>
-      </div>
 
       <!-- Payment Tab -->
       <div
@@ -871,11 +849,13 @@
             >
               {{ paymentErrorMessage || "Payment information not available" }}
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Resubmission Modal (in-template to keep single root) -->
+          </div> <!-- Closes: <div class="flex flex-col"> -->
+        </div> <!-- Closes: <div class="space-y-6"> -->
+      </div> <!-- Closes: Payment tab <div v-if="activeTab === 'payment'"> -->
+      
+    </div> <!-- Closes: Main container <div class="space-y-8 sm:space-y-4"> -->
+
+    <!-- Resubmission Modal -->
     <div v-if="showResubmitModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div class="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-800 rounded-xl p-5 w-full max-w-lg">
         <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-3">Request Resubmission</h3>
@@ -889,54 +869,179 @@
       </div>
     </div>
     <!-- ✅ ADD: Bulk resubmission modal (before closing DashboardLayout) -->
-<div v-if="showBulkResubmitModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-  <div class="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Request Additional Information</h3>
-    
-    <!-- Application Fields -->
-    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
-      <h4 class="font-medium mb-3">📄 Application Fields ({{ bulkRequestSelection.application.fieldIds.length }} selected)</h4>
-      <div class="space-y-2 max-h-48 overflow-y-auto">
-        <div v-for="field in getApplicationFields()" :key="field.id" class="flex items-start gap-2">
-          <input type="checkbox" :id="`app-field-${field.id}`" :value="field.id" v-model="bulkRequestSelection.application.fieldIds" />
-          <label :for="`app-field-${field.id}`" class="text-sm cursor-pointer">{{ field.question }}</label>
+    <div v-if="showBulkResubmitModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div class="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Request Additional Information</h3>
+        
+        <!-- Application Fields -->
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-medium">📄 Application Fields ({{ bulkRequestSelection.application.fieldIds.length }} existing, {{ bulkRequestSelection.application.newFields.length }} new)</h4>
+            <button 
+              @click="addNewApplicationField"
+              class="px-3 py-1 text-xs font-medium rounded-[6px] text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+            >
+              + Add New Field
+            </button>
+          </div>
+          
+          <!-- Existing Fields -->
+          <div class="space-y-2 max-h-48 overflow-y-auto mb-3">
+            <div v-for="field in getApplicationFields()" :key="field.id" class="flex items-start gap-2">
+              <input type="checkbox" :id="`app-field-${field.id}`" :value="field.id" v-model="bulkRequestSelection.application.fieldIds" />
+              <label :for="`app-field-${field.id}`" class="text-sm cursor-pointer">{{ field.question }}</label>
+            </div>
+          </div>
+          
+          <!-- New Custom Fields -->
+          <div v-if="bulkRequestSelection.application.newFields.length > 0" class="space-y-3 mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+            <div v-for="(newField, index) in bulkRequestSelection.application.newFields" :key="index" class="space-y-2 p-2 bg-white dark:bg-gray-800 rounded border border-yellow-300 dark:border-yellow-600">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-yellow-800 dark:text-yellow-300">New Custom Field {{ index + 1 }}</span>
+                <button 
+                  @click="removeNewApplicationField(index)"
+                  class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-xs"
+                >
+                  Remove
+                </button>
+              </div>
+              <input 
+                v-model="newField.question" 
+                type="text" 
+                placeholder="Field question (e.g., Please provide additional passport copy)"
+                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
+              />
+              <div class="grid grid-cols-2 gap-2">
+                <select v-model="newField.fieldType" class="px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded">
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="textarea">Textarea</option>
+                  <option value="dropdown">Dropdown</option>
+                  <option value="upload">Upload</option>
+                </select>
+                <label class="flex items-center gap-2 text-xs">
+                  <input type="checkbox" v-model="newField.isRequired" />
+                  Required
+                </label>
+              </div>
+              <div v-if="newField.fieldType === 'upload'" class="space-y-1">
+                <input 
+                  v-model="newField.allowedFileTypes" 
+                  type="text" 
+                  placeholder="Allowed file types (e.g., pdf,jpg,png)"
+                  class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
+                />
+              </div>
+              <div v-if="newField.fieldType === 'dropdown'" class="space-y-1">
+                <input 
+                  v-model="newField.options" 
+                  type="text" 
+                  placeholder="Options (comma-separated)"
+                  class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <textarea v-if="bulkRequestSelection.application.fieldIds.length > 0 || bulkRequestSelection.application.newFields.length > 0" 
+            v-model="bulkRequestSelection.application.note" rows="2"
+            class="w-full mt-3 border border-gray-300 dark:border-gray-700 p-2 rounded text-sm" placeholder="Optional note..."></textarea>
+        </div>
+
+        <!-- Traveler Fields -->
+        <div v-for="traveler in validTravelersForModal" :key="traveler.id" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-medium">👤 {{ traveler.firstName }} {{ traveler.lastName }} ({{ getBulkTravelerSelection(traveler.id).fieldIds.length }} existing, {{ getBulkTravelerSelection(traveler.id).newFields.length }} new)</h4>
+            <button 
+              @click="addNewTravelerField(traveler.id)"
+              class="px-3 py-1 text-xs font-medium rounded-[6px] text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+            >
+              + Add New Field
+            </button>
+          </div>
+          
+          <!-- Existing Fields -->
+          <div class="space-y-2 max-h-48 overflow-y-auto mb-3">
+            <div v-for="field in getTravelerFields(traveler.id)" :key="field.id" class="flex items-start gap-2">
+              <input type="checkbox" :id="`t-${traveler.id}-field-${field.id}`" :value="field.id" 
+                v-model="getBulkTravelerSelection(traveler.id).fieldIds" />
+              <label :for="`t-${traveler.id}-field-${field.id}`" class="text-sm cursor-pointer">{{ field.question }}</label>
+            </div>
+          </div>
+          
+          <!-- New Custom Fields -->
+          <div v-if="getBulkTravelerSelection(traveler.id).newFields.length > 0" class="space-y-3 mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+            <div v-for="(newField, index) in getBulkTravelerSelection(traveler.id).newFields" :key="index" class="space-y-2 p-2 bg-white dark:bg-gray-800 rounded border border-yellow-300 dark:border-yellow-600">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-yellow-800 dark:text-yellow-300">New Custom Field {{ index + 1 }}</span>
+                <button 
+                  @click="removeNewTravelerField(traveler.id, index)"
+                  class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-xs"
+                >
+                  Remove
+                </button>
+              </div>
+              <input 
+                v-model="newField.question" 
+                type="text" 
+                placeholder="Field question (e.g., Please provide additional passport copy)"
+                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
+              />
+              <div class="grid grid-cols-2 gap-2">
+                <select v-model="newField.fieldType" class="px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded">
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="textarea">Textarea</option>
+                  <option value="dropdown">Dropdown</option>
+                  <option value="upload">Upload</option>
+                </select>
+                <label class="flex items-center gap-2 text-xs">
+                  <input type="checkbox" v-model="newField.isRequired" />
+                  Required
+                </label>
+              </div>
+              <div v-if="newField.fieldType === 'upload'" class="space-y-1">
+                <input 
+                  v-model="newField.allowedFileTypes" 
+                  type="text" 
+                  placeholder="Allowed file types (e.g., pdf,jpg,png)"
+                  class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
+                />
+              </div>
+              <div v-if="newField.fieldType === 'dropdown'" class="space-y-1">
+                <input 
+                  v-model="newField.options" 
+                  type="text" 
+                  placeholder="Options (comma-separated)"
+                  class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <textarea v-if="getBulkTravelerSelection(traveler.id).fieldIds.length > 0 || getBulkTravelerSelection(traveler.id).newFields.length > 0" 
+            v-model="getBulkTravelerSelection(traveler.id).note" rows="2"
+            class="w-full mt-3 border border-gray-300 dark:border-gray-700 p-2 rounded text-sm" 
+            placeholder="Optional note..."></textarea>
+        </div>
+
+        <!-- Summary -->
+        <div v-if="bulkRequestTotalCount > 0" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-4">
+          <strong>Summary:</strong> {{ bulkRequestTotalCount }} field(s) across {{ bulkRequestTargetCount }} target(s)
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-3">
+          <button @click="closeBulkResubmitModal" class="px-4 py-2 text-sm border rounded-[6px]">Cancel</button>
+          <button @click="submitBulkResubmissionRequest" :disabled="bulkRequestTotalCount === 0"
+            class="px-4 py-2 text-sm rounded-[6px] text-white bg-black dark:bg-white dark:text-black disabled:opacity-50">
+            Send Request(s) ({{ bulkRequestTotalCount }})
+          </button>
         </div>
       </div>
-      <textarea v-if="bulkRequestSelection.application.fieldIds.length > 0" v-model="bulkRequestSelection.application.note" rows="2"
-        class="w-full mt-3 border border-gray-300 dark:border-gray-700 p-2 rounded text-sm" placeholder="Optional note..."></textarea>
     </div>
-
-<!-- Traveler Fields -->
-<div v-for="traveler in validTravelersForModal" :key="traveler.id" class="...">
-  <h4 class="font-medium mb-3">👤 {{ traveler.firstName }} {{ traveler.lastName }}</h4>
-  <div class="space-y-2 max-h-48 overflow-y-auto">
-    <div v-for="field in getTravelerFields(traveler.id)" :key="field.id" class="flex items-start gap-2">
-      <input type="checkbox" :id="`t-${traveler.id}-field-${field.id}`" :value="field.id" 
-        v-model="getBulkTravelerSelection(traveler.id).fieldIds" />
-      <label :for="`t-${traveler.id}-field-${field.id}`" class="text-sm cursor-pointer">{{ field.question }}</label>
-    </div>
-  </div>
-  <textarea v-if="getBulkTravelerSelection(traveler.id).fieldIds.length > 0" 
-    v-model="getBulkTravelerSelection(traveler.id).note" rows="2"
-    class="w-full mt-3 border border-gray-300 dark:border-gray-700 p-2 rounded text-sm" 
-    placeholder="Optional note..."></textarea>
-</div>
-
-    <!-- Summary -->
-    <div v-if="bulkRequestTotalCount > 0" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-4">
-      <strong>Summary:</strong> {{ bulkRequestTotalCount }} field(s) across {{ bulkRequestTargetCount }} target(s)
-    </div>
-
-    <!-- Actions -->
-    <div class="flex justify-end gap-3">
-      <button @click="closeBulkResubmitModal" class="px-4 py-2 text-sm border rounded-[6px]">Cancel</button>
-      <button @click="submitBulkResubmissionRequest" :disabled="bulkRequestTotalCount === 0"
-        class="px-4 py-2 text-sm rounded-[6px] text-white bg-black dark:bg-white dark:text-black disabled:opacity-50">
-        Send Request(s) ({{ bulkRequestTotalCount }})
-      </button>
-    </div>
-  </div>
-</div>
     <!-- Status Update Modal -->
     <div v-if="showStatusUpdateModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div class="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-800 rounded-xl p-6 w-full max-w-md">
@@ -972,6 +1077,7 @@
         </div>
       </div>
     </div>
+    
   </DashboardLayout>
 </template>
 
@@ -980,7 +1086,6 @@ import DashboardLayout from "~/components/DashboardLayout.vue";
 import CustomDropdown from "~/components/ui/CustomDropdown.vue";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-vue-next";
 import { useApplication } from "~/composables/useApplication";
-import { useVisaProductFieldsApi } from "~/composables/useVisaProductFieldsApi";
 import { useVisaProductFieldsApi } from "~/composables/useVisaProductFieldsApi";
 
 // Get route parameters
@@ -1001,12 +1106,6 @@ const activeTab = ref("details");
 const application = ref(null);
 const isLoadingApplication = ref(false);
 const errorMessage = ref("");
-
-// Travelers data
-const travelers = ref([]);
-const isLoadingTravelers = ref(false);
-const selectedTravelerId = ref(null);
-const selectedTravelerIdForDocuments = ref(null);
 
 // Travelers data
 const travelers = ref([]);
@@ -1045,7 +1144,6 @@ const documents = ref([
   {
     id: 1,
     travelerId: 1,
-    travelerId: 1,
     traveler: "Ali Raza",
     documentType: "PDF",
     fileName: "ali.passport.pdf",
@@ -1054,7 +1152,6 @@ const documents = ref([
   },
   {
     id: 2,
-    travelerId: 1,
     travelerId: 1,
     traveler: "Ali Raza",
     documentType: "PDF",
@@ -1586,10 +1683,44 @@ const getTravelerFields = (travelerId) => {
 const getBulkTravelerSelection = (travelerId) => {
   let existing = bulkRequestSelection.value.travelers.find(t => t.travelerId === travelerId)
   if (!existing) {
-    existing = { travelerId, fieldIds: [], note: '' }
+    existing = { travelerId, fieldIds: [], newFields: [], note: '' }
     bulkRequestSelection.value.travelers.push(existing)
   }
   return existing
+}
+
+// Add new custom field for application
+const addNewApplicationField = () => {
+  bulkRequestSelection.value.application.newFields.push({
+    fieldType: 'text',
+    question: '',
+    isRequired: false,
+    allowedFileTypes: '',
+    options: ''
+  })
+}
+
+// Remove new custom field for application
+const removeNewApplicationField = (index) => {
+  bulkRequestSelection.value.application.newFields.splice(index, 1)
+}
+
+// Add new custom field for traveler
+const addNewTravelerField = (travelerId) => {
+  const selection = getBulkTravelerSelection(travelerId)
+  selection.newFields.push({
+    fieldType: 'text',
+    question: '',
+    isRequired: false,
+    allowedFileTypes: '',
+    options: ''
+  })
+}
+
+// Remove new custom field for traveler
+const removeNewTravelerField = (travelerId, index) => {
+  const selection = getBulkTravelerSelection(travelerId)
+  selection.newFields.splice(index, 1)
 }
 
 // ✅ ADD: After helper functions
@@ -1607,7 +1738,7 @@ const loadActiveResubmissionRequests = async () => {
 
 const openBulkResubmitModal = () => {
   bulkRequestSelection.value = {
-    application: { fieldIds: [], note: '' },
+    application: { fieldIds: [], newFields: [], note: '' },
     travelers: []
   }
   showBulkResubmitModal.value = true
@@ -1621,27 +1752,61 @@ const submitBulkResubmissionRequest = async () => {
   try {
     const requests = []
     
-    if (bulkRequestSelection.value.application.fieldIds.length > 0) {
+    // Process application-level request
+    const appFieldIds = bulkRequestSelection.value.application.fieldIds || []
+    const appNewFields = (bulkRequestSelection.value.application.newFields || [])
+      .filter(f => f.question && f.question.trim())
+      .map(f => ({
+        fieldType: f.fieldType,
+        question: f.question.trim(),
+        isRequired: f.isRequired || false,
+        ...(f.fieldType === 'upload' && f.allowedFileTypes ? {
+          allowedFileTypes: f.allowedFileTypes.split(',').map(t => t.trim()).filter(t => t)
+        } : {}),
+        ...(f.fieldType === 'dropdown' && f.options ? {
+          options: f.options.split(',').map(o => o.trim()).filter(o => o)
+        } : {})
+      }))
+    
+    if (appFieldIds.length > 0 || appNewFields.length > 0) {
       requests.push({
         target: 'application',
-        fieldIds: bulkRequestSelection.value.application.fieldIds,
+        ...(appFieldIds.length > 0 ? { fieldIds: appFieldIds } : {}),
+        ...(appNewFields.length > 0 ? { newFields: appNewFields } : {}),
         note: bulkRequestSelection.value.application.note || null
       })
     }
     
+    // Process traveler-level requests
     bulkRequestSelection.value.travelers.forEach(t => {
-      if (t.fieldIds.length > 0) {
+      const fieldIds = t.fieldIds || []
+      const newFields = (t.newFields || [])
+        .filter(f => f.question && f.question.trim())
+        .map(f => ({
+          fieldType: f.fieldType,
+          question: f.question.trim(),
+          isRequired: f.isRequired || false,
+          ...(f.fieldType === 'upload' && f.allowedFileTypes ? {
+            allowedFileTypes: f.allowedFileTypes.split(',').map(t => t.trim()).filter(t => t)
+          } : {}),
+          ...(f.fieldType === 'dropdown' && f.options ? {
+            options: f.options.split(',').map(o => o.trim()).filter(o => o)
+          } : {})
+        }))
+      
+      if (fieldIds.length > 0 || newFields.length > 0) {
         requests.push({
           target: 'traveler',
           travelerId: t.travelerId,
-          fieldIds: t.fieldIds,
+          ...(fieldIds.length > 0 ? { fieldIds } : {}),
+          ...(newFields.length > 0 ? { newFields } : {}),
           note: t.note || null
         })
       }
     })
     
     if (requests.length === 0) {
-      alert('Please select at least one field.')
+      alert('Please select at least one existing field or create at least one new field.')
       return
     }
     
@@ -1657,7 +1822,9 @@ const submitBulkResubmissionRequest = async () => {
 
 const isFieldRequested = (fieldId) => {
   const requests = activeRequestsForSelectedPerson.value
-  return requests.some(req => req.fieldIds.includes(Number(fieldId)))
+  // Handle both positive (product fields) and negative (admin-created fields) IDs
+  const numericFieldId = Number(fieldId)
+  return requests.some(req => (req.fieldIds || []).includes(numericFieldId))
 }
 
 const getPersonPendingRequestsCount = (person) => {
@@ -1666,28 +1833,40 @@ const getPersonPendingRequestsCount = (person) => {
     const requests = activeResubmissionRequests.value.filter(
       req => !req.fulfilledAt && req.target === 'application'
     )
-    return requests.reduce((sum, req) => sum + req.fieldIds.length, 0)
+    return requests.reduce((sum, req) => {
+      const fieldIdsCount = (req.fieldIds || []).length
+      const newFieldsCount = (req.newFields || []).length
+      return sum + fieldIdsCount + newFieldsCount
+    }, 0)
   } else {
     const requests = activeResubmissionRequests.value.filter(
       req => !req.fulfilledAt && req.target === 'traveler' && req.travelerId === person.id
     )
-    return requests.reduce((sum, req) => sum + req.fieldIds.length, 0)
+    return requests.reduce((sum, req) => {
+      const fieldIdsCount = (req.fieldIds || []).length
+      const newFieldsCount = (req.newFields || []).length
+      return sum + fieldIdsCount + newFieldsCount
+    }, 0)
   }
 }
 
 const bulkRequestTotalCount = computed(() => {
-  let count = bulkRequestSelection.value.application.fieldIds.length
+  let count = (bulkRequestSelection.value.application.fieldIds?.length || 0) + 
+              (bulkRequestSelection.value.application.newFields?.length || 0)
   bulkRequestSelection.value.travelers.forEach(t => {
-    count += t.fieldIds.length
+    count += (t.fieldIds?.length || 0) + (t.newFields?.length || 0)
   })
   return count
 })
 
 const bulkRequestTargetCount = computed(() => {
   let count = 0
-  if (bulkRequestSelection.value.application.fieldIds.length > 0) count++
+  const appHasFields = (bulkRequestSelection.value.application.fieldIds?.length || 0) > 0 || 
+                       (bulkRequestSelection.value.application.newFields?.length || 0) > 0
+  if (appHasFields) count++
   bulkRequestSelection.value.travelers.forEach(t => {
-    if (t.fieldIds.length > 0) count++
+    const hasFields = (t.fieldIds?.length || 0) > 0 || (t.newFields?.length || 0) > 0
+    if (hasFields) count++
   })
   return count
 })
@@ -1702,8 +1881,8 @@ const activeResubmissionRequests = ref([])
 const showResubmissionDetails = ref(false)
 const showBulkResubmitModal = ref(false)
 const bulkRequestSelection = ref({
-  application: { fieldIds: [], note: '' },
-  travelers: [] // Array of { travelerId, fieldIds, note }
+  application: { fieldIds: [], newFields: [], note: '' },
+  travelers: [] // Array of { travelerId, fieldIds, newFields, note }
 })
 
 // Status update modal state

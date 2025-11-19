@@ -55,7 +55,7 @@
           </a>
 
           <!-- Countries -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('countries')">
             <button
               @click="toggleCountries"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -110,7 +110,7 @@
           </div>
 
           <!-- Visa Products -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('visaProducts')">
             <button
               @click="toggleVisaproducts"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -167,7 +167,7 @@
           </div>
 
           <!-- Nationalities -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('nationalities')">
             <button
               @click="toggleNationalities"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -226,7 +226,7 @@
           
 
           <!-- Embassies -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('embassies')">
             <button
               @click="toggleEmbassies"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -282,7 +282,7 @@
 
 
           <!-- Coupons -->
-<div>
+<div v-if="isSuperAdmin() || hasPermission('coupons')">
   <button
     @click="toggleCoupons"
     class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -340,7 +340,7 @@
           </div>
 
           <!-- Additional Info -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('additionalInfo')">
             <button
               @click="toggleAdditionalInfo"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -397,7 +397,7 @@
           
 
           <!-- Customers -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('customers')">
             <a
               href="/dashboard/customers"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -412,7 +412,7 @@
           </div>
 
           <!-- Applications -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('applications')">
             <a
               href="/dashboard/applications"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -429,7 +429,7 @@
           </div>
 
           <!-- Finances -->
-          <div>
+          <div v-if="isSuperAdmin() || hasPermission('finances')">
             <a
               href="/dashboard/finances"
               class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
@@ -442,127 +442,79 @@
               <span v-show="!sidebarCollapsed" class="truncate">Finances</span>
             </a>
           </div>
+
+          <!-- Users (Only for Super Admins) -->
+          <div v-if="isSuperAdmin()">
+            <button
+              @click="toggleUsers"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              ]"
+            >
+              <UsersIcon class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Users</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="usersOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-2"
+              enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-2"
+            >
+              <div
+                v-if="usersOpen && !sidebarCollapsed"
+                class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+              >
+              <a
+                href="/dashboard/users"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isUsersListActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
+                style="border-radius: 5px"
+                >List of Users</a
+              >
+              <a
+                href="/dashboard/users/add"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isUsersAddActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
+                style="border-radius: 5px"
+                >Add User</a
+              >
+              </div>
+            </Transition>
+          </div>
         </div>
       </nav>
 
-      <!-- Settings -->
-      <nav
-        :class="sidebarCollapsed ? 'px-2' : 'px-2'"
-        class="absolute bottom-16 left-0 right-0"
-      >
-        <a
-          href="/dashboard/settings"
-          class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-          style="margin: 8px"
-          :class="sidebarCollapsed ? 'justify-center' : ''"
-        >
-          <Settings class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-          <span v-show="!sidebarCollapsed" class="truncate">Settings</span>
-        </a>
-      </nav>
-      <!-- User Profile -->
+   
+      <!-- Logout Button -->
       <div
-        class="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors duration-200 rounded-md relative"
+        class="absolute bottom-0 left-0 right-0"
         :class="sidebarCollapsed ? 'p-2' : 'p-4'"
         style="position: absolute"
-        @click="toggleLogoutDropdown"
       >
-        <div
-          class="flex items-center py-2 hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]"
-          :class="sidebarCollapsed ? 'justify-center px-1' : 'px-1'"
-          style="border-radius: 5px"
+        <button
+          @click="handleSignOutClick"
+          class="w-full flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+          :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
         >
-          <div
-            class="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center"
-          >
-            <User class="h-4 w-4 text-gray-600" />
-          </div>
-
-          <div v-show="!sidebarCollapsed" class="ml-3 min-w-0 flex-1">
-            <p
-              class="text-sm font-medium text-gray-900 dark:text-white truncate"
-            >
-              Nick Patrocky
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-              ivisa@gmail.com
-            </p>
-          </div>
-
-          <MoreVertical
-            v-show="!sidebarCollapsed"
-            class="h-4 w-4 text-gray-400"
-          />
-        </div>
-
-        <!-- Logout Dropdown -->
-        <div
-          v-if="logoutDropdownOpen && !sidebarCollapsed"
-          class="absolute left-[200px] bottom-[-10px] mb-2 w-56 bg-white dark:bg-[#18181B] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20"
-          @click.stop
-          style="
-            transform: translateX(50px) translateY(-20px);
-            border-radius: 5px;
-          "
-        >
-          <!-- User Info Section -->
-          <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex items-center">
-              <div
-                class="h-8 w-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center"
-              >
-                <span class="text-white font-medium text-sm">TB</span>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                  Toby Belhome
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  hello@tobybelhome.com
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Menu Items -->
-          <button
-            @click="logoutDropdownOpen = false"
-            class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-          >
-            <div class="h-4 w-4 mr-3 flex items-center justify-center">
-              <div
-                class="h-3 w-3 border-2 border-gray-400 rounded-full flex items-center justify-center"
-              >
-                <div class="h-1.5 w-1.5 bg-gray-400 rounded-full"></div>
-              </div>
-            </div>
-            <span>Account</span>
-          </button>
-
-          <button
-            @click="logoutDropdownOpen = false"
-            class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-          >
-            <CreditCard class="h-4 w-4 text-gray-400 mr-3" />
-            <span>Billing</span>
-          </button>
-
-          <button
-            @click="logoutDropdownOpen = false"
-            class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-          >
-            <Bell class="h-4 w-4 text-gray-400 mr-3" />
-            <span>Notifications</span>
-          </button>
-
-          <button
-            @click="logoutDropdownOpen = false"
-            class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-          >
-            <LogOut class="h-4 w-4 text-gray-400 mr-3" />
-            <span>Log out</span>
-          </button>
-        </div>
+          <LogOut class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+          <span v-show="!sidebarCollapsed" class="truncate">Log out</span>
+        </button>
       </div>
     </div>
 
@@ -624,128 +576,6 @@
 
             <!-- Right side - Icons -->
             <div class="flex items-center space-x-1 sm:space-x-2">
-              <!-- Notifications -->
-              <div class="relative">
-                <button
-                  @click="toggleNotificationsDropdown"
-                  class="p-2 hover:bg-[#E4E4E8] relative dark:hover:bg-[#2F2F31]"
-                  style="border-radius: 5px"
-                >
-                  <Bell
-                    class="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-300"
-                    style="height: 15px; width: 15px"
-                  />
-                  <!-- Notification Badge -->
-                  <span
-                    class="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full flex items-center justify-center"
-                  >
-                    <span class="text-xs text-white font-medium"></span>
-                  </span>
-                </button>
-
-                <!-- Notifications Dropdown -->
-                <div
-                  v-if="notificationsDropdownOpen"
-                  class="absolute right-0 z-10 mt-2 w-80 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
-                  style="border-radius: 5px"
-                >
-                  <!-- Header -->
-                  <div
-                    class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
-                  >
-                    <h3
-                      class="text-sm font-semibold text-gray-900 dark:text-white"
-                    >
-                      Notifications
-                    </h3>
-                    <button
-                      class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                    >
-                      View all
-                    </button>
-                  </div>
-
-                  <!-- Notifications List -->
-                  <div class="max-h-96 overflow-y-auto">
-                    <div
-                      v-for="notification in notifications"
-                      :key="notification.id"
-                      class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 relative"
-                    >
-                      <div class="flex items-start space-x-3">
-                        <!-- Avatar -->
-                        <div class="flex-shrink-0">
-                          <div
-                            class="h-8 w-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center"
-                          >
-                            <span class="text-white text-xs font-medium">
-                              {{ notification.title.charAt(0) }}
-                            </span>
-                          </div>
-                        </div>
-
-                        <!-- Content -->
-                        <div class="flex-1 min-w-0">
-                          <p
-                            class="text-sm font-medium text-gray-900 dark:text-white"
-                          >
-                            {{ notification.title }}
-                          </p>
-                          <p
-                            class="text-sm text-gray-600 dark:text-gray-300 mt-1"
-                          >
-                            {{ notification.message }}
-                          </p>
-
-                          <!-- Action Buttons (for specific notifications) -->
-                          <div
-                            v-if="notification.hasActions"
-                            class="flex space-x-2 mt-2"
-                          >
-                            <button
-                              class="px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#18181B] text-gray-700 dark:text-white dark:text-white rounded-md hover:bg-gray-50 dark:hover:bg-[#18181B]"
-                              style="border-radius: 5px"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              class="px-3 py-1 text-xs bg-red-600 text-white rounded-md hover:bg-red-700"
-                              style="border-radius: 5px"
-                            >
-                              Decline
-                            </button>
-                          </div>
-
-                          <!-- Time -->
-                          <div class="flex items-center mt-1">
-                            <svg
-                              class="h-3 w-3 text-gray-400 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                                clip-rule="evenodd"
-                              ></path>
-                            </svg>
-                            <span
-                              class="text-xs text-gray-500 dark:text-gray-400"
-                              >{{ notification.time }}</span
-                            >
-                          </div>
-                        </div>
-
-                        <!-- Unread Indicator -->
-                        <div v-if="notification.unread" class="flex-shrink-0">
-                          <div class="h-2 w-2 bg-red-500 rounded-full"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <!-- Theme Toggle -->
               <div class="relative">
                 <button
@@ -767,16 +597,7 @@
               </div>
               <!-- Settings -->
               <div class="relative">
-                <button
-                  @click="toggleSettingsDropdown"
-                  class="p-2 hover:bg-[#E4E4E8] dark:hover:bg-[#2F2F31]"
-                  style="border-radius: 5px"
-                >
-                  <Settings
-                    class="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-300"
-                    style="height: 15px; width: 15px"
-                  />
-                </button>
+             
 
                 <!-- Settings Dropdown -->
                 <div
@@ -1032,78 +853,6 @@
                   class="absolute right-0 z-10 mt-2 w-56 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
                   style="border-radius: 5px"
                 >
-                  <!-- User Info Section -->
-                  <div
-                    class="px-4 py-2 border-b border-gray-200 dark:border-gray-700"
-                  >
-                    <div class="flex items-center">
-                      <div
-                        class="h-8 w-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center"
-                      >
-                        <span class="text-white font-medium text-sm">TB</span>
-                      </div>
-                      <div class="ml-3">
-                        <p
-                          class="text-sm font-medium text-gray-900 dark:text-white"
-                        >
-                          Toby Belhome
-                        </p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                          hello@tobybelhome.com
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Menu Items -->
-                  <button
-                    @click="handleUpgradeClick"
-                    class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-                  >
-                    <div class="h-4 w-4 mr-3 flex items-center justify-center">
-                      <svg
-                        class="h-4 w-4 text-yellow-500"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                        />
-                      </svg>
-                    </div>
-                    <span>Upgrade to Pro</span>
-                  </button>
-
-                  <button
-                    @click="handleAccountClick"
-                    class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-                  >
-                    <div class="h-4 w-4 mr-3 flex items-center justify-center">
-                      <div
-                        class="h-3 w-3 border-2 border-gray-400 rounded-full flex items-center justify-center"
-                      >
-                        <div class="h-1.5 w-1.5 bg-gray-400 rounded-full"></div>
-                      </div>
-                    </div>
-                    <span>Account</span>
-                  </button>
-
-                  <button
-                    @click="handleBillingClick"
-                    class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-                  >
-                    <CreditCard class="h-4 w-4 text-gray-400 mr-3" />
-                    <span>Billing</span>
-                  </button>
-
-                  <button
-                    @click="handleNotificationsClick"
-                    class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
-                  >
-                    <Bell class="h-4 w-4 text-gray-400 mr-3" />
-                    <span>Notifications</span>
-                  </button>
-
                   <button
                     @click="handleSignOutClick"
                     class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
@@ -1111,29 +860,6 @@
                     <LogOut class="h-4 w-4 text-gray-400 mr-3" />
                     <span>Log out</span>
                   </button>
-
-                  <!-- Credits Section -->
-                  <div
-                    class="px-4 py-2 bg-[#F5F5F5] dark:bg-[#18181B] border-t border-gray-200 dark:border-gray-700"
-                    style="border-radius: 5px; margin: 5px"
-                  >
-                    <div class="flex items-center justify-between mb-2">
-                      <span
-                        class="text-sm font-medium text-gray-900 dark:text-white"
-                        >Credits</span
-                      >
-                      <div class="flex items-center">
-                        <span class="text-sm text-gray-600">5 left</span>
-                        <ChevronRight class="h-4 w-4 text-gray-400 ml-1" />
-                      </div>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        class="bg-blue-600 h-2 rounded-full"
-                        style="width: 20%"
-                      ></div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1144,6 +870,8 @@
         <main
           class="p-3 sm:p-4 lg:p-6 border border-[#e4e4e8] dark:border-gray-800 border-t-0 rounded-b-xl shadow-sm dark:bg-[#09090B] bg-white h-[calc(100vh-72px)] overflow-y-scroll"
         >
+
+        
           <slot />
         </main>
     </div>
@@ -1203,12 +931,34 @@ import Finances from "./svg/finances.vue";
 import Dashboard from "./svg/dashboard.vue";
 import Coupons from "./svg/coupons.vue";
 import AdditionalInfo from "./svg/additionalinfo.vue";
+import UsersIcon from "./svg/users.vue";
+import { usePermissions } from "~/composables/usePermissions";
+import { useAuthApi } from "~/composables/useAuthApi";
 
 const props = defineProps({
   pageTitle: {
     type: String,
     default: "Dashboard",
   },
+});
+
+// Permissions
+const { hasPermission, isSuperAdmin, getUserPermissions } = usePermissions();
+const { getCurrentUser, logout } = useAuthApi();
+const router = useRouter();
+
+// Debug: Log user and permissions on mount
+onMounted(() => {
+  const currentUser = getCurrentUser();
+  console.log('=== DASHBOARD LAYOUT DEBUG ===');
+  console.log('Current User:', currentUser);
+  console.log('User Role:', currentUser?.role);
+  console.log('User Permissions:', currentUser?.permissions);
+  console.log('Is Super Admin:', isSuperAdmin());
+  console.log('Get User Permissions:', getUserPermissions());
+  console.log('Has Countries Permission:', hasPermission('countries'));
+  console.log('Has Applications Permission:', hasPermission('applications'));
+  console.log('==============================');
 });
 
 // State management
@@ -1222,6 +972,7 @@ const nationalitiesOpen = ref(false);
 const embassiesOpen = ref(false);
 const couponsOpen = ref(false);
 const additionalInfoOpen = ref(false);
+const usersOpen = ref(false);
 
 // Route detection for active states
 const route = useRoute()
@@ -1241,6 +992,9 @@ const isCouponsAddActive = computed(() => route.path === '/dashboard/coupons/add
 const isAdditionalInfoActive = computed(() => route.path.startsWith('/dashboard/additional-info'))
 const isAdditionalInfoListActive = computed(() => route.path === '/dashboard/additional-info')
 const isAdditionalInfoAddActive = computed(() => route.path === '/dashboard/additional-info/add')
+const isUsersActive = computed(() => route.path.startsWith('/dashboard/users'))
+const isUsersListActive = computed(() => route.path === '/dashboard/users')
+const isUsersAddActive = computed(() => route.path === '/dashboard/users/add')
 
 // Individual dropdown item active states
 const isCountriesListActive = computed(() => route.path === '/dashboard/countries')
@@ -1294,6 +1048,12 @@ onMounted(() => {
       localStorage.setItem('additionalInfoOpen', 'true')
     } else {
       additionalInfoOpen.value = localStorage.getItem('additionalInfoOpen') === 'true'
+    }
+    if (isUsersActive.value) {
+      usersOpen.value = true
+      localStorage.setItem('usersOpen', 'true')
+    } else {
+      usersOpen.value = localStorage.getItem('usersOpen') === 'true'
     }
   }
 });
@@ -1358,12 +1118,29 @@ watch(() => route.path, (newPath) => {
       embassiesOpen.value = false
       couponsOpen.value = false
       additionalInfoOpen.value = true
+      usersOpen.value = false
       localStorage.setItem('countriesOpen', 'false')
       localStorage.setItem('visaproductsOpen', 'false')
       localStorage.setItem('nationalitiesOpen', 'false')
       localStorage.setItem('embassiesOpen', 'false')
       localStorage.setItem('couponsOpen', 'false')
       localStorage.setItem('additionalInfoOpen', 'true')
+      localStorage.setItem('usersOpen', 'false')
+    } else if (newPath.startsWith('/dashboard/users')) {
+      countriesOpen.value = false
+      visaproductsOpen.value = false
+      nationalitiesOpen.value = false
+      embassiesOpen.value = false
+      couponsOpen.value = false
+      additionalInfoOpen.value = false
+      usersOpen.value = true
+      localStorage.setItem('countriesOpen', 'false')
+      localStorage.setItem('visaproductsOpen', 'false')
+      localStorage.setItem('nationalitiesOpen', 'false')
+      localStorage.setItem('embassiesOpen', 'false')
+      localStorage.setItem('couponsOpen', 'false')
+      localStorage.setItem('additionalInfoOpen', 'false')
+      localStorage.setItem('usersOpen', 'true')
     }
   }
 }, { immediate: true });
@@ -1371,8 +1148,6 @@ watch(() => route.path, (newPath) => {
 // Dropdown states
 const settingsDropdownOpen = ref(false);
 const userDropdownOpen = ref(false);
-const notificationsDropdownOpen = ref(false);
-const logoutDropdownOpen = ref(false);
 const themeDropdownOpen = ref(false);
 
 // Theme and settings data
@@ -1420,43 +1195,6 @@ const sidebarModes = [
   { label: "Default", value: "default" },
   { label: "Icon", value: "icon" },
 ];
-
-// Notifications data
-const notifications = ref([
-  {
-    id: 1,
-    avatar: "/images/avatar1.jpg",
-    title: "Your order is placed",
-    message: "Amet minim mollit non deser unt ullamco e...",
-    time: "2 days ago",
-    unread: false,
-  },
-  {
-    id: 2,
-    avatar: "/images/avatar2.jpg",
-    title: "Congratulations Darlene 🎉",
-    message: "Won the monthly best seller badge",
-    time: "11 am",
-    unread: true,
-  },
-  {
-    id: 3,
-    avatar: "/images/avatar3.jpg",
-    title: "Joaquina Weisenborn",
-    message: "Requesting access permission",
-    time: "12 pm",
-    unread: true,
-    hasActions: true,
-  },
-  {
-    id: 4,
-    avatar: "/images/avatar4.jpg",
-    title: "Brooklyn Simmons",
-    message: "Added you to Top Secret Project...",
-    time: "1 pm",
-    unread: true,
-  },
-]);
 
 // Computed countries
 const sidebarClasses = computed(() => {
@@ -1569,6 +1307,7 @@ const toggleAdditionalInfo = () => {
   nationalitiesOpen.value = false;
   embassiesOpen.value = false;
   couponsOpen.value = false;
+  usersOpen.value = false;
   additionalInfoOpen.value = !additionalInfoOpen.value;
   
   // Save to localStorage
@@ -1579,6 +1318,28 @@ const toggleAdditionalInfo = () => {
     localStorage.setItem('nationalitiesOpen', 'false');
     localStorage.setItem('embassiesOpen', 'false');
     localStorage.setItem('couponsOpen', 'false');
+    localStorage.setItem('usersOpen', 'false');
+  }
+};
+
+const toggleUsers = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  couponsOpen.value = false;
+  additionalInfoOpen.value = false;
+  usersOpen.value = !usersOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('usersOpen', usersOpen.value.toString());
+    localStorage.setItem('countriesOpen', 'false');
+    localStorage.setItem('visaproductsOpen', 'false');
+    localStorage.setItem('nationalitiesOpen', 'false');
+    localStorage.setItem('embassiesOpen', 'false');
+    localStorage.setItem('couponsOpen', 'false');
+    localStorage.setItem('additionalInfoOpen', 'false');
   }
 };
 
@@ -1586,30 +1347,12 @@ const toggleAdditionalInfo = () => {
 // Dropdown toggle functions
 const toggleSettingsDropdown = () => {
   userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
   settingsDropdownOpen.value = !settingsDropdownOpen.value;
 };
 
 const toggleUserDropdown = () => {
   settingsDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
   userDropdownOpen.value = !userDropdownOpen.value;
-};
-
-const toggleNotificationsDropdown = () => {
-  settingsDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  logoutDropdownOpen.value = false;
-  notificationsDropdownOpen.value = !notificationsDropdownOpen.value;
-};
-
-const toggleLogoutDropdown = () => {
-  settingsDropdownOpen.value = false;
-  userDropdownOpen.value = false;
-  notificationsDropdownOpen.value = false;
-  logoutDropdownOpen.value = !logoutDropdownOpen.value;
 };
 
 // Theme dropdown toggle
@@ -1618,34 +1361,10 @@ const toggleThemeDropdown = () => {
 };
 
 // User dropdown menu handlers
-const handleUpgradeClick = () => {
-  console.log("Upgrade to Pro clicked");
-  userDropdownOpen.value = false;
-  // Add upgrade logic here
-};
-
-const handleAccountClick = () => {
-  console.log("Account clicked");
-  userDropdownOpen.value = false;
-  // Add navigation logic here
-};
-
-const handleBillingClick = () => {
-  console.log("Billing clicked");
-  userDropdownOpen.value = false;
-  // Add navigation logic here
-};
-
-const handleNotificationsClick = () => {
-  console.log("Notifications clicked");
-  userDropdownOpen.value = false;
-  // Add navigation logic here
-};
-
 const handleSignOutClick = () => {
-  console.log("Sign out clicked");
+  logout();
   userDropdownOpen.value = false;
-  // Add sign out logic here
+  router.push('/login');
 };
 
 // Theme management
@@ -1674,8 +1393,6 @@ const handleClickOutside = (event) => {
   if (!event.target.closest('.relative')) {
     settingsDropdownOpen.value = false;
     userDropdownOpen.value = false;
-    notificationsDropdownOpen.value = false;
-    logoutDropdownOpen.value = false;
     themeDropdownOpen.value = false;
   }
 };

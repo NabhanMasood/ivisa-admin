@@ -249,20 +249,6 @@
                 </svg>
               </button>
       </div>
-
-          <!-- Sign up link -->
-          <div class="mt-6 sm:mt-8 text-center">
-            <p class="text-sm text-gray-600">
-              Don't have an account? 
-              <NuxtLink
-                to="/signup"
-                class="text-sm font-medium text-gray-900 hover:underline transition-colors duration-200"
-                @click="navigateToSignup"
-              >
-                Sign up
-              </NuxtLink>
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -404,11 +390,5 @@ const handleSocialLogin = async (provider: string) => {
   } finally {
     isLoading.value = false;
   }
-};
-
-// Handle navigation to signup
-const navigateToSignup = () => {
-  console.log("Navigating to signup page...");
-  navigateTo("/signup");
 };
 </script>

@@ -24,12 +24,11 @@ export default defineNuxtConfig({
     preset: "vercel",
   },
 
-  // Runtime config for API
   runtimeConfig: {
     public: {
-      // apiBase: process.env.API_BASE_URL ?? 'https://ivisa123-backend-production.up.railway.app',
-      apiBase: process.env.API_BASE_URL ?? 'http://localhost:5001',
-      // Cloudinary configuration (for client-side uploads if needed)
+      // API base URL - can be accessed as config.public.apiBase
+      apiBase: process.env.API_BASE_URL || process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:5001',
+      // Cloudinary configuration
       cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
       cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET ?? '',
     },

@@ -454,10 +454,8 @@ import {
   Check,
 } from "lucide-vue-next";
 import { Chart, registerables } from 'chart.js';
-import { usePaymentsApi } from '~/composables/usePaymentsApi';
 import type { Payment } from '~/composables/usePaymentsApi';
 import { usePaymentsApi } from '~/composables/usePaymentsApi';
-import type { Payment } from '~/composables/usePaymentsApi';
 
 // Register Chart.js components
 Chart.register(...registerables);

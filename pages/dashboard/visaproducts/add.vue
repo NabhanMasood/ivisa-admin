@@ -636,12 +636,12 @@ const validateForm = (): boolean => {
     isValid = false;
   }
   
-  if (!visaProductForm.value.govtFee || visaProductForm.value.govtFee < 0) {
+  if (visaProductForm.value.govtFee === null || visaProductForm.value.govtFee === undefined || visaProductForm.value.govtFee < 0) {
     fieldErrors.value.govtFee = 'Government fee is required and must be 0 or greater';
     isValid = false;
   }
   
-  if (!visaProductForm.value.serviceFee || visaProductForm.value.serviceFee < 0) {
+  if (visaProductForm.value.serviceFee === null || visaProductForm.value.serviceFee === undefined || visaProductForm.value.serviceFee < 0) {
     fieldErrors.value.serviceFee = 'Service fee is required and must be 0 or greater';
     isValid = false;
   }
