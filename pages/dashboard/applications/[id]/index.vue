@@ -239,6 +239,43 @@
                   "-"
                 }}</span>
               </div>
+              <!-- Embassy Information -->
+              <div
+                v-if="application.embassy"
+                class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+              >
+                <span
+                  class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                  >Embassy Name</span
+                >
+                <span class="text-sm text-gray-900 dark:text-white">{{
+                  application.embassy?.embassyName || "-"
+                }}</span>
+              </div>
+              <div
+                v-if="application.embassy"
+                class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+              >
+                <span
+                  class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                  >Embassy Address</span
+                >
+                <span class="text-sm text-gray-900 dark:text-white">{{
+                  application.embassy?.address || "-"
+                }}</span>
+              </div>
+              <div
+                v-if="application.embassy"
+                class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+              >
+                <span
+                  class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                  >Origin Country</span
+                >
+                <span class="text-sm text-gray-900 dark:text-white">{{
+                  application.embassy?.originCountry || "-"
+                }}</span>
+              </div>
               <div
                 class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
               >
@@ -682,17 +719,6 @@
               Loading payment information...
             </div>
             <template v-else-if="payment">
-              <div class="mx-4 flex flex-col gap-2 py-5 dark:border-gray-700">
-                <CustomDropdown
-                  id="payment-status"
-                  label="Status"
-                  v-model="paymentStatus"
-                  :options="paymentStatusOptions"
-                  placeholder="Select status"
-                  search-placeholder="Search status"
-                />
-              </div>
-
               <div
                 class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
               >

@@ -499,23 +499,6 @@
           </div>
         </div>
       </nav>
-
-   
-      <!-- Logout Button -->
-      <div
-        class="absolute bottom-0 left-0 right-0"
-        :class="sidebarCollapsed ? 'p-2' : 'p-4'"
-        style="position: absolute"
-      >
-        <button
-          @click="handleSignOutClick"
-          class="w-full flex items-center py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
-          :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
-        >
-          <LogOut class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
-          <span v-show="!sidebarCollapsed" class="truncate">Log out</span>
-        </button>
-      </div>
     </div>
 
     <!-- Main Content -->
