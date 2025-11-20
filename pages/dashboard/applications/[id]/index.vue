@@ -726,17 +726,7 @@
                   payment.transactionId || "-"
                 }}</span>
               </div>
-              <div
-                class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
-              >
-                <span
-                  class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
-                  >Payment Intent ID</span
-                >
-                <span class="text-sm text-gray-900 dark:text-white">{{
-                  payment.paymentIntentId || "-"
-                }}</span>
-              </div>
+         
               <div
                 class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
               >

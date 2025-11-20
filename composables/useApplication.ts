@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRuntimeConfig } from "#app";
 
+
 /**
  * Helper function to get API base URL from runtime config
  */
@@ -435,6 +436,7 @@ export const useApplication = () => {
     getCustomerApplications,
     getApplicationSummary,
     getApplicationTravelers,
+    getApplicationPayment,
     requestResubmission,
     getActiveResubmissionRequests,
     updateApplicationStatus,
