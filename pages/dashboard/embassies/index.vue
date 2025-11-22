@@ -291,8 +291,35 @@
               </div>
             </div>
 
+            <!-- Success Message -->
+            <div
+              v-if="successMessage"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+              style="border-radius: 7px"
+            >
+              <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+            </div>
+
+            <!-- Error Message -->
+            <div
+              v-if="errorMessage"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
+              style="border-radius: 7px"
+            >
+              <div class="flex flex-col items-center gap-3">
+                <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ errorMessage }}</p>
+                <button
+                  @click="loadEmbassies"
+                  class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+
             <!-- Embassies Table -->
             <div
+              v-if="!isLoading && !errorMessage && embassies.length > 0"
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px">
               <div class="overflow-x-auto">
@@ -340,6 +367,14 @@
                               </path>
                             </svg>
                           </button>
+                          <button
+                            @click="deleteEmbassyHandler(embassy)"
+                            :disabled="isDeleting"
+                            class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete"
+                          >
+                            <Trash2 class="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -381,6 +416,7 @@ import {
   Plus,
   Columns,
   Search,
+  Trash2,
 } from "lucide-vue-next";
 import { useEmbassiesApi } from "~/composables/useEmbassiesApi";
 
@@ -390,7 +426,7 @@ useHead({
 });
 
 // API composable
-const { getAllEmbassies } = useEmbassiesApi();
+const { getAllEmbassies, getEmbassiesByDestination, getEmbassiesByDestinationAndOrigin, deleteEmbassy: deleteEmbassyApi } = useEmbassiesApi();
 
 // Embassies data (loaded from API)
 const embassies = ref([]);
@@ -404,6 +440,8 @@ const roleDropdownOpen = ref(false);
 const columnsDropdownOpen = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
+const isDeleting = ref(false);
 
 // Load embassies from API
 const loadEmbassies = async () => {
@@ -458,6 +496,92 @@ const navigateToAddEmbassy = () => {
 const viewEmbassy = (destinationCountry) => {
   // Navigate to country-specific embassies page
   router.push(`/dashboard/embassies/destination/${encodeURIComponent(destinationCountry)}`);
+};
+
+// Delete embassies for a destination country
+const deleteEmbassyHandler = async (embassy) => {
+  if (!embassy.destinationCountry) {
+    errorMessage.value = "Cannot delete embassies: destination country is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete all embassies for "${embassy.destinationCountry}"? This will delete ${embassy.originCountriesCount} origin country entries. This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    // First, fetch all origin countries for this destination
+    const originsResponse = await getEmbassiesByDestination(embassy.destinationCountry);
+    
+    if (!originsResponse.success || !originsResponse.data) {
+      errorMessage.value = "Failed to fetch embassy details";
+      return;
+    }
+
+    // Collect all embassy IDs by fetching embassies for each origin country
+    const embassyIds = [];
+    for (const origin of originsResponse.data) {
+      const embassiesResponse = await getEmbassiesByDestinationAndOrigin(
+        embassy.destinationCountry,
+        origin.originCountry
+      );
+      
+      if (embassiesResponse.success && embassiesResponse.data) {
+        embassiesResponse.data.forEach(emb => {
+          if (emb.id) {
+            embassyIds.push(emb.id);
+          }
+        });
+      }
+    }
+
+    if (embassyIds.length === 0) {
+      errorMessage.value = "No embassies found to delete";
+      return;
+    }
+
+    // Delete each embassy by ID
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (const embassyId of embassyIds) {
+      try {
+        const deleteResponse = await deleteEmbassyApi(embassyId);
+        if (deleteResponse.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        console.error(`Failed to delete embassy ${embassyId}:`, err);
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
+      successMessage.value = `Successfully deleted ${successCount} embassies`;
+      // Remove the embassy from the list
+      embassies.value = embassies.value.filter(e => e.destinationCountry !== embassy.destinationCountry);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else if (successCount > 0) {
+      errorMessage.value = `Deleted ${successCount} embassies, but ${failCount} failed to delete`;
+    } else {
+      errorMessage.value = `Failed to delete embassies`;
+    }
+  } catch (error) {
+    console.error("Failed to delete embassies:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete embassies. Please try again.";
+    errorMessage.value = errorMsg;
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 

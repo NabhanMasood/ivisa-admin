@@ -74,14 +74,23 @@
         </div>
       </div>
 
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+        style="border-radius: 7px"
+      >
+        <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+      </div>
+
       <!-- Error State -->
       <div
-        v-else-if="errorMessage"
+        v-if="errorMessage"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
         style="border-radius: 7px"
       >
         <div class="flex flex-col items-center gap-3">
-          <p class="text-sm text-red-600 dark:text-red-400">
+          <p class="text-sm text-red-600 dark:text-red-400 text-center">
             {{ errorMessage }}
           </p>
           <button
@@ -95,7 +104,7 @@
 
       <!-- Empty State -->
       <div
-        v-else-if="!isLoading && countries.length === 0"
+        v-if="!isLoading && !errorMessage && countries.length === 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden p-12"
         style="border-radius: 7px"
       >
@@ -114,7 +123,7 @@
 
       <!-- Countries Table -->
       <div
-        v-else
+        v-if="!isLoading && !errorMessage && countries.length > 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
         style="border-radius: 7px"
       >
@@ -246,6 +255,14 @@
                         ></path>
                       </svg>
                     </button>
+                    <button
+                      @click="deleteCountryHandler(country)"
+                      :disabled="isDeleting"
+                      class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -292,7 +309,7 @@
 
 <script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import { Plus } from "lucide-vue-next";
+import { Plus, Trash2 } from "lucide-vue-next";
 import { useCountriesApi, type Country } from "~/composables/useCountriesApi";
 
 // Set page title
@@ -301,13 +318,15 @@ useHead({
 });
 
 // Initialize API
-const { getCountries } = useCountriesApi();
+const { getCountries, deleteCountry: deleteCountryApi } = useCountriesApi();
 const config = useRuntimeConfig();
 
 // Reactive state
 const countries = ref<Array<Country & { selected: boolean }>>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
+const isDeleting = ref(false);
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
@@ -380,6 +399,44 @@ const viewCountry = (country: Country) => {
 
 const editCountry = (country: Country) => {
   router.push(`/dashboard/countries/add?id=${country.id}&mode=edit`);
+};
+
+// Delete country
+const deleteCountryHandler = async (country: Country) => {
+  if (!country.id) {
+    errorMessage.value = "Cannot delete country: ID is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete "${country.countryName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await deleteCountryApi(country.id);
+
+    if (response.success) {
+      successMessage.value = response.message || "Country deleted successfully";
+      // Remove the country from the list
+      countries.value = countries.value.filter(c => c.id !== country.id);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      errorMessage.value = response.message || "Failed to delete country";
+    }
+  } catch (error) {
+    console.error("Failed to delete country:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete country. Please try again.";
+    errorMessage.value = errorMsg;
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 // Watch for select all changes

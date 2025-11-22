@@ -66,8 +66,35 @@
         </div>
       </div>
 
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+        style="border-radius: 7px"
+      >
+        <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        v-if="errorMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
+        style="border-radius: 7px"
+      >
+        <div class="flex flex-col items-center gap-3">
+          <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ errorMessage }}</p>
+          <button
+            @click="loadEmbassies"
+            class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+
       <!-- Embassies Table -->
       <div
+        v-if="!isLoading && !errorMessage && embassies.length > 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
         style="border-radius: 7px"
       >
@@ -151,6 +178,15 @@
                         ></path>
                       </svg>
                     </button>
+                    <button
+                      @click.stop.prevent="deleteEmbassyHandler(item)"
+                      :disabled="isDeleting"
+                      class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete"
+                      type="button"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -199,7 +235,7 @@
 
 <script setup>
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import { ArrowLeft, Plus } from "lucide-vue-next";
+import { ArrowLeft, Plus, Trash2 } from "lucide-vue-next";
 import { useEmbassiesApi } from "~/composables/useEmbassiesApi";
 
 // Get route parameters
@@ -224,7 +260,7 @@ useHead({
 });
 
 // API composable
-const { getEmbassiesByDestination } = useEmbassiesApi();
+const { getEmbassiesByDestination, getEmbassiesByDestinationAndOrigin, deleteEmbassy: deleteEmbassyApi } = useEmbassiesApi();
 
 // Embassies data (loaded from API)
 const embassies = ref([]);
@@ -234,6 +270,8 @@ const selectAll = ref(false);
 const currentPage = ref(1);
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
+const isDeleting = ref(false);
 
 // Load embassies from API
 const loadEmbassies = async () => {
@@ -295,6 +333,83 @@ const viewEmbassy = (originCountry) => {
   const origin = encodeURIComponent(originCountry);
   const path = `/dashboard/embassies/destination/${destination}/origin/${origin}`;
   window.location.href = path;
+};
+
+// Delete embassies for an origin country within a destination
+const deleteEmbassyHandler = async (item) => {
+  if (!item.originCountry || !countryName.value) {
+    errorMessage.value = "Cannot delete embassies: origin country or destination country is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete all embassies for "${item.originCountry}" in "${countryName.value}"? This will delete ${item.embassiesCount} embassy entries. This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    // First, fetch all embassy records for this destination and origin to get their IDs
+    const embassiesResponse = await getEmbassiesByDestinationAndOrigin(
+      countryName.value,
+      item.originCountry
+    );
+    
+    if (!embassiesResponse.success || !embassiesResponse.data) {
+      errorMessage.value = "Failed to fetch embassy details";
+      return;
+    }
+
+    // Extract embassy IDs
+    const embassyIds = embassiesResponse.data
+      .filter(emb => emb.id)
+      .map(emb => emb.id);
+
+    if (embassyIds.length === 0) {
+      errorMessage.value = "No embassies found to delete";
+      return;
+    }
+
+    // Delete each embassy by ID
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (const embassyId of embassyIds) {
+      try {
+        const deleteResponse = await deleteEmbassyApi(embassyId);
+        if (deleteResponse.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        console.error(`Failed to delete embassy ${embassyId}:`, err);
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
+      successMessage.value = `Successfully deleted ${successCount} embassies`;
+      // Remove the embassy from the list
+      embassies.value = embassies.value.filter(e => e.originCountry !== item.originCountry);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else if (successCount > 0) {
+      errorMessage.value = `Deleted ${successCount} embassies, but ${failCount} failed to delete`;
+    } else {
+      errorMessage.value = `Failed to delete embassies`;
+    }
+  } catch (error) {
+    console.error("Failed to delete embassies:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete embassies. Please try again.";
+    errorMessage.value = errorMsg;
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 

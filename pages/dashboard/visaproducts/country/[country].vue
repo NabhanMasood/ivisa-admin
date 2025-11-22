@@ -73,14 +73,23 @@
         </div>
       </div>
 
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+        style="border-radius: 7px"
+      >
+        <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+      </div>
+
       <!-- Error State -->
       <div
-        v-else-if="errorMessage"
+        v-if="errorMessage"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
         style="border-radius: 7px"
       >
         <div class="flex flex-col items-center gap-3">
-          <p class="text-sm text-red-600 dark:text-red-400">{{ errorMessage }}</p>
+          <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ errorMessage }}</p>
           <button
             @click="loadVisaProducts"
             class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
@@ -92,7 +101,7 @@
 
       <!-- Empty State -->
       <div
-        v-else-if="!isLoading && visaProductsByCountry.length === 0"
+        v-if="!isLoading && !errorMessage && visaProductsByCountry.length === 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden p-12"
         style="border-radius: 7px"
       >
@@ -109,7 +118,7 @@
 
       <!-- Visa Products Table -->
       <div
-        v-else
+        v-if="!isLoading && !errorMessage && visaProductsByCountry.length > 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
         style="border-radius: 7px"
       >
@@ -230,6 +239,22 @@
                         ></path>
                       </svg>
                     </button>
+                    <button
+                      @click="duplicateVisaProduct(visaProduct)"
+                      :disabled="isDuplicating || isDeleting"
+                      class="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Duplicate"
+                    >
+                      <Copy class="h-4 w-4" />
+                    </button>
+                    <button
+                      @click="deleteVisaProduct(visaProduct)"
+                      :disabled="isDuplicating || isDeleting"
+                      class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -276,7 +301,7 @@
 
 <script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import { ArrowLeft, Plus } from "lucide-vue-next";
+import { ArrowLeft, Plus, Copy, Trash2 } from "lucide-vue-next";
 import { useVisaProductsApi, type VisaProduct } from "~/composables/useVisaProductsApi";
 
 // Get route parameters
@@ -284,7 +309,7 @@ const route = useRoute();
 const router = useRouter();
 
 // Initialize API
-const { getVisaProductsByCountry } = useVisaProductsApi();
+const { getVisaProductsByCountry, duplicateVisaProduct: duplicateVisaProductApi, deleteVisaProduct: deleteVisaProductApi } = useVisaProductsApi();
 
 // Get country from route params
 const countryName = computed(() => {
@@ -305,6 +330,9 @@ useHead({
 const visaProductsByCountry = ref<Array<VisaProduct & { selected: boolean }>>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
+const isDuplicating = ref(false);
+const isDeleting = ref(false);
 
 // Load visa products by country from API
 const loadVisaProducts = async () => {
@@ -364,6 +392,95 @@ const viewVisaProduct = (id: number | string) => {
 
 const editVisaProduct = (id: number | string) => {
   router.push(`/dashboard/visaproducts/add?id=${id}&mode=edit`);
+};
+
+// Duplicate visa product
+const duplicateVisaProduct = async (visaProduct: VisaProduct) => {
+  if (!visaProduct.id) {
+    errorMessage.value = "Cannot duplicate visa product: ID is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to duplicate "${visaProduct.productName}"?`)) {
+    return;
+  }
+
+  try {
+    isDuplicating.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await duplicateVisaProductApi(visaProduct.id);
+
+    if (response.success) {
+      successMessage.value = response.message || "Visa product duplicated successfully";
+      // Reload visa products to show the new duplicate
+      await loadVisaProducts();
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      errorMessage.value = response.message || "Failed to duplicate visa product";
+    }
+  } catch (error) {
+    console.error("Failed to duplicate visa product:", error);
+    errorMessage.value = error instanceof Error ? error.message : "Failed to duplicate visa product. Please try again.";
+  } finally {
+    isDuplicating.value = false;
+  }
+};
+
+// Delete visa product
+const deleteVisaProduct = async (visaProduct: VisaProduct) => {
+  if (!visaProduct.id) {
+    errorMessage.value = "Cannot delete visa product: ID is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete "${visaProduct.productName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await deleteVisaProductApi(visaProduct.id);
+
+    if (response.success) {
+      successMessage.value = response.message || "Visa product deleted successfully";
+      // Remove the product from the list
+      visaProductsByCountry.value = visaProductsByCountry.value.filter(p => p.id !== visaProduct.id);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      // Handle case where deletion is blocked due to existing applications
+      errorMessage.value = response.message || "Failed to delete visa product";
+      if (response.message && response.message.includes('applications')) {
+        // Show a more prominent error for blocked deletions
+        setTimeout(() => {
+          errorMessage.value = "";
+        }, 10000); // Show for 10 seconds
+      }
+    }
+  } catch (error) {
+    console.error("Failed to delete visa product:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete visa product. Please try again.";
+    errorMessage.value = errorMsg;
+    
+    // If error mentions applications, show for longer
+    if (errorMsg.includes('applications') || errorMsg.includes('application')) {
+      setTimeout(() => {
+        errorMessage.value = "";
+      }, 10000);
+    }
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 // Watch for select all changes

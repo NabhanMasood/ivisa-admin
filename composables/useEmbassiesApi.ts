@@ -186,11 +186,71 @@ export const useEmbassiesApi = () => {
     }
   }
 
+  /**
+   * Delete an embassy by ID
+   * DELETE /embassies/:id
+   */
+  const deleteEmbassy = async (id: number | string): Promise<ApiResponse<void>> => {
+    try {
+      await api.delete(`/embassies/${id}`)
+      
+      return {
+        data: undefined,
+        message: 'Embassy deleted successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
+  /**
+   * Delete embassies by destination country
+   * DELETE /embassies/destination/:country
+   */
+  const deleteEmbassiesByDestination = async (destinationCountry: string): Promise<ApiResponse<void>> => {
+    try {
+      await api.delete(`/embassies/destination/${encodeURIComponent(destinationCountry)}`)
+      
+      return {
+        data: undefined,
+        message: 'Embassies deleted successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
+  /**
+   * Delete embassies by destination and origin country
+   * DELETE /embassies/destination/:country/origin/:originCountry
+   */
+  const deleteEmbassiesByDestinationAndOrigin = async (
+    destinationCountry: string,
+    originCountry: string
+  ): Promise<ApiResponse<void>> => {
+    try {
+      await api.delete(`/embassies/destination/${encodeURIComponent(destinationCountry)}/origin/${encodeURIComponent(originCountry)}`)
+      
+      return {
+        data: undefined,
+        message: 'Embassies deleted successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
   return {
     createEmbassy,
     getAllEmbassies,
     getEmbassiesByDestination,
     getEmbassiesByDestinationAndOrigin,
+    deleteEmbassy,
+    deleteEmbassiesByDestination,
+    deleteEmbassiesByDestinationAndOrigin,
   }
 }
 

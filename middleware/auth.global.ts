@@ -16,13 +16,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   // Debug logging
   if (to.path.startsWith('/dashboard')) {
     const user = getCurrentUser()
-    console.log('=== MIDDLEWARE DEBUG ===')
-    console.log('Route:', to.path)
-    console.log('User:', user)
-    console.log('Is Authenticated:', isAuthenticated())
-    console.log('Is Super Admin:', isSuperAdmin())
-    console.log('User Permissions:', getUserPermissions())
-    console.log('========================')
+
   }
 
   // If trying to access dashboard without auth, redirect to login

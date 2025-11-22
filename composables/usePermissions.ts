@@ -13,7 +13,7 @@ export const usePermissions = () => {
   const getUserPermissions = (): Permission | null => {
     const user = getCurrentUser()
     if (!user) return null
-    
+
     // Super admin has all permissions
     if (user.role === 'superadmin' || user.role === 'admin') {
       return {
@@ -28,7 +28,7 @@ export const usePermissions = () => {
         finances: true,
       }
     }
-    
+
     // Fallback: If user has no role and no permissions object, grant all permissions
     // (for backwards compatibility with old login sessions)
     if (!user.role && !user.permissions) {
@@ -45,7 +45,7 @@ export const usePermissions = () => {
         finances: true,
       }
     }
-    
+
     return user.permissions || null
   }
 
@@ -54,10 +54,7 @@ export const usePermissions = () => {
    */
   const hasPermission = (section: keyof Permission): boolean => {
     const permissions = getUserPermissions()
-    console.log(`[hasPermission] Checking ${section}:`, {
-      permissions,
-      hasAccess: permissions?.[section] === true
-    })
+
     if (!permissions) return false
     return permissions[section] === true
   }
@@ -82,19 +79,19 @@ export const usePermissions = () => {
   const isSuperAdmin = (): boolean => {
     const user = getCurrentUser()
     if (!user) return false
-    
+
     // Check if user has explicit role
     if (user.role === 'superadmin' || user.role === 'admin') {
       return true
     }
-    
+
     // Fallback: If user has no role and no permissions object, assume super admin
     // (for backwards compatibility with old login sessions)
     if (!user.role && !user.permissions) {
       console.warn('User has no role or permissions set. Assuming super admin for backwards compatibility.')
       return true
     }
-    
+
     return false
   }
 

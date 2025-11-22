@@ -169,14 +169,23 @@
               </div>
             </div>
 
+            <!-- Success Message -->
+            <div
+              v-if="successMessage"
+              class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+              style="border-radius: 7px"
+            >
+              <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+            </div>
+
             <!-- Error State -->
             <div
-              v-else-if="errorMessage"
+              v-if="errorMessage"
               class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
               style="border-radius: 7px"
             >
               <div class="flex flex-col items-center gap-3">
-                <p class="text-sm text-red-600 dark:text-red-400">{{ errorMessage }}</p>
+                <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ errorMessage }}</p>
                 <button
                   @click="loadNationalities"
                   class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
@@ -188,7 +197,7 @@
 
             <!-- Nationalities Table -->
             <div
-              v-else
+              v-if="!isLoading && !errorMessage && nationalities.length > 0"
               class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
               style="border-radius: 7px"
             >
@@ -300,6 +309,14 @@
                               ></path>
                             </svg>
                           </button>
+                          <button
+                            @click="deleteNationalityHandler(nationality)"
+                            :disabled="isDeleting"
+                            class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete"
+                          >
+                            <Trash2 class="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -350,6 +367,7 @@ import {
   Plus,
   Columns,
   Search,
+  Trash2,
 } from "lucide-vue-next";
 import { useNationalitiesApi } from "~/composables/useNationalitiesApi";
 
@@ -359,11 +377,11 @@ useHead({
 });
 
 // Initialize API
-const { getNationalitiesList } = useNationalitiesApi();
+const { getNationalitiesList, getNationalities, deleteNationality: deleteNationalityApi } = useNationalitiesApi();
 
 // Reactive state
 const nationalities = ref<Array<{
-  id: string;
+  id: string | number;
   name: string;
   destinations: number;
   visaPermits?: string;
@@ -371,6 +389,8 @@ const nationalities = ref<Array<{
 }>>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
+const isDeleting = ref(false);
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
@@ -383,12 +403,32 @@ const loadNationalities = async () => {
     errorMessage.value = "";
     
     const query = searchQuery.value.trim();
-    const response = await getNationalitiesList(query || undefined);
     
-    if (response.success && response.data) {
+    // Get the list for display (with destinations count)
+    const listResponse = await getNationalitiesList(query || undefined);
+    
+    if (listResponse.success && listResponse.data) {
+      // Also get full nationalities to get IDs
+      let nationalityIdMap: Record<string, number | string> = {};
+      try {
+        const fullResponse = await getNationalities();
+        if (fullResponse.success && fullResponse.data) {
+          // Create a map of nationality name to ID
+          // Since nationalities can have multiple entries (different destinations),
+          // we'll use the first ID we find for each nationality name
+          fullResponse.data.forEach((nat) => {
+            if (nat.nationality && nat.id && !nationalityIdMap[nat.nationality]) {
+              nationalityIdMap[nat.nationality] = nat.id;
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to load full nationalities for IDs:', error);
+      }
+      
       // Map API data to include id and selected property
-      nationalities.value = response.data.map((item, index) => ({
-        id: `nationality-${index}-${item.nationality}`,
+      nationalities.value = listResponse.data.map((item, index) => ({
+        id: nationalityIdMap[item.nationality] || `nationality-${index}-${item.nationality}`,
         name: item.nationality,
         destinations: item.destinations,
         visaPermits: undefined, // API doesn't provide this
@@ -396,7 +436,7 @@ const loadNationalities = async () => {
       }));
     } else {
       nationalities.value = [];
-      errorMessage.value = response.message || "Failed to load nationalities";
+      errorMessage.value = listResponse.message || "Failed to load nationalities";
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Failed to load nationalities. Please try again.";
@@ -440,6 +480,65 @@ const viewNationality = (nationality: { name: string }) => {
 
 const editNationality = (nationality) => {
   router.push(`/dashboard/nationalities/add?id=${nationality.id}&mode=edit`);
+};
+
+// Delete nationality
+const deleteNationalityHandler = async (nationality: { id: string | number; name: string; destinations: number }) => {
+  if (!nationality.name) {
+    errorMessage.value = "Cannot delete nationality: name is missing";
+    return;
+  }
+
+  // Check if we have a valid numeric ID
+  const nationalityId = nationality.id;
+  const isNumericId = typeof nationalityId === 'number' || (typeof nationalityId === 'string' && /^\d+$/.test(nationalityId));
+  
+  if (!isNumericId) {
+    errorMessage.value = `Cannot delete "${nationality.name}": Valid ID not available. The nationality may need to be refreshed.`;
+    // Try to reload to get proper IDs
+    setTimeout(() => {
+      loadNationalities();
+    }, 2000);
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete "${nationality.name}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    // Use the numeric ID for deletion
+    const response = await deleteNationalityApi(nationalityId);
+
+    if (response.success) {
+      successMessage.value = response.message || "Nationality deleted successfully";
+      // Remove the nationality from the list
+      nationalities.value = nationalities.value.filter(n => n.name !== nationality.name);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      errorMessage.value = response.message || "Failed to delete nationality";
+    }
+  } catch (error) {
+    console.error("Failed to delete nationality:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete nationality. Please try again.";
+    errorMessage.value = errorMsg;
+    
+    // If it's a validation error about ID, try to reload to get proper IDs
+    if (errorMsg.includes('numeric') || errorMsg.includes('Validation')) {
+      setTimeout(() => {
+        loadNationalities();
+      }, 2000);
+    }
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 const toggleColumnsDropdown = () => {

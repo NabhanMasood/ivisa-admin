@@ -443,6 +443,21 @@
             </a>
           </div>
 
+          <!-- Settings -->
+          <div v-if="isSuperAdmin() || hasPermission('applications')">
+            <a
+              href="/dashboard/settings"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+                isSettingsActive ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' : ''
+              ]"
+            >
+              <Settings class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Settings</span>
+            </a>
+          </div>
+
           <!-- Users (Only for Super Admins) -->
           <div v-if="isSuperAdmin()">
             <button
@@ -930,19 +945,7 @@ const { hasPermission, isSuperAdmin, getUserPermissions } = usePermissions();
 const { getCurrentUser, logout } = useAuthApi();
 const router = useRouter();
 
-// Debug: Log user and permissions on mount
-onMounted(() => {
-  const currentUser = getCurrentUser();
-  console.log('=== DASHBOARD LAYOUT DEBUG ===');
-  console.log('Current User:', currentUser);
-  console.log('User Role:', currentUser?.role);
-  console.log('User Permissions:', currentUser?.permissions);
-  console.log('Is Super Admin:', isSuperAdmin());
-  console.log('Get User Permissions:', getUserPermissions());
-  console.log('Has Countries Permission:', hasPermission('countries'));
-  console.log('Has Applications Permission:', hasPermission('applications'));
-  console.log('==============================');
-});
+
 
 // State management
 const sidebarCollapsed = ref(false);
@@ -969,6 +972,7 @@ const isEmbassiesActive = computed(() => route.path.startsWith('/dashboard/embas
 const isCustomersActive = computed(() => route.path.startsWith('/dashboard/customers'))
 const isApplicationsActive = computed(() => route.path.startsWith('/dashboard/applications'))
 const isFinancesActive = computed(() => route.path.startsWith('/dashboard/finances'))
+const isSettingsActive = computed(() => route.path.startsWith('/dashboard/settings'))
 const isCouponsActive = computed(() => route.path.startsWith('/dashboard/coupons'))
 const isCouponsListActive = computed(() => route.path === '/dashboard/coupons')
 const isCouponsAddActive = computed(() => route.path === '/dashboard/coupons/add')
@@ -1124,6 +1128,8 @@ watch(() => route.path, (newPath) => {
       localStorage.setItem('couponsOpen', 'false')
       localStorage.setItem('additionalInfoOpen', 'false')
       localStorage.setItem('usersOpen', 'true')
+    } else if (newPath.startsWith('/dashboard/settings')) {
+      // Settings page - no dropdown to manage
     }
   }
 }, { immediate: true });

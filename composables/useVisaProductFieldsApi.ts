@@ -71,7 +71,7 @@ export interface VisaProductFieldsListResponse {
 export const useVisaProductFieldsApi = () => {
   const api = useApi()
   const debug = (msg: string, data?: any) => {
-    try { console.log(msg, data) } catch {}
+    try { console.log(msg, data) } catch { }
   }
 
   /**
@@ -118,7 +118,6 @@ export const useVisaProductFieldsApi = () => {
     visaProductId: number | string
   ): Promise<ApiResponse<VisaProductField[]>> => {
     try {
-      debug('🔵 getVisaProductFieldsByVisaProduct', { visaProductId, url: `/visa-product-fields/by-visa-product/${visaProductId}` })
       const response = await api.get<VisaProductFieldsListResponse | VisaProductField[]>(
         `/visa-product-fields/by-visa-product/${visaProductId}`
       )
@@ -238,6 +237,42 @@ export const useVisaProductFieldsApi = () => {
       return {
         data: undefined,
         message: 'Visa product field deleted successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
+  /**
+   * Duplicate a visa product field by ID
+   * POST /visa-product-fields/:id/duplicate
+   */
+  const duplicateVisaProductField = async (
+    id: number | string
+  ): Promise<ApiResponse<VisaProductField>> => {
+    try {
+      const response = await api.post<VisaProductField | { status: boolean; message: string; data: VisaProductField }>(
+        `/visa-product-fields/${id}/duplicate`,
+        {}
+      )
+
+      let fieldData: VisaProductField
+
+      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
+        const wrappedResponse = response.data as { status: boolean; message: string; data: VisaProductField }
+        if (wrappedResponse.status && wrappedResponse.data) {
+          fieldData = wrappedResponse.data
+        } else {
+          throw new Error(wrappedResponse.message || 'Failed to duplicate visa product field')
+        }
+      } else {
+        fieldData = response.data as VisaProductField
+      }
+
+      return {
+        data: fieldData,
+        message: 'Visa product field duplicated successfully',
         success: true,
       }
     } catch (error) {
@@ -372,6 +407,7 @@ export const useVisaProductFieldsApi = () => {
     getVisaProductFieldById,
     updateVisaProductField,
     deleteVisaProductField,
+    duplicateVisaProductField,
     getAllVisaProductFields,
     getFieldsWithResponsesByApplication,
     getResponsesByApplication,

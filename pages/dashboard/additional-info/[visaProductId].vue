@@ -42,7 +42,7 @@
 
       <!-- Error State -->
       <div
-        v-else-if="errorMessage"
+        v-if="errorMessage"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
         style="border-radius: 7px"
       >
@@ -59,7 +59,7 @@
 
       <!-- Empty State -->
       <div
-        v-else-if="!isLoading && fields.length === 0"
+        v-if="!isLoading && !errorMessage && fields.length === 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden p-12"
         style="border-radius: 7px"
       >
@@ -70,7 +70,7 @@
 
       <!-- Fields List -->
       <div
-        v-else
+        v-if="!isLoading && !errorMessage && fields.length > 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
         style="border-radius: 7px"
       >
@@ -80,7 +80,7 @@
             :key="field.id"
             class="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
           >
-            <div class="flex items-start justify-between">
+            <div class="flex items-start justify-between gap-4">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="text-base font-medium text-gray-900 dark:text-white">
@@ -148,6 +148,7 @@
                   </div>
                 </div>
               </div>
+              
             </div>
           </div>
         </div>
@@ -223,6 +224,7 @@ const loadFields = async () => {
 const goBack = () => {
   router.push("/dashboard/additional-info");
 };
+
 
 // Load data on mount
 onMounted(() => {

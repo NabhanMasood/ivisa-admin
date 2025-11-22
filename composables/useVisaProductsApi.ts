@@ -242,14 +242,73 @@ export const useVisaProductsApi = () => {
 
   /**
    * Delete a visa product by ID
+   * DELETE /visa-product/:id
    */
   const deleteVisaProduct = async (id: number | string): Promise<ApiResponse<void>> => {
     try {
-      await api.delete(`/visa-product/${id}`)
+      const response = await api.delete(`/visa-product/${id}`)
+
+      // Check if response has a message about applications blocking deletion
+      if (response.data && typeof response.data === 'object' && 'message' in response.data) {
+        const responseData = response.data as { status?: boolean; message?: string; applicationCount?: number }
+        if (responseData.message && responseData.message.includes('applications')) {
+          return {
+            data: undefined,
+            message: responseData.message,
+            success: false,
+          }
+        }
+      }
 
       return {
         data: undefined,
         message: 'Visa product deleted successfully',
+        success: true,
+      }
+    } catch (error) {
+      // Check if error is about applications blocking deletion
+      const errorMessage = handleApiError(error)
+      if (errorMessage.includes('applications') || errorMessage.includes('application')) {
+        return {
+          data: undefined,
+          message: errorMessage,
+          success: false,
+        }
+      }
+      throw new Error(errorMessage)
+    }
+  }
+
+  /**
+   * Duplicate a visa product by ID
+   * POST /visa-product/:id/duplicate
+   */
+  const duplicateVisaProduct = async (id: number | string): Promise<ApiResponse<VisaProduct>> => {
+    try {
+      const response = await api.post<VisaProduct | { status: boolean; message: string; data: VisaProduct }>(
+        `/visa-product/${id}/duplicate`,
+        {}
+      )
+
+      // Handle different response structures
+      let productData: VisaProduct
+
+      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
+        // Response has wrapper structure { status, message, data }
+        const wrappedResponse = response.data as { status: boolean; message: string; data: VisaProduct }
+        if (wrappedResponse.status && wrappedResponse.data) {
+          productData = wrappedResponse.data
+        } else {
+          throw new Error(wrappedResponse.message || 'Failed to duplicate visa product')
+        }
+      } else {
+        // Direct product object
+        productData = response.data as VisaProduct
+      }
+
+      return {
+        data: productData,
+        message: 'Visa product duplicated successfully',
         success: true,
       }
     } catch (error) {
@@ -334,6 +393,7 @@ export const useVisaProductsApi = () => {
     getVisaProductById,
     updateVisaProduct,
     deleteVisaProduct,
+    duplicateVisaProduct,
     getUniqueCountriesFromVisaProducts,
     getGroupedVisaProductsByCountries,
     getVisaProductsByCountry,

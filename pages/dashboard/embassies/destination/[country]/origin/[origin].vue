@@ -64,8 +64,35 @@
         </div>
       </div>
 
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+        style="border-radius: 7px"
+      >
+        <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        v-if="errorMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
+        style="border-radius: 7px"
+      >
+        <div class="flex flex-col items-center gap-3">
+          <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ errorMessage }}</p>
+          <button
+            @click="loadEmbassies"
+            class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+
       <!-- Embassies Table -->
       <div
+        v-if="!isLoading && !errorMessage"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
         style="border-radius: 7px"
       >
@@ -96,9 +123,9 @@
               </tr>
               
               <!-- Empty State -->
-              <tr v-else-if="!isLoading && filteredEmbassies.length === 0">
+              <tr v-if="!isLoading && !errorMessage && filteredEmbassies.length === 0">
                 <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                  {{ errorMessage || 'No embassies found for this origin country.' }}
+                  No embassies found for this origin country.
                 </td>
               </tr>
               
@@ -145,6 +172,14 @@
                         ></path>
                       </svg>
                     </button>
+                    <button
+                      @click="deleteEmbassyHandler(embassy)"
+                      :disabled="isDeleting"
+                      class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -189,7 +224,7 @@
 </template>
 
 <script setup>
-import { ArrowLeft, Plus } from "lucide-vue-next";
+import { ArrowLeft, Plus, Trash2 } from "lucide-vue-next";
 import { useEmbassiesApi } from "~/composables/useEmbassiesApi";
 
 const route = useRoute();
@@ -205,7 +240,7 @@ const originCountry = computed(() => {
   return origin ? decodeURIComponent(String(origin)) : '';
 });
 
-const { getEmbassiesByDestinationAndOrigin } = useEmbassiesApi();
+const { getEmbassiesByDestinationAndOrigin, deleteEmbassy: deleteEmbassyApi } = useEmbassiesApi();
 const embassies = ref([]);
 
 useHead({
@@ -217,6 +252,8 @@ const selectAll = ref(false);
 const currentPage = ref(1);
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
+const isDeleting = ref(false);
 
 const loadEmbassies = async () => {
   if (!destinationCountry.value || !originCountry.value) {
@@ -276,6 +313,44 @@ const editEmbassy = (embassy) => {
   router.push(
     `/dashboard/embassies/add?id=${embassy.id}&mode=edit&destinationCountry=${encodeURIComponent(embassy.destinationCountry)}&originCountry=${encodeURIComponent(embassy.originCountry)}&embassyName=${encodeURIComponent(embassy.embassyName)}&address=${encodeURIComponent(embassy.location)}`
   );
+};
+
+// Delete individual embassy
+const deleteEmbassyHandler = async (embassy) => {
+  if (!embassy.id) {
+    errorMessage.value = "Cannot delete embassy: ID is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete "${embassy.embassyName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await deleteEmbassyApi(embassy.id);
+
+    if (response.success) {
+      successMessage.value = response.message || "Embassy deleted successfully";
+      // Remove the embassy from the list
+      embassies.value = embassies.value.filter(e => e.id !== embassy.id);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      errorMessage.value = response.message || "Failed to delete embassy";
+    }
+  } catch (error) {
+    console.error("Failed to delete embassy:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete embassy. Please try again.";
+    errorMessage.value = errorMsg;
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 watch(selectAll, (newValue) => {

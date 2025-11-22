@@ -344,6 +344,62 @@
                   formatDate(application.createdAt || application.dateSubmitted)
                 }}</span>
               </div>
+
+              <!-- Email Reminder Tracking Section -->
+              <div
+                v-if="application.status && application.status.toLowerCase() === 'draft' && application.emailCaptured"
+                class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
+                style="border-radius: 7px"
+              >
+                <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-3">
+                  Email Reminder Tracking
+                </h3>
+                <div class="space-y-2">
+                  <div class="grid grid-cols-2 gap-4">
+                    <span class="text-sm font-medium text-[#020617] dark:text-gray-400">
+                      Email Captured:
+                    </span>
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      {{ application.emailCaptured }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="application.emailCapturedAt"
+                    class="grid grid-cols-2 gap-4"
+                  >
+                    <span class="text-sm font-medium text-[#020617] dark:text-gray-400">
+                      Captured At:
+                    </span>
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      {{ formatDateTime(application.emailCapturedAt) }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="application.pendingReminderSentAt"
+                    class="grid grid-cols-2 gap-4"
+                  >
+                    <span class="text-sm font-medium text-[#020617] dark:text-gray-400">
+                      First Reminder Sent:
+                    </span>
+                    <span class="text-sm text-green-700 dark:text-green-300 flex items-center gap-1">
+                      {{ formatDateTime(application.pendingReminderSentAt) }}
+                      <span class="text-green-600 dark:text-green-400">✓</span>
+                    </span>
+                  </div>
+                  <div
+                    v-if="application.couponEmailSentAt"
+                    class="grid grid-cols-2 gap-4"
+                  >
+                    <span class="text-sm font-medium text-[#020617] dark:text-gray-400">
+                      Coupon Email Sent:
+                    </span>
+                    <span class="text-sm text-green-700 dark:text-green-300 flex items-center gap-1">
+                      {{ formatDateTime(application.couponEmailSentAt) }}
+                      <span class="text-green-600 dark:text-green-400">✓</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
             </template>
             <div v-else class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
               {{ errorMessage || 'Application not found' }}
@@ -2205,6 +2261,25 @@ const formatDate = (date) => {
       year: "numeric",
       month: "long",
       day: "numeric",
+    });
+  } catch (error) {
+    return date.toString();
+  }
+};
+
+// Format date and time helper for email tracking
+const formatDateTime = (date) => {
+  if (!date) return "-";
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return "-";
+    return dateObj.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   } catch (error) {
     return date.toString();

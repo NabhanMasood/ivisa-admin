@@ -70,14 +70,23 @@
         </div>
       </div>
 
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="bg-white dark:bg-[#09090B] rounded-lg border border-green-200 dark:border-green-800 overflow-hidden p-4"
+        style="border-radius: 7px"
+      >
+        <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
+      </div>
+
       <!-- Error State -->
       <div
-        v-else-if="errorMessage"
+        v-if="errorMessage"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-red-200 dark:border-red-800 overflow-hidden p-6"
         style="border-radius: 7px"
       >
         <div class="flex flex-col items-center gap-3">
-          <p class="text-sm text-red-600 dark:text-red-400">{{ errorMessage }}</p>
+          <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ errorMessage }}</p>
           <button
             @click="loadForms"
             class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
@@ -89,7 +98,7 @@
 
       <!-- Empty State -->
       <div
-        v-else-if="!isLoading && groupedForms.length === 0"
+        v-if="!isLoading && !errorMessage && groupedForms.length === 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden p-12"
         style="border-radius: 7px"
       >
@@ -106,7 +115,7 @@
 
       <!-- Forms List -->
       <div
-        v-else
+        v-if="!isLoading && !errorMessage && groupedForms.length > 0"
         class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
         style="border-radius: 7px"
       >
@@ -232,6 +241,26 @@
                         class="h-4 w-4 text-gray-600 dark:text-gray-400"
                       />
                     </button>
+                    <button
+                      @click="duplicateForm(group)"
+                      :disabled="isDuplicating || isDeleting"
+                      class="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title="Duplicate form"
+                    >
+                      <Copy
+                        class="h-4 w-4 text-blue-600 dark:text-blue-400"
+                      />
+                    </button>
+                    <button
+                      @click="deleteForm(group)"
+                      :disabled="isDuplicating || isDeleting"
+                      class="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title="Delete form"
+                    >
+                      <Trash2
+                        class="h-4 w-4 text-red-600 dark:text-red-400"
+                      />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -245,7 +274,7 @@
 
 <script setup lang="ts">
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import { Plus, Eye, Pencil } from "lucide-vue-next";
+import { Plus, Eye, Pencil, Copy, Trash2 } from "lucide-vue-next";
 import { useVisaProductFieldsApi, type VisaProductField } from "~/composables/useVisaProductFieldsApi";
 import { useVisaProductsApi } from "~/composables/useVisaProductsApi";
 
@@ -256,13 +285,16 @@ useHead({
 
 // Initialize APIs
 const { getVisaProductFieldsByVisaProduct } = useVisaProductFieldsApi();
-const { getVisaProducts } = useVisaProductsApi();
+const { getVisaProducts, duplicateVisaProduct: duplicateVisaProductApi, deleteVisaProduct: deleteVisaProductApi } = useVisaProductsApi();
 
 // Reactive state
 const isLoading = ref(false);
 const errorMessage = ref("");
+const successMessage = ref("");
 const searchQuery = ref("");
 const selectAll = ref(false);
+const isDuplicating = ref(false);
+const isDeleting = ref(false);
 const forms = ref<Array<{
   visaProductId: number | string;
   visaProductName: string;
@@ -310,7 +342,9 @@ const loadForms = async () => {
     const formsData: Array<{
       visaProductId: number | string;
       visaProductName: string;
+      country: string;
       fields: VisaProductField[];
+      selected: boolean;
     }> = [];
 
     for (const product of visaProductsResponse.data) {
@@ -355,6 +389,95 @@ const viewForm = (group: { visaProductId: number | string; visaProductName: stri
 
 const editForm = (group: { visaProductId: number | string; visaProductName: string; country: string; fields: VisaProductField[] }) => {
   router.push(`/dashboard/additional-info/add?mode=edit&visaProductId=${group.visaProductId}`);
+};
+
+// Duplicate form (visa product)
+const duplicateForm = async (group: { visaProductId: number | string; visaProductName: string; country: string; fields: VisaProductField[] }) => {
+  if (!group.visaProductId) {
+    errorMessage.value = "Cannot duplicate form: visa product ID is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to duplicate the form "${group.visaProductName}"?`)) {
+    return;
+  }
+
+  try {
+    isDuplicating.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await duplicateVisaProductApi(group.visaProductId);
+
+    if (response.success) {
+      successMessage.value = response.message || "Form duplicated successfully";
+      // Reload forms to show the new duplicate
+      await loadForms();
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      errorMessage.value = response.message || "Failed to duplicate form";
+    }
+  } catch (error) {
+    console.error("Failed to duplicate form:", error);
+    errorMessage.value = error instanceof Error ? error.message : "Failed to duplicate form. Please try again.";
+  } finally {
+    isDuplicating.value = false;
+  }
+};
+
+// Delete form (visa product)
+const deleteForm = async (group: { visaProductId: number | string; visaProductName: string; country: string; fields: VisaProductField[] }) => {
+  if (!group.visaProductId) {
+    errorMessage.value = "Cannot delete form: visa product ID is missing";
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete the form "${group.visaProductName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    const response = await deleteVisaProductApi(group.visaProductId);
+
+    if (response.success) {
+      successMessage.value = response.message || "Form deleted successfully";
+      // Remove the form from the list
+      forms.value = forms.value.filter(f => f.visaProductId !== group.visaProductId);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    } else {
+      // Handle case where deletion is blocked due to existing applications
+      errorMessage.value = response.message || "Failed to delete form";
+      if (response.message && response.message.includes('applications')) {
+        // Show error for longer when blocked by applications
+        setTimeout(() => {
+          errorMessage.value = "";
+        }, 10000); // Show for 10 seconds
+      }
+    }
+  } catch (error) {
+    console.error("Failed to delete form:", error);
+    const errorMsg = error instanceof Error ? error.message : "Failed to delete form. Please try again.";
+    errorMessage.value = errorMsg;
+    
+    // If error mentions applications, show for longer
+    if (errorMsg.includes('applications') || errorMsg.includes('application')) {
+      setTimeout(() => {
+        errorMessage.value = "";
+      }, 10000);
+    }
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 // Watch for select all changes
