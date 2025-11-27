@@ -394,6 +394,61 @@
             </Transition>
           </div>
 
+          <!-- Guides -->
+          <div v-if="isSuperAdmin()">
+            <button
+              @click="toggleGuides"
+              class="group flex items-center w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+              ]"
+            >
+              <Guides class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+              <span v-show="!sidebarCollapsed" class="truncate">Guides</span>
+              <ChevronDown
+                v-show="!sidebarCollapsed"
+                :class="guidesOpen ? 'rotate-180' : ''"
+                class="ml-auto h-4 w-4 transition-transform"
+              />
+            </button>
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-2"
+              enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-2"
+            >
+              <div
+                v-if="guidesOpen && !sidebarCollapsed"
+                class="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-3"
+              >
+              <a
+                href="/dashboard/guides"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isGuidesListActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
+                style="border-radius: 5px"
+                >List of Guides</a
+              >
+              <a
+                href="/dashboard/guides/add"
+                :class="[
+                  'block px-3 py-1.5 text-sm transition-colors',
+                  isGuidesAddActive 
+                    ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' 
+                    : 'text-gray-600 hover:text-gray-900 dark:text-white hover:bg-[#DCDCDE] dark:hover:bg-[#2F2F31]'
+                ]"
+                style="border-radius: 5px"
+                >Add Guide</a
+              >
+              </div>
+            </Transition>
+          </div>
+
           
 
           <!-- Customers -->
@@ -929,6 +984,7 @@ import Finances from "./svg/finances.vue";
 import Dashboard from "./svg/dashboard.vue";
 import Coupons from "./svg/coupons.vue";
 import AdditionalInfo from "./svg/additionalinfo.vue";
+import Guides from "./svg/guides.vue";
 import UsersIcon from "./svg/users.vue";
 import { usePermissions } from "~/composables/usePermissions";
 import { useAuthApi } from "~/composables/useAuthApi";
@@ -958,6 +1014,7 @@ const nationalitiesOpen = ref(false);
 const embassiesOpen = ref(false);
 const couponsOpen = ref(false);
 const additionalInfoOpen = ref(false);
+const guidesOpen = ref(false);
 const usersOpen = ref(false);
 
 // Route detection for active states
@@ -979,6 +1036,9 @@ const isCouponsAddActive = computed(() => route.path === '/dashboard/coupons/add
 const isAdditionalInfoActive = computed(() => route.path.startsWith('/dashboard/additional-info'))
 const isAdditionalInfoListActive = computed(() => route.path === '/dashboard/additional-info')
 const isAdditionalInfoAddActive = computed(() => route.path === '/dashboard/additional-info/add')
+const isGuidesActive = computed(() => route.path.startsWith('/dashboard/guides'))
+const isGuidesListActive = computed(() => route.path === '/dashboard/guides')
+const isGuidesAddActive = computed(() => route.path === '/dashboard/guides/add')
 const isUsersActive = computed(() => route.path.startsWith('/dashboard/users'))
 const isUsersListActive = computed(() => route.path === '/dashboard/users')
 const isUsersAddActive = computed(() => route.path === '/dashboard/users/add')
@@ -1035,6 +1095,12 @@ onMounted(() => {
       localStorage.setItem('additionalInfoOpen', 'true')
     } else {
       additionalInfoOpen.value = localStorage.getItem('additionalInfoOpen') === 'true'
+    }
+    if (isGuidesActive.value) {
+      guidesOpen.value = true
+      localStorage.setItem('guidesOpen', 'true')
+    } else {
+      guidesOpen.value = localStorage.getItem('guidesOpen') === 'true'
     }
     if (isUsersActive.value) {
       usersOpen.value = true
@@ -1105,6 +1171,7 @@ watch(() => route.path, (newPath) => {
       embassiesOpen.value = false
       couponsOpen.value = false
       additionalInfoOpen.value = true
+      guidesOpen.value = false
       usersOpen.value = false
       localStorage.setItem('countriesOpen', 'false')
       localStorage.setItem('visaproductsOpen', 'false')
@@ -1112,6 +1179,24 @@ watch(() => route.path, (newPath) => {
       localStorage.setItem('embassiesOpen', 'false')
       localStorage.setItem('couponsOpen', 'false')
       localStorage.setItem('additionalInfoOpen', 'true')
+      localStorage.setItem('guidesOpen', 'false')
+      localStorage.setItem('usersOpen', 'false')
+    } else if (newPath.startsWith('/dashboard/guides')) {
+      countriesOpen.value = false
+      visaproductsOpen.value = false
+      nationalitiesOpen.value = false
+      embassiesOpen.value = false
+      couponsOpen.value = false
+      additionalInfoOpen.value = false
+      guidesOpen.value = true
+      usersOpen.value = false
+      localStorage.setItem('countriesOpen', 'false')
+      localStorage.setItem('visaproductsOpen', 'false')
+      localStorage.setItem('nationalitiesOpen', 'false')
+      localStorage.setItem('embassiesOpen', 'false')
+      localStorage.setItem('couponsOpen', 'false')
+      localStorage.setItem('additionalInfoOpen', 'false')
+      localStorage.setItem('guidesOpen', 'true')
       localStorage.setItem('usersOpen', 'false')
     } else if (newPath.startsWith('/dashboard/users')) {
       countriesOpen.value = false
@@ -1296,6 +1381,7 @@ const toggleAdditionalInfo = () => {
   nationalitiesOpen.value = false;
   embassiesOpen.value = false;
   couponsOpen.value = false;
+  guidesOpen.value = false;
   usersOpen.value = false;
   additionalInfoOpen.value = !additionalInfoOpen.value;
   
@@ -1307,6 +1393,30 @@ const toggleAdditionalInfo = () => {
     localStorage.setItem('nationalitiesOpen', 'false');
     localStorage.setItem('embassiesOpen', 'false');
     localStorage.setItem('couponsOpen', 'false');
+    localStorage.setItem('guidesOpen', 'false');
+    localStorage.setItem('usersOpen', 'false');
+  }
+};
+
+const toggleGuides = () => {
+  countriesOpen.value = false;
+  visaproductsOpen.value = false;
+  nationalitiesOpen.value = false;
+  embassiesOpen.value = false;
+  couponsOpen.value = false;
+  additionalInfoOpen.value = false;
+  usersOpen.value = false;
+  guidesOpen.value = !guidesOpen.value;
+  
+  // Save to localStorage
+  if (process.client) {
+    localStorage.setItem('guidesOpen', guidesOpen.value.toString());
+    localStorage.setItem('countriesOpen', 'false');
+    localStorage.setItem('visaproductsOpen', 'false');
+    localStorage.setItem('nationalitiesOpen', 'false');
+    localStorage.setItem('embassiesOpen', 'false');
+    localStorage.setItem('couponsOpen', 'false');
+    localStorage.setItem('additionalInfoOpen', 'false');
     localStorage.setItem('usersOpen', 'false');
   }
 };
@@ -1318,6 +1428,7 @@ const toggleUsers = () => {
   embassiesOpen.value = false;
   couponsOpen.value = false;
   additionalInfoOpen.value = false;
+  guidesOpen.value = false;
   usersOpen.value = !usersOpen.value;
   
   // Save to localStorage
@@ -1329,6 +1440,7 @@ const toggleUsers = () => {
     localStorage.setItem('embassiesOpen', 'false');
     localStorage.setItem('couponsOpen', 'false');
     localStorage.setItem('additionalInfoOpen', 'false');
+    localStorage.setItem('guidesOpen', 'false');
   }
 };
 

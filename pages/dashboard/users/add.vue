@@ -465,9 +465,6 @@ const saveUser = async () => {
       });
     }
 
-    console.log('Full response:', response);
-    console.log('Response success:', response.success);
-    console.log('Response message:', response.message);
     
     if (response.success) {
       successMessage.value = isEditMode.value ? "User updated successfully!" : "User created successfully!";
