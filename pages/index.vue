@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-// Page metadataa
+// Page metadata
 useHead({
   title: 'iVisa Frontend - Home',
   meta: [
