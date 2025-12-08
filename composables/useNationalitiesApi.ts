@@ -67,10 +67,10 @@ export const useNationalitiesApi = () => {
   const createNationality = async (data: CreateNationalityDto): Promise<ApiResponse<Nationality>> => {
     try {
       const response = await api.post<Nationality | { status: boolean; message: string; data: Nationality }>('/nationalities', data)
-      
+
       // Handle different response structures
       let nationalityData: Nationality
-      
+
       if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
         // Response has wrapper structure { status, message, data }
         const wrappedResponse = response.data as { status: boolean; message: string; data: Nationality }
@@ -83,7 +83,7 @@ export const useNationalitiesApi = () => {
         // Direct nationality object
         nationalityData = response.data as Nationality
       }
-      
+
       return {
         data: nationalityData,
         message: 'Nationality created successfully',
@@ -101,7 +101,7 @@ export const useNationalitiesApi = () => {
   const getNationalities = async (): Promise<ApiResponse<Nationality[]>> => {
     try {
       const response = await api.get<NationalitiesListResponse | Nationality[]>('/nationalities')
-      
+
       // Handle different response structures
       if (Array.isArray(response.data)) {
         // Direct array response
@@ -125,7 +125,7 @@ export const useNationalitiesApi = () => {
           success: false,
         }
       }
-      
+
       return {
         data: [],
         message: 'No nationalities found',
@@ -143,10 +143,10 @@ export const useNationalitiesApi = () => {
   const getNationalityById = async (id: number | string): Promise<ApiResponse<Nationality>> => {
     try {
       const response = await api.get<Nationality | { status: boolean; message: string; data: Nationality }>(`/nationalities/${id}`)
-      
+
       // Handle different response structures
       let nationalityData: Nationality
-      
+
       if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
         // Response has wrapper structure { status, message, data }
         const wrappedResponse = response.data as { status: boolean; message: string; data: Nationality }
@@ -159,7 +159,7 @@ export const useNationalitiesApi = () => {
         // Direct nationality object
         nationalityData = response.data as Nationality
       }
-      
+
       return {
         data: nationalityData,
         success: true,
@@ -179,10 +179,10 @@ export const useNationalitiesApi = () => {
   ): Promise<ApiResponse<Nationality>> => {
     try {
       const response = await api.patch<Nationality | { status: boolean; message: string; data: Nationality }>(`/nationalities/${id}`, data)
-      
+
       // Handle different response structures
       let nationalityData: Nationality
-      
+
       if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
         // Response has wrapper structure { status, message, data }
         const wrappedResponse = response.data as { status: boolean; message: string; data: Nationality }
@@ -195,7 +195,7 @@ export const useNationalitiesApi = () => {
         // Direct nationality object
         nationalityData = response.data as Nationality
       }
-      
+
       return {
         data: nationalityData,
         message: 'Nationality updated successfully',
@@ -212,7 +212,7 @@ export const useNationalitiesApi = () => {
   const deleteNationality = async (id: number | string): Promise<ApiResponse<void>> => {
     try {
       await api.delete(`/nationalities/${id}`)
-      
+
       return {
         data: undefined,
         message: 'Nationality deleted successfully',
@@ -232,7 +232,7 @@ export const useNationalitiesApi = () => {
     try {
       const url = searchQuery ? `/nationalities/list?q=${encodeURIComponent(searchQuery)}` : '/nationalities/list'
       const response = await api.get<{ status: boolean; message: string; data: Array<{ nationality: string; destinations: number }> }>(url)
-      
+
       // Handle the response structure
       if (response.data.status && response.data.data) {
         return {
@@ -241,7 +241,7 @@ export const useNationalitiesApi = () => {
           success: true,
         }
       }
-      
+
       return {
         data: [],
         message: response.data.message || 'No nationalities found',
@@ -260,7 +260,7 @@ export const useNationalitiesApi = () => {
     try {
       const url = `/nationalities/destinations?nationality=${encodeURIComponent(nationality)}`
       const response = await api.get<{ status: boolean; message: string; data: Array<{ destination: string; products: number }> }>(url)
-      
+
       // Handle the response structure
       if (response.data.status && response.data.data) {
         return {
@@ -269,7 +269,7 @@ export const useNationalitiesApi = () => {
           success: true,
         }
       }
-      
+
       return {
         data: [],
         message: response.data.message || 'No destinations found',
@@ -296,7 +296,7 @@ export const useNationalitiesApi = () => {
     try {
       const url = `/nationalities/${encodeURIComponent(nationality)}/${encodeURIComponent(destination)}/products`
       const response = await api.get<{ status: boolean; message: string; data: Array<any> }>(url)
-      
+
       // Handle the response structure
       if (response.data.status && response.data.data) {
         return {
@@ -305,7 +305,7 @@ export const useNationalitiesApi = () => {
           success: true,
         }
       }
-      
+
       return {
         data: [],
         message: response.data.message || 'No products found',

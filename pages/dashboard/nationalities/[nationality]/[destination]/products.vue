@@ -20,6 +20,28 @@
             </h1>
           </div>
         </div>
+        <button
+          @click="loadProducts"
+          :disabled="isLoading"
+          class="p-2 hover:bg-[#E4E4E8] dark:hover:bg-[#2F2F31] transition-colors border border-gray-200 dark:border-gray-800 w-[42px] h-[36px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          style="border-radius: 5px"
+          title="Refresh products"
+        >
+          <svg
+            class="h-4 w-4 text-gray-600 dark:text-gray-300"
+            :class="{ 'animate-spin': isLoading }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            ></path>
+          </svg>
+        </button>
       </div>
 
       <!-- Search Bar -->
@@ -236,6 +258,7 @@
 import DashboardLayout from "~/components/DashboardLayout.vue";
 import { ArrowLeft, Plus, Search } from "lucide-vue-next";
 import { useNationalitiesApi } from "~/composables/useNationalitiesApi";
+import { useVisaProductsApi } from "~/composables/useVisaProductsApi";
 
 // Get route parameters
 const route = useRoute();
@@ -243,6 +266,7 @@ const router = useRouter();
 
 // Initialize API
 const { getNationalityDestinationProducts } = useNationalitiesApi();
+const { getVisaProductsByCountry } = useVisaProductsApi();
 
 // Get nationality and destination from route params
 const nationalityName = computed(() => {
@@ -292,24 +316,67 @@ const loadProducts = async () => {
     isLoading.value = true;
     errorMessage.value = "";
     
-    const response = await getNationalityDestinationProducts(
-      nationalityName.value,
-      destinationName.value
-    );
+    // Fetch both nationality products and latest visa products
+    const [nationalityResponse, visaProductsResponse] = await Promise.all([
+      getNationalityDestinationProducts(
+        nationalityName.value,
+        destinationName.value
+      ),
+      getVisaProductsByCountry(destinationName.value)
+    ]);
     
-    if (response.success && response.data) {
-      // Map API data to include selected property
-      products.value = response.data.map((product) => ({
-        ...product,
-        selected: false,
-      }));
+    if (nationalityResponse.success && nationalityResponse.data) {
+      // Get latest visa product prices
+      const latestVisaProducts = visaProductsResponse.success && visaProductsResponse.data 
+        ? visaProductsResponse.data 
+        : [];
+      
+      // Create a map of latest prices by product name
+      const latestPricesMap = new Map();
+      latestVisaProducts.forEach((vp: any) => {
+        if (vp.productName) {
+          latestPricesMap.set(vp.productName, {
+            totalAmount: vp.totalAmount,
+            govtFee: vp.govtFee,
+            serviceFee: vp.serviceFee,
+          });
+        }
+      });
+      
+      // Map API data and merge with latest visa product prices
+      products.value = nationalityResponse.data.map((product: any) => {
+        const latestPrices = latestPricesMap.get(product.productName);
+        
+        // Use latest prices if available, otherwise use stored prices
+        return {
+          ...product,
+          totalAmount: latestPrices?.totalAmount ?? product.totalAmount,
+          govtFee: latestPrices?.govtFee ?? product.govtFee,
+          serviceFee: latestPrices?.serviceFee ?? product.serviceFee,
+          selected: false,
+        };
+      });
+      
+      // Debug: Log products to check if prices are updated
+      if (process.dev) {
+        console.log('📦 Loaded products with prices:', products.value.map(p => ({
+          name: p.productName,
+          totalAmount: p.totalAmount,
+          govtFee: p.govtFee,
+          serviceFee: p.serviceFee,
+          id: p.id
+        })));
+        console.log('🔄 Products loaded at:', new Date().toISOString());
+        console.log('✅ Latest visa product prices merged:', latestPricesMap.size, 'products');
+      }
     } else {
       products.value = [];
-      errorMessage.value = response.message || "Failed to load products";
+      errorMessage.value = nationalityResponse.message || "Failed to load products";
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Failed to load products. Please try again.";
     products.value = [];
+    console.error('❌ Error loading products:', error);
   } finally {
     isLoading.value = false;
   }
@@ -360,6 +427,11 @@ const deleteProduct = (product: { id?: number | string; productName: string }) =
 
 // Load products on mount
 onMounted(() => {
+  loadProducts();
+});
+
+// Reload products when page becomes active (e.g., after editing a visa product)
+onActivated(() => {
   loadProducts();
 });
 
