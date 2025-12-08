@@ -1147,7 +1147,6 @@ const paymentStatus = ref("Paid");
 const applicationStatusOptions = [
   "active",
   "pending",
-  "approved",
   "rejected",
   "completed"
 ];

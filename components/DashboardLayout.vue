@@ -602,29 +602,6 @@
                   "
                 />
               </button>
-              <label style="color: #e4e4e8">|</label>
-              <!-- Search Box -->
-              <div class="relative hidden md:block">
-                <div
-                  class="flex items-center bg-white dark:bg-[#18181B] w-[380px] h-[35px] border border-gray-300 dark:border-gray-700 px-3 py-2 w-80"
-                  style="border-radius: 7px"
-                >
-                  <Search
-                    class="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    class="flex-1 h-[36px] bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none"
-                  />
-                  <button
-                    class="bg-gray-200 dark:bg-[#18181B] text-gray-600 dark:text-gray-300 px-2 py-1 text-xs font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    style="border-radius: 7px"
-                  >
-                    ⌘K
-                  </button>
-                </div>
-              </div>
             </div>
 
             <!-- Right side - Icons -->
@@ -935,7 +912,6 @@
 import {
   Plus,
   Columns,
-  Search,
   ChevronUp,
   ChevronDown,
   MoreVertical,

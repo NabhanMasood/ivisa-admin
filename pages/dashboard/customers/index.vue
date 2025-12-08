@@ -1,7 +1,7 @@
 <template>
   <DashboardLayout>
           <div class="space-y-8 sm:space-y-4">
-            <!-- Page Title and Add Button -->
+            <!-- Page Title -->
             <div
               class="flex flex-row items-center justify-between w-full gap-2 sm:gap-4"
             >
@@ -18,28 +18,6 @@
                   Here you can find all the customers
                 </label>
               </div>
-              <button
-                @click="navigateToAddCustomer"
-                class="bg-black h-[36px] dark:bg-white text-white dark:text-black px-3 sm:px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 rounded-[7px] flex-shrink-0"
-              >
-                <div
-                  class="flex items-center justify-center w-4 h-4 border border-white dark:border-black rounded-full bg-black dark:bg-white"
-                >
-                  <Plus class="h-4 w-4 text-white dark:text-black" />
-                </div>
-                <span
-                  class="text-sm sm:text-base"
-                  style="
-                    font-size: 14px;
-                    font-weight: 400;
-                    font-style: normal;
-                    line-height: 20px;
-                    font-family: 'Geist', sans-serif;
-                    letter-spacing: 0;
-                  "
-                  >Add Customer</span
-                >
-              </button>
             </div>
             <!-- Search and Filters Row -->
             <div
@@ -374,7 +352,6 @@
 
 <script setup>
 import {
-  Plus,
   Columns,
   Eye,
   Pencil,

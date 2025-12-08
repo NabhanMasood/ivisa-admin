@@ -1,7 +1,7 @@
 <template>
   <DashboardLayout>
           <div class="space-y-8 sm:space-y-4">
-            <!-- Page Title and Add Button -->
+            <!-- Page Title -->
             <div
               class="flex flex-row items-center justify-between w-full gap-2 sm:gap-4"
             >
@@ -18,28 +18,6 @@
                   Here you can find all the finances
                 </label>
               </div>
-              <a
-                href="/dashboard/finances/add"
-                class="bg-black h-[36px] dark:bg-white text-white dark:text-black px-3 sm:px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 rounded-[7px] flex-shrink-0"
-              >
-                <div
-                  class="flex items-center justify-center w-4 h-4 border border-white dark:border-black rounded-full bg-black dark:bg-white"
-                >
-                  <Plus class="h-4 w-4 text-white dark:text-black" />
-                </div>
-                <span
-                  class="text-sm sm:text-base"
-                  style="
-                    font-size: 14px;
-                    font-weight: 400;
-                    font-style: normal;
-                    line-height: 20px;
-                    font-family: 'Geist', sans-serif;
-                    letter-spacing: 0;
-                  "
-                  >Add Finance</span
-                >
-              </a>
             </div>
             <!-- Search and Filters Row -->
             <div
@@ -59,106 +37,10 @@
                 </div>
               </div>
 
-              <!-- Columns Filter Button -->
-              <div class="flex justify-center sm:justify-end w-full sm:w-auto">
-                <div class="relative w-full sm:w-auto">
-                  <button
-                    @click="toggleColumnsDropdown"
-                    class="w-full h-[36px] sm:w-auto bg-[#FFFFFF] dark:bg-[#18181B] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-white px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#2F2F31] transition-colors flex items-center justify-center space-x-2 text-sm"
-                    style="border-radius: 5px"
-                  >
-                    <Columns class="h-4 w-4" />
-                    <span class="sm:inline">Columns</span>
-                  </button>
-
-                  <!-- Columns Dropdown -->
-                  <div
-                    v-if="columnsDropdownOpen"
-                    class="absolute top-full right-0 z-10 mt-2 w-48 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
-                    style="border-radius: 5px"
-                  >
-                    <!-- Column Options -->
-                    <div class="py-1">
-                      <label
-                        class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                        style="border-radius: 5px; margin: 3px"
-                      >
-                        <span
-                          class="mr-3 text-black dark:text-white text-sm font-bold"
-                          >✓</span
-                        >
-                        <span class="text-sm text-gray-900 dark:text-white"
-                          >Name</span
-                        >
-                      </label>
-                      <label
-                        class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                        style="border-radius: 5px; margin: 3px"
-                      >
-                        <span
-                          class="mr-3 text-black dark:text-white text-sm font-bold"
-                          >✓</span
-                        >
-                        <span class="text-sm text-gray-900 dark:text-white"
-                          >Role</span
-                        >
-                      </label>
-                      <label
-                        class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                        style="border-radius: 5px; margin: 3px"
-                      >
-                        <span
-                          class="mr-3 text-black dark:text-white text-sm font-bold"
-                          >✓</span
-                        >
-                        <span class="text-sm text-gray-900 dark:text-white"
-                          >Plan_name</span
-                        >
-                      </label>
-                      <label
-                        class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                        style="border-radius: 5px; margin: 3px"
-                      >
-                        <span
-                          class="mr-3 text-black dark:text-white text-sm font-bold"
-                          >✓</span
-                        >
-                        <span class="text-sm text-gray-900 dark:text-white"
-                          >Email</span
-                        >
-                      </label>
-                      <label
-                        class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                        style="border-radius: 5px; margin: 3px"
-                      >
-                        <span
-                          class="mr-3 text-black dark:text-white text-sm font-bold"
-                          >✓</span
-                        >
-                        <span class="text-sm text-gray-900 dark:text-white"
-                          >Country</span
-                        >
-                      </label>
-                      <label
-                        class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                        style="border-radius: 5px; margin: 3px"
-                      >
-                        <span
-                          class="mr-3 text-black dark:text-white text-sm font-bold"
-                          >✓</span
-                        >
-                        <span class="text-sm text-gray-900 dark:text-white"
-                          >Status</span
-                        >
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <!-- Stat Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
               <!-- Total Revenue Card -->
               <div class="bg-white dark:bg-[#09090B] rounded-[8px] border border-gray-200 dark:border-gray-800 p-6">
                 <div class="grid grid-cols-2 gap-7">
@@ -198,18 +80,6 @@
                 </div>
               </div>
 
-              <!-- Refunded Orders Card -->
-              <div class="bg-white dark:bg-[#09090B] rounded-[8px] border border-gray-200 dark:border-gray-800 p-6">
-                <div class="grid grid-cols-2 gap-7">
-                  <div class="text-nowrap whitespace-nowrap">
-                    <p class="text-sm font-normal text-[#64748B] dark:text-gray-400">Refunded Orders</p>
-                    <p class="text-2xl font-medium text-[#020617] dark:text-white">{{ formatNumber(analytics.refundedOrders) }}</p>
-                  </div>
-                  <div class="w-full h-12">
-                    <canvas ref="refundedOrdersChart"></canvas>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <!-- Finances Table -->
@@ -446,8 +316,6 @@
 
 <script setup lang="ts">
 import {
-  Plus,
-  Columns,
   Search,
   Eye,
   Copy,
@@ -484,20 +352,17 @@ const analytics = ref({
   totalRevenue: 0,
   totalOrders: 0,
   pendingPayments: 0,
-  refundedOrders: 0,
 });
 
 // Chart refs
 const revenueChart = ref(null);
 const ordersChart = ref(null);
 const pendingPaymentsChart = ref(null);
-const refundedOrdersChart = ref(null);
 
 // Chart instances
 let revenueChartInstance = null;
 let ordersChartInstance = null;
 let pendingPaymentsChartInstance = null;
-let refundedOrdersChartInstance = null;
 
 // Chart data - generate from payments if available
 const getChartData = () => {
@@ -620,7 +485,6 @@ const initializeCharts = () => {
   createRevenueChart();
   ordersChartInstance = createLineChart(ordersChart, '#8B5CF6');
   pendingPaymentsChartInstance = createLineChart(pendingPaymentsChart, '#8B5CF6');
-  refundedOrdersChartInstance = createLineChart(refundedOrdersChart, '#8B5CF6');
 };
 
 // Update charts with new data
@@ -646,13 +510,6 @@ const updateCharts = () => {
     pendingPaymentsChartInstance.data.datasets[0].data = data;
     pendingPaymentsChartInstance.update();
   }
-  
-  if (refundedOrdersChartInstance) {
-    const data = getChartData();
-    refundedOrdersChartInstance.data.labels = data.map((_, i) => i + 1);
-    refundedOrdersChartInstance.data.datasets[0].data = data;
-    refundedOrdersChartInstance.update();
-  }
 };
 
 // Initialize charts on mount and load data
@@ -668,7 +525,6 @@ onUnmounted(() => {
   if (revenueChartInstance) revenueChartInstance.destroy();
   if (ordersChartInstance) ordersChartInstance.destroy();
   if (pendingPaymentsChartInstance) pendingPaymentsChartInstance.destroy();
-  if (refundedOrdersChartInstance) refundedOrdersChartInstance.destroy();
 });
 
 // Load payments from API
@@ -733,7 +589,6 @@ const currentPage = ref(1);
 const statusDropdownOpen = ref(false);
 const planDropdownOpen = ref(false);
 const roleDropdownOpen = ref(false);
-const columnsDropdownOpen = ref(false);
 
 
 
@@ -743,7 +598,6 @@ const toggleStatusDropdown = () => {
   // Close other dropdowns if open
   planDropdownOpen.value = false;
   roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
   // Toggle status dropdown
   statusDropdownOpen.value = !statusDropdownOpen.value;
 };
@@ -752,7 +606,6 @@ const togglePlanDropdown = () => {
   // Close other dropdowns if open
   statusDropdownOpen.value = false;
   roleDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
   // Toggle plan dropdown
   planDropdownOpen.value = !planDropdownOpen.value;
 };
@@ -761,18 +614,8 @@ const toggleRoleDropdown = () => {
   // Close other dropdowns if open
   statusDropdownOpen.value = false;
   planDropdownOpen.value = false;
-  columnsDropdownOpen.value = false;
   // Toggle role dropdown
   roleDropdownOpen.value = !roleDropdownOpen.value;
-};
-
-const toggleColumnsDropdown = () => {
-  // Close other dropdowns if open
-  statusDropdownOpen.value = false;
-  planDropdownOpen.value = false;
-  roleDropdownOpen.value = false;
-  // Toggle columns dropdown
-  columnsDropdownOpen.value = !columnsDropdownOpen.value;
 };
 
 
@@ -783,7 +626,6 @@ onMounted(() => {
       statusDropdownOpen.value = false;
       planDropdownOpen.value = false;
       roleDropdownOpen.value = false;
-      columnsDropdownOpen.value = false;
     }
   };
   document.addEventListener("click", handleClickOutside);

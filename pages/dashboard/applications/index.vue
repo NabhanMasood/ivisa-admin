@@ -1,7 +1,7 @@
 <template>
   <DashboardLayout>
     <div class="space-y-8 sm:space-y-4">
-      <!-- Page Title and Add Button -->
+      <!-- Page Title -->
       <div
         class="flex flex-row items-center justify-between w-full gap-2 sm:gap-4"
       >
@@ -18,27 +18,6 @@
             Here you can find all the applications
           </label>
         </div>
-        <button
-          class="bg-black h-[36px] dark:bg-white text-white dark:text-black px-3 sm:px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 rounded-[7px] flex-shrink-0"
-        >
-          <div
-            class="flex items-center justify-center w-4 h-4 border border-white dark:border-black rounded-full bg-black dark:bg-white"
-          >
-            <Plus class="h-4 w-4 text-white dark:text-black" />
-          </div>
-          <span
-            class="text-sm sm:text-base"
-            style="
-              font-size: 14px;
-              font-weight: 400;
-              font-style: normal;
-              line-height: 20px;
-              font-family: 'Geist', sans-serif;
-              letter-spacing: 0;
-            "
-            >Add Application</span
-          >
-        </button>
       </div>
       <!-- Search and Filters Row -->
       <div
@@ -609,7 +588,6 @@
 
 <script setup lang="ts">
 import {
-  Plus,
   Columns,
   Eye,
   Pencil,
@@ -710,11 +688,19 @@ watch(searchQuery, () => {
 
 // Computed properties
 const filteredApplications = computed(() => {
-  // If search is handled by API, return all applications
-  // Otherwise, filter client-side
-  if (!searchQuery.value) return applications.value;
+  // First, filter out draft applications
+  const nonDraftApplications = applications.value.filter(
+    (application: Application) => {
+      const status = (application.status || '').toLowerCase();
+      return status !== 'draft';
+    }
+  );
 
-  return applications.value.filter(
+  // If search is handled by API, return filtered applications
+  // Otherwise, filter client-side
+  if (!searchQuery.value) return nonDraftApplications;
+
+  return nonDraftApplications.filter(
     (application: Application) => {
       const applicationId = getApplicationId(application).toLowerCase();
       const customerName = getCustomerName(application).toLowerCase();
@@ -905,6 +891,20 @@ const getApplicationDate = (app: Application): Date | null => {
   return isNaN(date.getTime()) ? null : date;
 };
 
+// Helper to extract numeric ID from application ID string (e.g., "VAP-2025-000024" -> 24)
+const getNumericId = (app: Application): number => {
+  const appId = getApplicationId(app);
+  // Extract the last number from the ID string
+  const match = appId.match(/(\d+)$/);
+  if (match && match[1]) {
+    return parseInt(match[1], 10);
+  }
+  // Fallback to raw id if available
+  if (typeof app.id === 'number') return app.id;
+  if (typeof app.id === 'string') return parseInt(app.id, 10) || 0;
+  return 0;
+};
+
 // Sort function that uses current sortOption
 const sortApplications = (apps: Application[]): Application[] => {
   const sorted = [...apps].sort((a: Application, b: Application) => {
@@ -914,24 +914,46 @@ const sortApplications = (apps: Application[]): Application[] => {
         const dateA = getApplicationDate(a);
         const dateB = getApplicationDate(b);
         
-        // Handle missing dates by putting them at the end (no fallback to ID)
-        if (!dateA && !dateB) return 0; // Keep original order if both missing
-        if (!dateA) return 1; // a goes to end
-        if (!dateB) return -1; // b goes to end
+        // Handle missing dates by putting them at the end
+        if (!dateA && !dateB) {
+          // Both missing dates - sort by ID (highest first)
+          return getNumericId(b) - getNumericId(a);
+        }
+        if (!dateA) return 1;
+        if (!dateB) return -1;
         
-        return dateB.getTime() - dateA.getTime(); // Descending (newest first)
+        // Compare dates
+        const dateDiff = dateB.getTime() - dateA.getTime();
+        
+        // If dates are equal, sort by ID (highest first for latest)
+        if (dateDiff === 0) {
+          return getNumericId(b) - getNumericId(a);
+        }
+        
+        return dateDiff;
       
       case 'date_asc':
         // Oldest first
         const dateA_asc = getApplicationDate(a);
         const dateB_asc = getApplicationDate(b);
         
-        // Handle missing dates by putting them at the end (no fallback to ID)
-        if (!dateA_asc && !dateB_asc) return 0; // Keep original order if both missing
-        if (!dateA_asc) return 1; // a goes to end
-        if (!dateB_asc) return -1; // b goes to end
+        // Handle missing dates by putting them at the end
+        if (!dateA_asc && !dateB_asc) {
+          // Both missing dates - sort by ID (lowest first)
+          return getNumericId(a) - getNumericId(b);
+        }
+        if (!dateA_asc) return 1;
+        if (!dateB_asc) return -1;
         
-        return dateA_asc.getTime() - dateB_asc.getTime(); // Ascending (oldest first)
+        // Compare dates
+        const dateDiff_asc = dateA_asc.getTime() - dateB_asc.getTime();
+        
+        // If dates are equal, sort by ID (lowest first for oldest)
+        if (dateDiff_asc === 0) {
+          return getNumericId(a) - getNumericId(b);
+        }
+        
+        return dateDiff_asc;
       
       case 'amount_desc':
         // High to low
@@ -941,7 +963,15 @@ const sortApplications = (apps: Application[]): Application[] => {
         const amountB = parseFloat(
           String(b.totalAmount || b.price || b.totalPrice || b.processingFee || '0')
         );
-        return amountB - amountA;
+        
+        const amountDiff = amountB - amountA;
+        
+        // If amounts are equal, sort by ID (highest first)
+        if (amountDiff === 0) {
+          return getNumericId(b) - getNumericId(a);
+        }
+        
+        return amountDiff;
       
       default:
         return 0;
@@ -960,6 +990,7 @@ const sortedApplicationsByStatus = computed(() => {
     rejected: [],
   };
 
+  
   // Filter applications by status
   filteredApplications.value.forEach((app: Application) => {
     const normalizedStatus = normalizeStatus(app.status || 'pending');
