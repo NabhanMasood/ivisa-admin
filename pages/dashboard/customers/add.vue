@@ -97,15 +97,22 @@
                 />
               </div>
 
-              <!-- Residence Country Custom Dropdown -->
-              <CustomDropdown
-                id="residenceCountry"
-                label="Residence Country"
-                v-model="customerForm.residenceCountry"
-                :options="countries"
-                placeholder="Select residence country"
-                search-placeholder="Search country"
-              />
+              <!-- Residence Country Text Input -->
+              <div>
+                <label
+                  for="residenceCountry"
+                  class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                >
+                  Residence Country
+                </label>
+                <input
+                  id="residenceCountry"
+                  v-model="customerForm.residenceCountry"
+                  type="text"
+                  placeholder="Enter residence country"
+                  class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
+                />
+              </div>
             </div>
           </div>
 
@@ -126,10 +133,8 @@
 
 <script setup>
 import DashboardLayout from "~/components/DashboardLayout.vue";
-import CustomDropdown from "~/components/ui/CustomDropdown.vue";
 import { ArrowLeft } from "lucide-vue-next";
 import { useCustomersApi } from "~/composables/useCustomersApi";
-import { useCountriesApi } from "~/composables/useCountriesApi";
 
 useHead({
   title: "Add Customer - iVisa",
@@ -142,7 +147,6 @@ const isEditMode = computed(() => route.query.mode === 'edit');
 const customerId = computed(() => route.query.id);
 
 const { createCustomer } = useCustomersApi();
-const { getCountries } = useCountriesApi();
 
 const customerForm = ref({
   fullname: "",
@@ -151,24 +155,9 @@ const customerForm = ref({
   residenceCountry: "",
 });
 
-const countries = ref([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
-
-const loadCountries = async () => {
-  try {
-    const response = await getCountries();
-    if (response.success && response.data) {
-      countries.value = response.data.map((country) => country.countryName);
-    } else {
-      countries.value = [];
-    }
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Failed to load countries";
-    countries.value = [];
-  }
-};
 
 const saveCustomer = async () => {
   if (!customerForm.value.fullname) {
@@ -184,7 +173,7 @@ const saveCustomer = async () => {
     return;
   }
   if (!customerForm.value.residenceCountry) {
-    errorMessage.value = "Please select residence country";
+    errorMessage.value = "Please enter residence country";
     return;
   }
 
@@ -219,8 +208,5 @@ const goBack = () => {
   router.push("/dashboard/customers");
 };
 
-onMounted(() => {
-  loadCountries();
-});
 </script>
 

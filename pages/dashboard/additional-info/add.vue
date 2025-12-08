@@ -529,7 +529,7 @@ useHead({
 });
 
 // Initialize APIs
-const { createVisaProductField, getVisaProductFieldsByVisaProduct, updateVisaProductField, deleteVisaProductField } = useVisaProductFieldsApi();
+const { createVisaProductField, getVisaProductFieldsByVisaProduct, updateVisaProductField, deleteVisaProductField, batchCreateUpdateFields } = useVisaProductFieldsApi();
 const { getVisaProducts, getVisaProductById } = useVisaProductsApi();
 
 // Reactive state
@@ -663,9 +663,12 @@ const handleDrop = (targetIndex: number, event: DragEvent) => {
   fields.value.splice(targetIndex, 0, fieldToMove);
   
   // Update display orders
+  // IMPORTANT: Since fields array uses unshift() order [newest, ..., oldest],
+  // we need to reverse displayOrder assignment so oldest fields appear first
   fields.value.forEach((field, index) => {
-    // Use index for displayOrder but keep field.id for identification
-    field.displayOrder = index;
+    // Reverse the assignment: array index 0 (newest) gets highest displayOrder
+    // Array index length-1 (oldest) gets displayOrder 0 (appears first)
+    field.displayOrder = fields.value.length - 1 - index;
   });
   
   // Restore expanded state if it was expanded
@@ -728,21 +731,28 @@ const loadFields = async () => {
     const fieldsResponse = await getVisaProductFieldsByVisaProduct(visaProductId.value);
     
     if (fieldsResponse.success && fieldsResponse.data && fieldsResponse.data.length > 0) {
-      fields.value = fieldsResponse.data
-        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
-        .map(field => ({
-          id: field.id,
-          question: field.question,
-          fieldType: field.fieldType,
-          isRequired: field.isRequired || false,
-          isActive: field.isActive !== undefined ? field.isActive : true,
-          displayOrder: field.displayOrder || 0,
-          optionsText: field.options ? field.options.join(', ') : '',
-          minLength: field.minLength,
-          maxLength: field.maxLength,
-          allowedFileTypesText: field.allowedFileTypes ? field.allowedFileTypes.join(', ') : '',
-          maxFileSizeMB: field.maxFileSize ? Math.round(field.maxFileSize / 1024 / 1024) : undefined,
-        }));
+      // Sort fields by displayOrder to get the intended display order
+      const sortedFields = fieldsResponse.data.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      
+      // Map to form format
+      const mappedFields = sortedFields.map(field => ({
+        id: field.id,
+        question: field.question,
+        fieldType: field.fieldType,
+        isRequired: field.isRequired || false,
+        isActive: field.isActive !== undefined ? field.isActive : true,
+        displayOrder: field.displayOrder || 0,
+        optionsText: field.options ? field.options.join(', ') : '',
+        minLength: field.minLength,
+        maxLength: field.maxLength,
+        allowedFileTypesText: field.allowedFileTypes ? field.allowedFileTypes.join(', ') : '',
+        maxFileSizeMB: field.maxFileSize ? Math.round(field.maxFileSize / 1024 / 1024) : undefined,
+      }));
+      
+      // Store fields - they're sorted by displayOrder ascending
+      // For existing forms: fields are in the order they should appear
+      // We'll reassign displayOrder sequentially when saving (fixes reversed values)
+      fields.value = mappedFields;
     } else {
       // No fields found - start with empty array so user can add fields
       fields.value = [];
@@ -774,8 +784,18 @@ const addField = () => {
   });
   
   // Update display orders for all fields
+  // IMPORTANT: Since we use unshift() to add fields to the BEGINNING of the array,
+  // the array order is: [newest field at index 0, ..., oldest field at last index]
+  // User creates fields in order: qs1, qs2, qs3, qs4, qs5
+  // Array becomes: [qs5, qs4, qs3, qs2, qs1]
+  // We want them displayed as: qs1, qs2, qs3, qs4, qs5 (sorted ascending by displayOrder)
+  // So: qs1 (last in array) should have displayOrder 0 (appears first)
+  //     qs5 (first in array) should have displayOrder 4 (appears last)
+  // Solution: displayOrder = array.length - 1 - index
   fields.value.forEach((f, idx) => {
-    f.displayOrder = idx;
+    // Reverse the assignment: newest (index 0) gets highest displayOrder
+    // Oldest (last index) gets displayOrder 0 (appears first when sorted)
+    f.displayOrder = fields.value.length - 1 - idx;
   });
   
   // Auto-expand new fields in edit mode so user can immediately edit them
@@ -810,8 +830,9 @@ const removeField = async (index: number) => {
       
       fields.value.splice(index, 1);
       // Update display orders
+      // IMPORTANT: Reverse displayOrder assignment to match unshift() array order
       fields.value.forEach((f, idx) => {
-        f.displayOrder = idx;
+        f.displayOrder = fields.value.length - 1 - idx;
       });
     } catch (error) {
       errorMessage.value = error instanceof Error ? error.message : 'Failed to delete field';
@@ -824,8 +845,9 @@ const removeField = async (index: number) => {
     // Just remove from array if it's a new field
     fields.value.splice(index, 1);
     // Update display orders
+    // IMPORTANT: Reverse displayOrder assignment to match unshift() array order
     fields.value.forEach((f, idx) => {
-      f.displayOrder = idx;
+      f.displayOrder = fields.value.length - 1 - idx;
     });
   }
 };
@@ -887,11 +909,48 @@ const saveForm = async () => {
   try {
     isLoading.value = true;
 
-    // Process each field
+    // IMPORTANT: Before saving, fix displayOrder values to ensure correct order
+    // Strategy: Sort fields by their current displayOrder to get intended order,
+    // then reassign displayOrder sequentially starting from 0
+    // This works for both new forms (with reversed array) and existing forms
+    
+    // Sort by current displayOrder (ascending) to get the intended display order
+    // This ensures fields are in the correct order before reassigning displayOrder
+    fields.value.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    
+    // Debug: Log order before reassigning
+    console.log('📋 Fields order after sorting by displayOrder:', fields.value.map(f => ({
+      question: f.question,
+      currentDisplayOrder: f.displayOrder
+    })));
+    
+    // Now assign displayOrder sequentially: first field in sorted array gets 0, second gets 1, etc.
+    // This ensures: first field = 0, second = 1, third = 2, etc.
+    fields.value.forEach((f, idx) => {
+      f.displayOrder = idx;
+    });
+    
+    // Debug: Log order after reassigning
+    console.log('✅ Fields order after reassigning displayOrder:', fields.value.map(f => ({
+      question: f.question,
+      newDisplayOrder: f.displayOrder
+    })));
+
+    // Debug: Log fields before saving
+    console.log('💾 Fields being saved with displayOrder:', fields.value.map(f => ({
+      question: f.question,
+      displayOrder: f.displayOrder,
+      id: f.id
+    })));
+
+    // Prepare batch payload - combine all fields into one request
+    const batchFields: Array<CreateVisaProductFieldDto | (UpdateVisaProductFieldDto & { id: number | string })> = [];
+    
     for (const field of fields.value) {
       if (field.id) {
         // Update existing field
-        const updateData: UpdateVisaProductFieldDto = {
+        const updateData: UpdateVisaProductFieldDto & { id: number | string } = {
+          id: field.id,
           question: field.question.trim(),
           fieldType: field.fieldType as any,
           isRequired: field.isRequired,
@@ -920,7 +979,7 @@ const saveForm = async () => {
           }
         }
 
-        await updateVisaProductField(field.id, updateData);
+        batchFields.push(updateData);
       } else {
         // Create new field
         const createData: CreateVisaProductFieldDto = {
@@ -953,7 +1012,25 @@ const saveForm = async () => {
           }
         }
 
-        await createVisaProductField(createData);
+        batchFields.push(createData);
+      }
+    }
+
+    // Batch save all fields in one API call
+    try {
+      await batchCreateUpdateFields(Number(targetVisaProductId), batchFields);
+    } catch (batchError) {
+      // Fallback to individual calls if batch endpoint doesn't exist or fails
+      console.warn('Batch save failed, falling back to individual calls:', batchError);
+      for (const fieldData of batchFields) {
+        if ('id' in fieldData && fieldData.id) {
+          // Update existing field
+          const { id, ...updateData } = fieldData;
+          await updateVisaProductField(id, updateData);
+        } else {
+          // Create new field
+          await createVisaProductField(fieldData as CreateVisaProductFieldDto);
+        }
       }
     }
 

@@ -337,6 +337,31 @@ export const useApplication = () => {
     }
   }
 
+  const getAllResubmissionRequests = async (applicationId: number | string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = (config.public.apiBase as string).replace(/\/+$/, '')
+
+      // Fetch all resubmission requests (including fulfilled ones)
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/resubmission-requests`)
+      const result = await response.json()
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to fetch resubmission requests')
+      }
+
+      return result
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
 
   const requestResubmission = async (
     applicationId: number | string,
@@ -439,6 +464,7 @@ export const useApplication = () => {
     getApplicationPayment,
     requestResubmission,
     getActiveResubmissionRequests,
+    getAllResubmissionRequests,
     updateApplicationStatus,
   };
 };

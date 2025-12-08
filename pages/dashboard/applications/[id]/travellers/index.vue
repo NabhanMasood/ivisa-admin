@@ -18,7 +18,7 @@
             <h1
               class="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white"
             >
-              {{ application?.applicationNumber || application?.id || 'Loading...' }} - Travellers
+              {{ application?.applicationNumber || application?.id || 'Loading...' }} - Travelers
             </h1>
           </div>
         </div>
@@ -372,13 +372,149 @@ const loadTravelers = async () => {
     const data = await getApplicationTravelers(applicationId.value);
     
     if (data) {
-      travelers.value = Array.isArray(data) ? data.map((t) => ({
-        ...t,
-        selected: false,
-      })) : (Array.isArray(data.data) ? data.data.map((t) => ({
-        ...t,
-        selected: false,
-      })) : []);
+      const rawTravelers = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+      
+      console.log('📋 Raw travelers from API:', rawTravelers.map(t => ({ 
+        id: t.id, 
+        firstName: t.firstName, 
+        lastName: t.lastName,
+        email: t.email 
+      })));
+      
+      // Check if we need to add the first traveler (customer traveler)
+      // According to backend: when numberOfTravelers > 1, first traveler is the customer traveler
+      const numberOfTravelers = application.value?.numberOfTravelers || 0;
+      const customer = application.value?.customer;
+      const expectedTravelerCount = numberOfTravelers;
+      
+      console.log('📊 Traveler count check:', {
+        numberOfTravelers,
+        rawTravelersCount: rawTravelers.length,
+        expectedCount: expectedTravelerCount,
+        customerId: customer?.id,
+        customerEmail: customer?.email
+      });
+      
+      // Check if we need to add the first traveler (customer traveler)
+      const appTravelers = application.value?.travelers || [];
+      const firstAppTraveler = appTravelers[0]; // First traveler is customer traveler
+      
+      // Check if first traveler (customer traveler) already exists in rawTravelers
+      let customerTravelerExists = false;
+      if (firstAppTraveler?.id) {
+        customerTravelerExists = rawTravelers.some(t => t.id === firstAppTraveler.id);
+      }
+      if (!customerTravelerExists && customer?.email) {
+        customerTravelerExists = rawTravelers.some(t => 
+          t.email && customer.email && t.email.toLowerCase() === customer.email.toLowerCase()
+        );
+      }
+      if (!customerTravelerExists && firstAppTraveler) {
+        // Check by name match as last resort
+        const firstTravelerName = `${firstAppTraveler.firstName || ''} ${firstAppTraveler.lastName || ''}`.trim().toLowerCase();
+        customerTravelerExists = rawTravelers.some(t => {
+          const travelerName = `${t.firstName || ''} ${t.lastName || ''}`.trim().toLowerCase();
+          return travelerName && firstTravelerName && travelerName === firstTravelerName;
+        });
+      }
+      
+      // Only add if we have fewer travelers than expected AND customer traveler doesn't exist
+      if (rawTravelers.length < expectedTravelerCount && customer && !customerTravelerExists) {
+        console.log('⚠️ First traveler (customer traveler) is missing, adding it...');
+        
+        // Create customer traveler entry - prefer data from application.travelers if available
+        const customerTraveler = {
+          id: firstAppTraveler?.id || null, // Use ID from application traveler if available
+          firstName: firstAppTraveler?.firstName || customer.fullname?.split(' ')[0] || customer.customerName?.split(' ')[0] || '',
+          lastName: firstAppTraveler?.lastName || customer.fullname?.split(' ').slice(1).join(' ') || customer.customerName?.split(' ').slice(1).join(' ') || '',
+          email: firstAppTraveler?.email || customer.email,
+          // Add other traveler fields from application traveler or customer
+          passportNumber: firstAppTraveler?.passportNumber || customer.passportNumber,
+          passportExpiryDate: firstAppTraveler?.passportExpiryDate || customer.passportExpiryDate,
+          passportIssueDate: firstAppTraveler?.passportIssueDate || customer.passportIssueDate,
+          residenceCountry: firstAppTraveler?.residenceCountry || customer.residenceCountry,
+          dateOfBirth: firstAppTraveler?.dateOfBirth || customer.dateOfBirth,
+          _isCustomerTraveler: true
+        };
+        
+        console.log('✅ Adding customer traveler to travelers list:', {
+          ...customerTraveler,
+          name: `${customerTraveler.firstName} ${customerTraveler.lastName}`.trim()
+        });
+        rawTravelers.unshift(customerTraveler); // Add at the beginning
+      } else if (customerTravelerExists) {
+        console.log('✅ Customer traveler already exists in travelers list, skipping addition');
+      }
+      
+      // Remove duplicates before processing (by ID, then by name)
+      const seenIds = new Set();
+      const seenNames = new Set();
+      const uniqueTravelers = rawTravelers.filter(t => {
+        const travelerId = t.id;
+        const travelerName = `${t.firstName || ''} ${t.lastName || ''}`.trim().toLowerCase();
+        
+        // Check for duplicate by ID
+        if (travelerId && seenIds.has(travelerId)) {
+          console.log(`⚠️ Removing duplicate traveler by ID: ${travelerId}`, t);
+          return false;
+        }
+        if (travelerId) seenIds.add(travelerId);
+        
+        // Check for duplicate by name (if no ID or ID is null)
+        if (!travelerId && travelerName && seenNames.has(travelerName)) {
+          console.log(`⚠️ Removing duplicate traveler by name: ${travelerName}`, t);
+          return false;
+        }
+        if (travelerName) seenNames.add(travelerName);
+        
+        return true;
+      });
+      
+      console.log('📋 Travelers after deduplication:', uniqueTravelers.length, 'of', rawTravelers.length);
+      
+      // Filter out any customer entries that might have been included
+      // Be very lenient - include all entries unless they're clearly customers
+      // Assign temporary IDs to travelers with null IDs
+      travelers.value = uniqueTravelers.map((t, index) => {
+        // If traveler has no ID, assign a temporary one
+        if (!t.id || t.id === null || t.id === undefined) {
+          const tempId = `temp-traveler-${index}`;
+          console.log(`⚠️ Traveler has no ID, assigning temporary ID: ${tempId}`, t);
+          return { ...t, id: tempId, _isTempId: true };
+        }
+        return t;
+      }).filter(t => {
+        // Check if it's clearly customer data (has customer fields but NO traveler fields)
+        const hasCustomerFields = t.fullname || t.customerName || (t.name && !t.firstName && !t.lastName);
+        const hasTravelerFields = t.firstName || t.lastName || t.passportNumber || t.dateOfBirth || t.email;
+        
+        // Only exclude if it has customer fields but NO traveler fields at all
+        // BUT: if it's marked as customer traveler, include it
+        if (t._isCustomerTraveler) {
+          console.log('✅ Including customer traveler:', { id: t.id, firstName: t.firstName, lastName: t.lastName });
+          return true;
+        }
+        
+        if (hasCustomerFields && !hasTravelerFields) {
+          console.log('⚠️ Filtering out customer entry from travelers (has customer fields but no traveler fields):', {
+            id: t.id,
+            fullname: t.fullname,
+            customerName: t.customerName,
+            name: t.name
+          });
+          return false;
+        }
+        
+        // Include all other entries - they're travelers
+        console.log('✅ Including traveler:', { id: t.id, firstName: t.firstName, lastName: t.lastName, isTempId: t._isTempId });
+        return true;
+      });
+      
+      console.log('📋 Loaded travelers (filtered):', travelers.value.map(t => ({ 
+        id: t.id, 
+        name: `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+        isCustomerTraveler: t._isCustomerTraveler
+      })));
     } else {
       travelers.value = [];
     }
@@ -386,7 +522,18 @@ const loadTravelers = async () => {
     console.error("Error loading travelers:", error);
     // If API fails, check if travelers are in application object as fallback
     if (application.value?.travelers && Array.isArray(application.value.travelers)) {
-      travelers.value = application.value.travelers.map((t) => ({
+      // Filter out customers from fallback data too
+      const validTravelers = application.value.travelers.filter(t => {
+        if (!t.id || t.id === null || t.id === undefined) return false;
+        if (!t.firstName && !t.lastName) {
+          if (t.fullname || t.customerName || t.name) {
+            return false; // This is a customer, not a traveler
+          }
+        }
+        return true;
+      });
+      
+      travelers.value = validTravelers.map((t) => ({
         ...t,
         selected: false,
       }));
@@ -475,7 +622,7 @@ const nextPage = () => {
 // Set page title
 useHead({
   title: computed(
-    () => `${application.value?.applicationNumber || application.value?.id || 'Application'} - Travellers - iVisa`
+    () => `${application.value?.applicationNumber || application.value?.id || 'Application'} - Travelers - iVisa`
   ),
 });
 

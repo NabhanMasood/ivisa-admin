@@ -171,9 +171,11 @@
                   >Customer Name</span
                 >
                 <span class="text-sm text-gray-900 dark:text-white">{{
-                  application.customer?.fullname ||
+                  travelers.length > 0 
+                    ? travelers.map(t => `${t.firstName || ''} ${t.lastName || ''}`.trim() || 'Traveler').filter(Boolean).join(', ') 
+                    : (application.customer?.fullname ||
                   application.customer?.customerName ||
-                  "-"
+                       "-")
                 }}</span>
               </div>
               <div
@@ -308,8 +310,22 @@
                 <span class="text-sm text-gray-900 dark:text-white">{{
                   application.numberOfTravelers ||
                   application.travelers?.length ||
+                  travelers.length ||
                   "-"
                 }}</span>
+              </div>
+              <!-- Traveler Names -->
+              <div
+                v-if="travelers.length > 0"
+                class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
+              >
+                <span
+                  class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
+                  >Traveler Name(s)</span
+                >
+                <span class="text-sm text-gray-900 dark:text-white">
+                  {{ travelers.map(t => `${t.firstName || ''} ${t.lastName || ''}`.trim() || 'Traveler').filter(Boolean).join(', ') || '-' }}
+                </span>
               </div>
               <div
                 class="grid grid-cols-2 gap-4 py-5 border-b border-gray-200 dark:border-gray-700"
@@ -428,14 +444,14 @@
         <div v-if="isLoadingTravelers || isLoadingApplication" class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 p-8 text-center">
           <div class="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
         </div>
-        <div v-else-if="allPeople.length === 0" class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 p-8 text-center">
-          <div class="text-sm text-gray-500 dark:text-gray-400">No people found for this application.</div>
+        <div v-else-if="allTravelers.length === 0" class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 p-8 text-center">
+          <div class="text-sm text-gray-500 dark:text-gray-400">No travelers found for this application.</div>
         </div>
         <div v-else class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden" style="border-radius: 7px">
           <!-- People Name Tabs -->
           <div class="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-1 flex gap-2 overflow-x-auto">
            <button
-            v-for="person in allPeople"
+            v-for="person in allTravelers"
             :key="person.id"
             @click="selectedTravelerId = person.id"
             :class="[
@@ -457,7 +473,7 @@
 
           <!-- Additional Info Content for Selected Person -->
           <div class="p-6">
-            <div v-if="selectedTraveler || selectedPersonType === 'customer'" class="space-y-6">
+            <div v-if="selectedTraveler" class="space-y-6">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Additional Information for {{ selectedPersonName }}
               </h2>
@@ -475,11 +491,17 @@
                   :key="field.fieldId"
                   :class="[
                     'grid grid-cols-2 gap-4 py-3 border-b border-gray-200 dark:border-gray-700',
-                    isFieldRequested(field.fieldId) ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-l-yellow-500 pl-4' : ''
+                    isFieldRequested(field.fieldId) ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-l-yellow-500 pl-4' : '',
+                    field.isPassportField ? 'bg-blue-50 dark:bg-blue-900/10 border-l-4 border-l-blue-500 pl-4' : ''
                   ]"
                 >
                   <span class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400 flex items-center gap-2">
+                    <span v-if="field.isPassportField" class="text-blue-600 dark:text-blue-400">🛂</span>
                     {{ field.question }}
+                    <span v-if="field.isPassportField"
+                      class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded whitespace-nowrap">
+                      Passport Info
+                    </span>
                     <span v-if="isFieldRequested(field.fieldId)"
                       class="text-xs px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded whitespace-nowrap">
                       Resubmission Requested
@@ -500,7 +522,10 @@
                       </a>
                     </div>
                     <!-- Regular Value Display -->
-                    <span v-else>{{ field.value || '-' }}</span>
+                    <span v-else>
+                      <span v-if="field.value && field.value !== '-'">{{ field.value }}</span>
+                      <span v-else class="text-gray-400 dark:text-gray-500 italic">Not provided</span>
+                    </span>
                     <div v-if="field.submittedAt" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Submitted: {{ formatDate(field.submittedAt) }}
                     </div>
@@ -565,14 +590,14 @@
         <div v-if="isLoadingTravelers || isLoadingApplication" class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 p-8 text-center">
           <div class="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
         </div>
-        <div v-else-if="allPeople.length === 0" class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 p-8 text-center">
-          <div class="text-sm text-gray-500 dark:text-gray-400">No people found for this application.</div>
+        <div v-else-if="allTravelers.length === 0" class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 p-8 text-center">
+          <div class="text-sm text-gray-500 dark:text-gray-400">No travelers found for this application.</div>
         </div>
         <div v-else class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden" style="border-radius: 7px">
           <!-- People Name Tabs -->
           <div class="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-1 flex gap-2 overflow-x-auto">
             <button
-              v-for="person in allPeople"
+              v-for="person in allTravelers"
               :key="person.id"
               @click="selectedTravelerIdForDocuments = person.id"
               :class="[
@@ -944,82 +969,6 @@
     <div v-if="showBulkResubmitModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div class="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Request Additional Information</h3>
-        
-        <!-- Application Fields -->
-        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="font-medium">📄 Application Fields ({{ bulkRequestSelection.application.fieldIds.length }} existing, {{ bulkRequestSelection.application.newFields.length }} new)</h4>
-            <button 
-              @click="addNewApplicationField"
-              class="px-3 py-1 text-xs font-medium rounded-[6px] text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-            >
-              + Add New Field
-            </button>
-          </div>
-          
-          <!-- Existing Fields -->
-          <div class="space-y-2 max-h-48 overflow-y-auto mb-3">
-            <div v-for="field in getApplicationFields()" :key="field.id" class="flex items-start gap-2">
-              <input type="checkbox" :id="`app-field-${field.id}`" :value="field.id" v-model="bulkRequestSelection.application.fieldIds" />
-              <label :for="`app-field-${field.id}`" class="text-sm cursor-pointer">{{ field.question }}</label>
-            </div>
-          </div>
-          
-          <!-- New Custom Fields -->
-          <div v-if="bulkRequestSelection.application.newFields.length > 0" class="space-y-3 mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
-            <div v-for="(newField, index) in bulkRequestSelection.application.newFields" :key="index" class="space-y-2 p-2 bg-white dark:bg-gray-800 rounded border border-yellow-300 dark:border-yellow-600">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-yellow-800 dark:text-yellow-300">New Custom Field {{ index + 1 }}</span>
-                <button 
-                  @click="removeNewApplicationField(index)"
-                  class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-xs"
-                >
-                  Remove
-                </button>
-              </div>
-              <input 
-                v-model="newField.question" 
-                type="text" 
-                placeholder="Field question (e.g., Please provide additional passport copy)"
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
-              />
-              <div class="grid grid-cols-2 gap-2">
-                <select v-model="newField.fieldType" class="px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded">
-                  <option value="text">Text</option>
-                  <option value="number">Number</option>
-                  <option value="date">Date</option>
-                  <option value="textarea">Textarea</option>
-                  <option value="dropdown">Dropdown</option>
-                  <option value="upload">Upload</option>
-                </select>
-                <label class="flex items-center gap-2 text-xs">
-                  <input type="checkbox" v-model="newField.isRequired" />
-                  Required
-                </label>
-              </div>
-              <div v-if="newField.fieldType === 'upload'" class="space-y-1">
-                <input 
-                  v-model="newField.allowedFileTypes" 
-                  type="text" 
-                  placeholder="Allowed file types (e.g., pdf,jpg,png)"
-                  class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
-                />
-              </div>
-              <div v-if="newField.fieldType === 'dropdown'" class="space-y-1">
-                <input 
-                  v-model="newField.options" 
-                  type="text" 
-                  placeholder="Options (comma-separated)"
-                  class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <textarea v-if="bulkRequestSelection.application.fieldIds.length > 0 || bulkRequestSelection.application.newFields.length > 0" 
-            v-model="bulkRequestSelection.application.note" rows="2"
-            class="w-full mt-3 border border-gray-300 dark:border-gray-700 p-2 rounded text-sm" placeholder="Optional note..."></textarea>
-        </div>
 
         <!-- Traveler Fields -->
         <div v-for="traveler in validTravelersForModal" :key="traveler.id" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
@@ -1238,27 +1187,111 @@ const selectAll = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 10;
 
-// All people in application (customer + travelers)
+// Helper function to check if a person has field responses
+const hasFieldResponses = (person) => {
+  if (person.type === 'customer') {
+    // Check if customer has application-level field responses
+    const fieldResponses = application.value?.fieldResponses;
+    if (!fieldResponses) return false;
+    
+    const customerData = fieldResponses.application || fieldResponses;
+    // Check if it's an array with items or an object with keys
+    if (Array.isArray(customerData)) {
+      return customerData.length > 0;
+    }
+    if (typeof customerData === 'object' && customerData !== null) {
+      return Object.keys(customerData).length > 0;
+    }
+    return false;
+  } else if (person.type === 'traveler') {
+    // IMPORTANT: Traveler 1 (customer traveler) has responses stored at application level
+    // Check if this is traveler 1 (customer traveler)
+    const isTraveler1 = person.data?._isCustomerTraveler || 
+                        (application.value?.travelers?.[0]?.id === person.id) ||
+                        (application.value?.customer?.email && person.data?.email === application.value.customer.email);
+    
+    if (isTraveler1) {
+      // Traveler 1's responses are stored at application level
+      const fieldResponses = application.value?.fieldResponses;
+      const customerData = fieldResponses?.application || fieldResponses || {};
+      
+      if (Array.isArray(customerData)) {
+        return customerData.length > 0;
+      }
+      if (typeof customerData === 'object' && customerData !== null) {
+        return Object.keys(customerData).length > 0;
+      }
+      return false;
+    }
+    
+    // Regular traveler - check if traveler has field responses
+    // First check if traveler has fieldResponses directly on the data
+    let travelerData = person.data?.fieldResponses;
+    
+    // If not found, check in application.value.fieldResponses.travelers array
+    if (!travelerData && application.value?.fieldResponses?.travelers) {
+      const travelersArray = application.value.fieldResponses.travelers;
+      const travelerResponse = travelersArray.find(t => t.travelerId === person.id);
+      if (travelerResponse && travelerResponse.responses) {
+        // Convert array of responses to object keyed by fieldId
+        travelerData = {};
+        travelerResponse.responses.forEach(response => {
+          const fieldId = response.fieldId;
+          if (response.filePath) {
+            travelerData[fieldId] = {
+              filePath: response.filePath,
+              fileName: response.fileName,
+              fileSize: response.fileSize,
+              submittedAt: response.submittedAt
+            };
+          } else {
+            travelerData[fieldId] = {
+              value: response.value,
+              submittedAt: response.submittedAt
+            };
+          }
+        });
+      }
+    }
+    
+    if (!travelerData) return false;
+    
+    if (typeof travelerData === 'object' && travelerData !== null) {
+      return Object.keys(travelerData).length > 0;
+    }
+    return false;
+  }
+  return false;
+};
+
+// All people in application (customer + travelers) - only include those with field responses
 const allPeople = computed(() => {
   const people = [];
   
-  // Add customer (application filler) 
+  // Add customer (application filler) only if they have field responses
   if (application.value?.customer) {
     const customer = application.value.customer;
     const customerName = customer.fullname || customer.customerName || customer.name || 'Application Filler';
     
     console.log('👤 Customer:', { id: customer.id, name: customerName });
     
-    people.push({
+    const customerPerson = {
       id: `customer-${customer.id || 'filler'}`,
       name: customerName,
       type: 'customer',
       data: customer
-    });
+    };
+    
+    // Only add customer if they have field responses
+    if (hasFieldResponses(customerPerson)) {
+      people.push(customerPerson);
+      console.log('✅ Customer has field responses, adding to list');
+    } else {
+      console.log('❌ Customer has no field responses, skipping');
+    }
   }
   
-  // ✅ FILTER: Only add travelers that have a valid ID
-  // This removes the duplicate customer entry that has no ID
+  // ✅ FILTER: Only add travelers that have a valid ID AND field responses
   const validTravelers = travelers.value.filter(t => t.id !== null && t.id !== undefined);
   
   console.log('🚶 Travelers array (filtered):', validTravelers);
@@ -1268,29 +1301,107 @@ const allPeople = computed(() => {
     
     console.log(`  Traveler ${index}:`, { id: traveler.id, name: travelerName });
     
-    people.push({
+    const travelerPerson = {
       id: traveler.id,
       name: travelerName,
       type: 'traveler',
       data: traveler
-    });
+    };
+    
+    // Only add traveler if they have field responses
+    if (hasFieldResponses(travelerPerson)) {
+      people.push(travelerPerson);
+      console.log(`✅ Traveler ${index} has field responses, adding to list`);
+    } else {
+      console.log(`❌ Traveler ${index} has no field responses, skipping`);
+    }
   });
   
-  console.log('📋 Final allPeople:', people);
+  console.log('📋 Final allPeople (with data only):', people);
   
   return people;
 });
 
-// Selected traveler computed
+// Only travelers (for travelers tab) - excludes customer
+// Show ALL travelers, not just those with field responses
+const allTravelers = computed(() => {
+  const people = [];
+  
+  // Get all travelers from travelers.value (not filtered by field responses)
+  // All travelers should have IDs now (either real or temporary)
+  const validTravelers = travelers.value.filter(t => t.id !== null && t.id !== undefined);
+  
+  console.log('🔍 allTravelers - raw travelers.value:', travelers.value.map(t => ({ 
+    id: t.id, 
+    firstName: t.firstName, 
+    lastName: t.lastName,
+    fullname: t.fullname,
+    customerName: t.customerName,
+    passportNumber: t.passportNumber,
+    isTempId: t._isTempId
+  })));
+  console.log('🔍 allTravelers - validTravelers (after ID filter):', validTravelers.map(t => ({ 
+    id: t.id, 
+    firstName: t.firstName, 
+    lastName: t.lastName,
+    isTempId: t._isTempId
+  })));
+  
+  validTravelers.forEach((traveler, index) => {
+    // Only skip if it's clearly customer data
+    // If it has customer-specific fields (fullname, customerName) but NO traveler fields at all,
+    // then it's likely a customer entry that was incorrectly included
+    const hasCustomerFields = traveler.fullname || traveler.customerName || (traveler.name && !traveler.firstName && !traveler.lastName);
+    const hasTravelerFields = traveler.firstName || traveler.lastName || traveler.passportNumber || traveler.dateOfBirth || traveler.email;
+    
+    // Only skip if it has customer fields but NO traveler fields at all
+    if (hasCustomerFields && !hasTravelerFields) {
+      console.log('⚠️ Skipping entry that looks like customer data (has customer fields but no traveler fields):', {
+        id: traveler.id,
+        fullname: traveler.fullname,
+        customerName: traveler.customerName,
+        name: traveler.name
+      });
+      return; // Skip - this looks like customer data
+    }
+    
+    // Include all other entries - they're travelers
+    const travelerName = `${traveler.firstName || ''} ${traveler.lastName || ''}`.trim() || `Traveler ${index + 1}`;
+    
+    const travelerPerson = {
+      id: traveler.id,
+      name: travelerName,
+      type: 'traveler',
+      data: traveler
+    };
+    
+    console.log(`✅ Including traveler ${index + 1}:`, { id: traveler.id, name: travelerName });
+    people.push(travelerPerson);
+  });
+  
+  console.log('🔍 allTravelers (all travelers, not filtered by responses):', people.map(t => ({ id: t.id, name: t.name, type: t.type })));
+  
+  return people;
+});
+
+// Selected traveler computed - prefer travelers
 const selectedTraveler = computed(() => {
   if (!selectedTravelerId.value) return null;
+  // First try to find in travelers (for Additional Info tab)
+  const traveler = allTravelers.value.find(p => p.id === selectedTravelerId.value);
+  if (traveler) return traveler.data;
+  // Fallback to allPeople (for other cases)
   const person = allPeople.value.find(p => p.id === selectedTravelerId.value);
   return person ? person.data : null;
 });
 
-// Selected person name
+// Selected person name - prefer travelers, fallback to allPeople
 const selectedPersonName = computed(() => {
   if (!selectedTravelerId.value) return '';
+  // First try to find in travelers (for Additional Info tab)
+  const traveler = allTravelers.value.find(p => p.id === selectedTravelerId.value);
+  if (traveler) return traveler.name;
+  // Fallback to allPeople (for other cases)
   const person = allPeople.value.find(p => p.id === selectedTravelerId.value);
   return person ? person.name : '';
 });
@@ -1303,11 +1414,25 @@ const selectedPersonType = computed(() => {
 });
 
 const validTravelersForModal = computed(() => {
-  return travelers.value.filter(t => t.id !== null && t.id !== undefined)
+  // Filter out customers - only include actual travelers
+  return travelers.value.filter(t => {
+    // Must have a valid ID
+    if (!t.id || t.id === null || t.id === undefined) return false;
+    // Must have firstName or lastName (travelers have these, customers don't)
+    if (!t.firstName && !t.lastName) {
+      // If it has fullname/customerName but no firstName, it's likely a customer
+      if (t.fullname || t.customerName || t.name) {
+        return false; // This is a customer, not a traveler
+      }
+    }
+    return true;
+  });
 })
 // Additional info fields state
 const isLoadingFields = ref(false);
 const fieldDefinitions = ref([]);
+// Store traveler-specific field responses that are loaded on demand
+const travelerFieldResponsesCache = ref({});
 
 // Normalize responses helper: supports array or object; returns object keyed by fieldId
 const normalizeResponses = (raw) => {
@@ -1337,6 +1462,43 @@ const normalizeResponses = (raw) => {
   return raw;
 };
 
+// Load traveler-specific field responses
+const loadTravelerFieldResponses = async (travelerId) => {
+  if (!applicationId.value || !travelerId) return {};
+  
+  try {
+    console.log('🔄 Loading field responses for traveler:', travelerId);
+    const { getFieldsWithResponsesByApplication } = useVisaProductFieldsApi();
+    const merged = await getFieldsWithResponsesByApplication(applicationId.value, travelerId);
+    const data = merged?.data;
+    const list = Array.isArray(data?.fields) ? data.fields : (Array.isArray(data) ? data : []);
+    
+    // Extract responses from the list
+    const responses = {};
+    (list || []).forEach((f) => {
+      const fid = f?.id ?? f?.fieldId;
+      const r = f?.response;
+      if (fid == null || !r) return;
+      if (r && typeof r === 'object' && 'filePath' in r) {
+        responses[fid] = {
+          filePath: r.filePath,
+          fileName: r.fileName,
+          fileSize: r.fileSize,
+          submittedAt: r.submittedAt,
+        };
+      } else if (r && (r.value !== undefined || r.submittedAt)) {
+        responses[fid] = { value: r.value, submittedAt: r.submittedAt };
+      }
+    });
+    
+    console.log('✅ Loaded field responses for traveler:', travelerId, 'Count:', Object.keys(responses).length);
+    return responses;
+  } catch (error) {
+    console.error('❌ Error loading traveler field responses:', error);
+    return {};
+  }
+};
+
 // Load application-level additional info responses and attach to application.fieldResponses
 const loadApplicationResponses = async () => {
   if (!applicationId.value) return;
@@ -1348,6 +1510,26 @@ const loadApplicationResponses = async () => {
 
     // Update field definitions from combined payload for consistent ordering and to include admin fields
     if (Array.isArray(list)) {
+      // Debug: Log raw data from backend before processing
+      console.log('📋 Raw fields from backend:', list.map(f => ({
+        id: f?.id ?? f?.fieldId,
+        question: f?.question,
+        displayOrder: f?.displayOrder,
+        fieldType: f?.fieldType
+      })));
+      
+      // Check for negative field IDs (resubmission fields) in the response
+      const negativeFieldIds = list.filter(f => {
+        const id = f?.id ?? f?.fieldId;
+        return id !== null && id !== undefined && Number(id) < 0;
+      });
+      if (negativeFieldIds.length > 0) {
+        console.log('✅ Found resubmission fields in getFieldsWithResponsesByApplication:', negativeFieldIds.map(f => ({
+          id: f?.id ?? f?.fieldId,
+          question: f?.question
+        })));
+      }
+      
       fieldDefinitions.value = list
         .map((f) => ({
           id: f?.id ?? f?.fieldId,
@@ -1356,6 +1538,14 @@ const loadApplicationResponses = async () => {
           displayOrder: f?.displayOrder ?? 999,
         }))
         .sort((a, b) => (a.displayOrder ?? 999) - (b.displayOrder ?? 999));
+      
+      // Debug: Log sorted fields
+      console.log('📋 Sorted fields order:', fieldDefinitions.value.map(f => ({
+        id: f.id,
+        displayOrder: f.displayOrder,
+        question: f.question,
+        fieldType: f.fieldType
+      })));
     }
 
     // Synthesize application-level responses from the combined list
@@ -1396,6 +1586,198 @@ const loadApplicationResponses = async () => {
   }
 };
 
+// Helper function to get fields from resubmission requests
+const getFieldsFromResubmissionRequests = (requests, travelerId = null) => {
+  const fields = [];
+  if (!requests || !Array.isArray(requests)) return fields;
+  
+  console.log('🔍 getFieldsFromResubmissionRequests called:', {
+    requestsCount: requests.length,
+    travelerId,
+    requests: requests.map(r => ({
+      id: r.id,
+      target: r.target,
+      travelerId: r.travelerId,
+      fulfilledAt: r.fulfilledAt,
+      fieldIds: r.fieldIds,
+      newFieldsCount: r.newFields?.length || 0
+    }))
+  });
+  
+  requests.forEach((req, reqIndex) => {
+    console.log(`🔍 Processing request ${reqIndex + 1}:`, {
+      id: req.id,
+      target: req.target,
+      travelerId: req.travelerId,
+      currentTravelerId: travelerId,
+      fieldIds: req.fieldIds,
+      newFieldsCount: req.newFields?.length || 0
+    });
+    
+    // Process both fulfilled and non-fulfilled requests
+    // (fulfilled requests still have the field definitions we need)
+    // if (req.fulfilledAt) {
+    //   return; // Skip fulfilled requests
+    // }
+    
+    // Check if this request is for the current person
+    // If travelerId is null, we're processing customer (application-level)
+    // If travelerId is not null, we're processing a traveler
+    if (travelerId === null) {
+      // Processing customer - only include application-level requests
+      if (req.target !== 'application') {
+        console.log(`  ⏭️ Skipping: target is "${req.target}", expected "application"`);
+        return; // Skip traveler requests when processing customer
+      }
+    } else {
+      // Processing traveler - only include requests for this specific traveler
+      if (req.target !== 'traveler' || req.travelerId !== travelerId) {
+        console.log(`  ⏭️ Skipping: target="${req.target}", req.travelerId=${req.travelerId}, currentTravelerId=${travelerId}`);
+        return; // Skip application requests or requests for other travelers
+      }
+    }
+    
+    console.log(`  ✅ Request matches! Processing fields...`);
+    
+    // Get field IDs from the request
+    const fieldIds = req.fieldIds || [];
+    console.log(`  📋 Field IDs:`, fieldIds);
+    
+    // Get new fields from the request
+    if (req.newFields && Array.isArray(req.newFields)) {
+      console.log(`  📋 New Fields:`, req.newFields);
+      console.log(`  📋 Field IDs:`, fieldIds);
+      req.newFields.forEach((newField, index) => {
+        // Try to get field ID from newField.id first (backend might include this)
+        // Fall back to fieldIds array index if id is not in newField
+        let fieldId = newField.id;
+        if (fieldId === undefined || fieldId === null) {
+          // Fallback: match by index from fieldIds array
+          // Make sure we have a fieldId at this index
+          if (index < fieldIds.length) {
+            fieldId = fieldIds[index];
+          } else {
+            console.log(`  ⚠️ No fieldId at index ${index}, fieldIds length: ${fieldIds.length}`);
+            return; // Skip this field if we can't get an ID
+          }
+        }
+        
+        // Ensure fieldId is a number (could be string from API)
+        fieldId = Number(fieldId);
+        
+        console.log(`  🔹 Field ${index}: fieldId=${fieldId}, question="${newField.question}"`);
+        if (fieldId !== undefined && fieldId !== null && !isNaN(fieldId)) {
+          fields.push({
+            id: fieldId, // Use the negative ID
+            question: newField.question || `Field ${fieldId}`,
+            fieldType: newField.fieldType || 'text',
+            displayOrder: newField.displayOrder || 999,
+            isRequired: newField.isRequired || false,
+            options: newField.options || [],
+            allowedFileTypes: newField.allowedFileTypes || []
+          });
+          console.log(`  ✅ Added field: ${fieldId} - "${newField.question}"`);
+        } else {
+          console.log(`  ⚠️ Field ID is invalid at index ${index}: ${fieldId}`);
+        }
+      });
+    } else {
+      console.log(`  ⚠️ No newFields array found or it's not an array`);
+    }
+  });
+  
+  console.log(`🔍 Total fields extracted: ${fields.length}`, fields);
+  
+  return fields;
+};
+
+// Helper function to find a field in resubmission requests by field ID
+const findFieldInResubmissionRequests = (fieldId, travelerId = null) => {
+  // Check both activeResubmissionRequests and application.value.resubmissionRequests
+  const allResubmissionRequests = [
+    ...(activeResubmissionRequests.value || []),
+    ...(application.value?.resubmissionRequests || [])
+  ];
+  
+  if (!allResubmissionRequests || allResubmissionRequests.length === 0) {
+    return null;
+  }
+  
+  // Remove duplicates by ID if they exist
+  const uniqueRequests = allResubmissionRequests.filter((req, index, self) => 
+    index === self.findIndex(r => r.id === req.id)
+  );
+  
+  const numericFieldId = Number(fieldId);
+  
+  for (const req of uniqueRequests) {
+    // Check both fulfilled and non-fulfilled requests
+    // (fulfilled requests still have the field definitions we need)
+    // if (req.fulfilledAt) {
+    //   continue; // Skip fulfilled requests
+    // }
+    
+    // Check if this request is for the current person
+    // If travelerId is null, we're processing customer (application-level)
+    // If travelerId is not null, we're processing a traveler
+    if (travelerId === null) {
+      // Processing customer - only check application-level requests
+      if (req.target !== 'application') {
+        continue; // Skip traveler requests when processing customer
+      }
+    } else {
+      // Processing traveler - only check requests for this specific traveler
+      if (req.target !== 'traveler' || req.travelerId !== travelerId) {
+        continue; // Skip application requests or requests for other travelers
+      }
+    }
+    
+    const fieldIds = req.fieldIds || [];
+    const newFields = req.newFields || [];
+    
+    // First, try to find by newField.id (backend might include this)
+    if (newFields.length > 0) {
+      const fieldByNewFieldId = newFields.find(f => {
+        const fId = f.id !== undefined && f.id !== null ? Number(f.id) : null;
+        return fId === numericFieldId;
+      });
+      if (fieldByNewFieldId) {
+        console.log(`  ✅ Found by newField.id: ${numericFieldId} -> "${fieldByNewFieldId.question}"`);
+        return {
+          id: fieldId,
+          question: fieldByNewFieldId.question || `Field ${fieldId}`,
+          fieldType: fieldByNewFieldId.fieldType || 'text',
+          displayOrder: fieldByNewFieldId.displayOrder || 999,
+          isRequired: fieldByNewFieldId.isRequired || false
+        };
+      }
+    }
+    
+    // Fallback: Find the index of this fieldId in fieldIds array
+    // This is the primary method since newFields might not have id properties
+    const fieldIndex = fieldIds.findIndex(id => {
+      const idNum = Number(id);
+      return idNum === numericFieldId;
+    });
+    
+    if (fieldIndex !== -1 && fieldIndex < newFields.length) {
+      const newField = newFields[fieldIndex];
+      console.log(`  ✅ Found by fieldIds index: ${fieldIndex} -> "${newField.question}"`);
+      return {
+        id: fieldId,
+        question: newField.question || `Field ${fieldId}`,
+        fieldType: newField.fieldType || 'text',
+        displayOrder: newField.displayOrder || 999,
+        isRequired: newField.isRequired || false
+      };
+    } else if (fieldIndex !== -1) {
+      console.log(`  ⚠️ Found fieldId ${numericFieldId} at index ${fieldIndex} but no corresponding newField`);
+    }
+  }
+  
+  return null;
+};
+
 // Additional info fields for selected person
 const additionalInfoFields = computed(() => {
   if (!selectedTravelerId.value) return [];
@@ -1403,8 +1785,49 @@ const additionalInfoFields = computed(() => {
   const fields = [];
   
   // Determine if selected person is customer or traveler
-  const selectedPerson = allPeople.value.find(p => p.id === selectedTravelerId.value);
+  // First try to find in allTravelers (includes all travelers, even without responses)
+  let selectedPerson = allTravelers.value.find(p => p.id === selectedTravelerId.value);
+  // If not found, try allPeople (for customers or travelers with responses)
+  if (!selectedPerson) {
+    selectedPerson = allPeople.value.find(p => p.id === selectedTravelerId.value);
+  }
   if (!selectedPerson) return [];
+  
+  // Get resubmission request fields for this person
+  const travelerIdForResubmission = selectedPerson.type === 'traveler' ? selectedPerson.id : null;
+  
+  // Check both activeResubmissionRequests and application.value.resubmissionRequests
+  const allResubmissionRequests = [
+    ...(activeResubmissionRequests.value || []),
+    ...(application.value?.resubmissionRequests || [])
+  ];
+  
+  // Remove duplicates by ID if they exist
+  const uniqueRequests = allResubmissionRequests.filter((req, index, self) => 
+    index === self.findIndex(r => r.id === req.id)
+  );
+  
+  console.log('🔍 Resubmission Requests Debug:', {
+    activeResubmissionRequestsCount: activeResubmissionRequests.value?.length || 0,
+    applicationResubmissionRequestsCount: application.value?.resubmissionRequests?.length || 0,
+    uniqueRequestsCount: uniqueRequests.length,
+    activeResubmissionRequestsValue: activeResubmissionRequests.value, // Log the full value
+    requests: uniqueRequests.map(r => ({
+      id: r.id,
+      target: r.target,
+      travelerId: r.travelerId,
+      fulfilledAt: r.fulfilledAt,
+      fieldIds: r.fieldIds,
+      newFieldsCount: r.newFields?.length || 0,
+      newFields: r.newFields // Log the actual newFields to see structure
+    })),
+    fullApplicationObject: application.value // Log full application to see structure
+  });
+  
+  const resubmissionFields = getFieldsFromResubmissionRequests(
+    uniqueRequests, 
+    travelerIdForResubmission
+  );
   
   console.log('=== ADDITIONAL INFO DEBUG START ===');
   console.log('Selected Person Type:', selectedPerson.type);
@@ -1451,10 +1874,127 @@ const additionalInfoFields = computed(() => {
     }
   } else {
     // Get traveler-level field responses from traveler entity
-    // The fieldResponses are stored directly on the traveler entity
+    // IMPORTANT: Traveler 1 (customer traveler) has responses stored at application level
+    // Check if this is traveler 1 (customer traveler)
+    const isTraveler1 = selectedPerson.data?._isCustomerTraveler || 
+                        (application.value?.travelers?.[0]?.id === selectedPerson.id) ||
+                        (application.value?.customer?.email && selectedPerson.data?.email === application.value.customer.email);
+    
+    if (isTraveler1) {
+      console.log('TRAVELER 1 (Customer Traveler): Using application-level fieldResponses');
+      // Traveler 1's responses are stored at application level
+      if (application.value?.fieldResponses) {
+        const fieldResponses = application.value.fieldResponses;
+        const rawData = fieldResponses.application || fieldResponses || {};
+        
+        // CRITICAL: If it's an array, convert it to an object keyed by fieldId
+        if (Array.isArray(rawData)) {
+          console.log('TRAVELER 1: Converting array to object keyed by fieldId');
+          personData = {};
+          rawData.forEach((item, index) => {
+            const fieldId = item.fieldId || String(index);
+            if (item.filePath) {
+              personData[fieldId] = {
+                filePath: item.filePath,
+                fileName: item.fileName,
+                fileSize: item.fileSize,
+                submittedAt: item.submittedAt
+              };
+            } else {
+              personData[fieldId] = {
+                value: item.value,
+                submittedAt: item.submittedAt
+              };
+            }
+          });
+          console.log('TRAVELER 1: Converted personData:', JSON.stringify(personData, null, 2));
+        } else {
+          personData = rawData;
+          console.log('TRAVELER 1: Final personData (object):', JSON.stringify(personData, null, 2));
+        }
+      }
+    } else {
+      // Regular traveler - get responses from traveler entity
+      // First check if traveler has fieldResponses directly on the data
     console.log('TRAVELER: Raw selectedPerson.data.fieldResponses:', JSON.stringify(selectedPerson.data?.fieldResponses, null, 2));
-    if (selectedPerson.data?.fieldResponses) {
-      personData = selectedPerson.data.fieldResponses;
+      personData = selectedPerson.data?.fieldResponses;
+    }
+    
+    // If not found for regular travelers, check in application.value.fieldResponses.travelers array
+    if (!personData && !isTraveler1 && application.value?.fieldResponses?.travelers) {
+      console.log('TRAVELER: Checking application.value.fieldResponses.travelers array...');
+      const travelersArray = application.value.fieldResponses.travelers;
+      const travelerResponse = travelersArray.find(t => t.travelerId === selectedPerson.id);
+      if (travelerResponse && travelerResponse.responses) {
+        console.log('TRAVELER: Found in travelers array, converting to object...');
+        // Convert array of responses to object keyed by fieldId
+        personData = {};
+        travelerResponse.responses.forEach(response => {
+          const fieldId = response.fieldId;
+          if (response.filePath) {
+            personData[fieldId] = {
+              filePath: response.filePath,
+              fileName: response.fileName,
+              fileSize: response.fileSize,
+              submittedAt: response.submittedAt
+            };
+          } else {
+            personData[fieldId] = {
+              value: response.value,
+              submittedAt: response.submittedAt
+            };
+          }
+        });
+        console.log('TRAVELER: Converted from array to object:', JSON.stringify(personData, null, 2));
+      }
+    }
+    
+    // If still not found, try checking if responses are stored in a different format
+    // Some APIs might return responses directly on the traveler object with a different structure
+    if (!personData) {
+      console.log('TRAVELER: No fieldResponses found in standard locations, checking alternative formats...');
+      
+      // Check if responses might be in application.value directly (some APIs structure differently)
+      if (application.value?.travelers) {
+        const travelerInApp = application.value.travelers.find(t => t.id === selectedPerson.id);
+        if (travelerInApp?.fieldResponses) {
+          console.log('TRAVELER: Found fieldResponses in application.value.travelers');
+          personData = travelerInApp.fieldResponses;
+        }
+      }
+      
+      // Check if there's a fieldResponses object keyed by traveler ID at the application level
+      if (!personData && application.value?.fieldResponses) {
+        const fieldResponses = application.value.fieldResponses;
+        // Check if there's a property matching the traveler ID
+        if (fieldResponses[selectedPerson.id]) {
+          console.log('TRAVELER: Found fieldResponses keyed by traveler ID in application.value.fieldResponses');
+          personData = fieldResponses[selectedPerson.id];
+        }
+      }
+      
+      // Check cache for previously loaded responses
+      if (!personData && travelerFieldResponsesCache.value[selectedPerson.id]) {
+        console.log('TRAVELER: Found fieldResponses in cache');
+        personData = travelerFieldResponsesCache.value[selectedPerson.id];
+      }
+      
+      if (!personData) {
+        console.log('TRAVELER: Could not find fieldResponses for traveler:', selectedPerson.id);
+        console.log('TRAVELER: Available data structures:', {
+          hasTravelerData: !!selectedPerson.data,
+          travelerDataKeys: selectedPerson.data ? Object.keys(selectedPerson.data) : [],
+          hasAppFieldResponses: !!application.value?.fieldResponses,
+          appFieldResponsesKeys: application.value?.fieldResponses ? Object.keys(application.value.fieldResponses) : [],
+          hasAppTravelers: !!application.value?.travelers,
+          appTravelersCount: application.value?.travelers?.length || 0,
+          cacheHasData: !!travelerFieldResponsesCache.value[selectedPerson.id],
+          travelerObject: selectedPerson.data // Log full traveler object to see structure
+        });
+      } else {
+        console.log('TRAVELER: Final personData:', JSON.stringify(personData, null, 2));
+      }
+    } else {
       console.log('TRAVELER: Final personData:', JSON.stringify(personData, null, 2));
     }
   }
@@ -1466,19 +2006,25 @@ const additionalInfoFields = computed(() => {
   
   console.log('Field Definitions Count:', fieldDefinitions.value.length);
   console.log('Field Definitions:', fieldDefinitions.value.map(f => ({ id: f.id, question: f.question, displayOrder: f.displayOrder })));
+  console.log('Resubmission Fields Count:', resubmissionFields.length);
+  console.log('Resubmission Fields:', resubmissionFields.map(f => ({ id: f.id, question: f.question })));
   console.log('PersonData Keys:', Object.keys(personData));
   console.log('PersonData:', JSON.stringify(personData, null, 2));
   
-  // CRITICAL: Iterate over fieldDefinitions FIRST (sorted by displayOrder)
+  // Combine regular fields and resubmission request fields
+  const allFieldDefinitions = [...fieldDefinitions.value, ...resubmissionFields];
+  
+  // CRITICAL: Iterate over allFieldDefinitions FIRST (sorted by displayOrder)
   // This ensures fields are displayed in the correct order and matched correctly
   // 
   // How this handles new fields:
   // - New fields added to fieldDefinitions will be processed, but won't have responses
   //   in old applications, so they won't be displayed (correct behavior)
   // - Old responses are matched by fieldId, so they'll still work even if field order changes
+  // - Responses with negative field IDs are matched to resubmission request fields
   // - Orphaned responses (from deleted fields) are shown at the end
-  // - Order is always determined by displayOrder in fieldDefinitions, ensuring consistency
-  fieldDefinitions.value.forEach((fieldDef, index) => {
+  // - Order is always determined by displayOrder in allFieldDefinitions, ensuring consistency
+  allFieldDefinitions.forEach((fieldDef, index) => {
     console.log(`\n--- Processing Field Definition ${index + 1} ---`);
     console.log('FieldDef ID:', fieldDef.id, 'Type:', typeof fieldDef.id);
     console.log('FieldDef Question:', fieldDef.question);
@@ -1486,25 +2032,34 @@ const additionalInfoFields = computed(() => {
     // Try to find matching response by checking all possible key formats
     const fieldIdNum = Number(fieldDef.id);
     const fieldIdStr = String(fieldDef.id);
+    const fieldIdNumStr = String(fieldIdNum); // String representation of numeric ID
     
     console.log('Looking for response with ID:', fieldDef.id, 'as number:', fieldIdNum, 'as string:', fieldIdStr);
     
     // Check multiple key formats: number, string, and try all keys
-    let fieldData = personData[fieldDef.id] || personData[fieldIdStr] || personData[fieldIdNum];
+    // For negative IDs, we need to check both "-1" and -1 formats
+    let fieldData = personData[fieldDef.id] || personData[fieldIdStr] || personData[fieldIdNum] || personData[fieldIdNumStr];
     console.log('Direct lookup result:', fieldData ? 'FOUND' : 'NOT FOUND');
     
     // If still not found, search through all keys for a match
+    // This is especially important for negative field IDs which might be stored as strings
     if (!fieldData) {
       console.log('Searching through all keys...');
       const matchingKey = Object.keys(personData).find(key => {
         const keyNum = Number(key);
         const keyStr = String(key);
-        const matches = (keyNum === fieldDef.id) || 
-               (keyStr === fieldIdStr) || 
+        // Try multiple comparison methods to handle string/number mismatches
+        const matches = 
+          (keyNum === fieldDef.id) || 
                (keyNum === fieldIdNum) ||
-               (String(keyNum) === String(fieldDef.id));
+          (keyStr === fieldIdStr) || 
+          (keyStr === fieldIdNumStr) ||
+          (String(keyNum) === String(fieldDef.id)) ||
+          (String(keyNum) === String(fieldIdNum)) ||
+          // For negative IDs, also check if they're the same absolute value and both negative
+          (keyNum < 0 && fieldIdNum < 0 && Math.abs(keyNum) === Math.abs(fieldIdNum));
         if (matches) {
-          console.log(`  Found match! Key: "${key}" (num: ${keyNum}, str: "${keyStr}") matches fieldDef.id: ${fieldDef.id}`);
+          console.log(`  Found match! Key: "${key}" (num: ${keyNum}, str: "${keyStr}") matches fieldDef.id: ${fieldDef.id} (num: ${fieldIdNum})`);
         }
         return matches;
       });
@@ -1513,6 +2068,12 @@ const additionalInfoFields = computed(() => {
         console.log('Matched via key search:', matchingKey);
       } else {
         console.log('  No match found in keys:', Object.keys(personData));
+        console.log('  Field definition ID details:', {
+          original: fieldDef.id,
+          asNumber: fieldIdNum,
+          asString: fieldIdStr,
+          asNumString: fieldIdNumStr
+        });
       }
     }
     
@@ -1540,10 +2101,281 @@ const additionalInfoFields = computed(() => {
   console.log('\n--- Checking for orphaned responses ---');
   console.log('Fields matched so far:', fields.length);
   
+  // Check for passport fields with special keys (added when addPassportDetailsLater is true)
+  const passportFieldKeys = ['_passport_number', '_passport_expiry_date', '_residence_country', '_has_schengen_visa'];
+  const passportFieldLabels = {
+    '_passport_number': 'Passport Number',
+    '_passport_expiry_date': 'Passport Expiration Date',
+    '_residence_country': 'Residence Country',
+    '_has_schengen_visa': 'Do you have a valid visa or residence permit from the Schengen Area, USA, Australia, Canada, UK, Japan, Norway, New Zealand, Ireland, or Switzerland?'
+  };
+  const passportFieldTypes = {
+    '_passport_number': 'text',
+    '_passport_expiry_date': 'date',
+    '_residence_country': 'text',
+    '_has_schengen_visa': 'text'
+  };
+  
+  // Map passport field keys to traveler object properties
+  const passportFieldToTravelerProp = {
+    '_passport_number': 'passportNumber',
+    '_passport_expiry_date': 'passportExpiryDate',
+    '_residence_country': 'residenceCountry',
+    '_has_schengen_visa': 'hasSchengenVisa'
+  };
+  
+  // Helper function to detect if this is traveler 1 (customer traveler)
+  const isTraveler1Check = () => {
+    if (selectedPerson?.type !== 'traveler') return false;
+    
+    // Check multiple ways to identify traveler 1
+    return (
+      selectedPerson.data?._isCustomerTraveler ||
+      // Check if it's the first traveler in application.travelers (handle null IDs and temp IDs)
+      (application.value?.travelers?.[0] && (
+        application.value.travelers[0].id === selectedPerson.id ||
+        String(application.value.travelers[0].id) === String(selectedPerson.id) ||
+        (application.value.travelers[0].id === null && String(selectedPerson.id).startsWith('temp-traveler-0')) ||
+        (application.value.travelers[0].id === null && selectedPerson.id === null)
+      )) ||
+      // Check by email match with customer
+      (application.value?.customer?.email && selectedPerson.data?.email && 
+        application.value.customer.email.toLowerCase() === selectedPerson.data.email.toLowerCase()) ||
+      // Check if it's the first traveler by position in allTravelers
+      (allTravelers.value[0]?.id === selectedPerson.id && String(selectedPerson.id).startsWith('temp-traveler-0'))
+    );
+  };
+  
+  // Helper function to get passport value from multiple sources
+  const getPassportFieldValue = (fieldKey) => {
+    const isTraveler1 = isTraveler1Check();
+    
+    // 1. First check personData (fieldResponses)
+    if (personData && personData[fieldKey] !== undefined) {
+      const fieldData = personData[fieldKey];
+      return {
+        value: fieldData?.value !== undefined ? fieldData.value : fieldData,
+        submittedAt: fieldData?.submittedAt,
+        source: 'fieldResponses'
+      };
+    }
+    
+    // 1b. For traveler 1, check application-level fieldResponses directly
+    // (passport fields added later might be here even if not in personData)
+    if (isTraveler1 && application.value?.fieldResponses?.application) {
+      const appFieldResponses = application.value.fieldResponses.application;
+      // Handle both array and object formats
+      let appPersonData = appFieldResponses;
+      if (Array.isArray(appFieldResponses)) {
+        appPersonData = {};
+        appFieldResponses.forEach((item, idx) => {
+          const fieldId = item.fieldId || String(idx);
+          if (item.filePath) {
+            appPersonData[fieldId] = {
+              filePath: item.filePath,
+              fileName: item.fileName,
+              fileSize: item.fileSize,
+              submittedAt: item.submittedAt
+            };
+          } else {
+            appPersonData[fieldId] = {
+              value: item.value,
+              submittedAt: item.submittedAt
+            };
+          }
+        });
+      }
+      
+      if (appPersonData[fieldKey] !== undefined) {
+        const fieldData = appPersonData[fieldKey];
+        const value = fieldData?.value !== undefined ? fieldData.value : fieldData;
+        console.log(`✅ Passport field found in application.fieldResponses.application: ${fieldKey} = ${value}`);
+        return {
+          value: value,
+          submittedAt: fieldData?.submittedAt,
+          source: 'applicationFieldResponses'
+        };
+      }
+    }
+    
+    // 2. Check traveler object directly (from selectedPerson.data)
+    const travelerProp = passportFieldToTravelerProp[fieldKey];
+    if (selectedPerson?.data && selectedPerson.data[travelerProp] !== undefined && selectedPerson.data[travelerProp] !== null && selectedPerson.data[travelerProp] !== '') {
+      let value = selectedPerson.data[travelerProp];
+      
+      // Format date fields if needed
+      if (fieldKey === '_passport_expiry_date' && value) {
+        // If it's already a date string, use it; otherwise format it
+        if (typeof value === 'string' && value.includes('-')) {
+          // Already formatted
+        } else if (typeof value === 'object' && value.year && value.month && value.date) {
+          // Format from object: {year: 2025, month: 1, date: 1}
+          value = `${value.year}-${String(value.month).padStart(2, '0')}-${String(value.date).padStart(2, '0')}`;
+        }
+      }
+      
+      return {
+        value: value,
+        submittedAt: selectedPerson.data.createdAt || selectedPerson.data.updatedAt,
+        source: 'travelerObject'
+      };
+    }
+    
+    // 2b. Check application.travelers array (in case traveler data is there but not in selectedPerson.data)
+    // For traveler 1, check the first traveler specifically
+    if (selectedPerson?.type === 'traveler' && application.value?.travelers) {
+      let travelerInApp = null;
+      if (isTraveler1) {
+        // For traveler 1, use the first traveler in the array
+        travelerInApp = application.value.travelers[0];
+      } else {
+        travelerInApp = application.value.travelers.find(t => t.id === selectedPerson.id);
+      }
+      
+      if (travelerInApp && travelerInApp[travelerProp] !== undefined && travelerInApp[travelerProp] !== null && travelerInApp[travelerProp] !== '') {
+        let value = travelerInApp[travelerProp];
+        
+        // Format date fields if needed
+        if (fieldKey === '_passport_expiry_date' && value) {
+          if (typeof value === 'string' && value.includes('-')) {
+            // Already formatted
+          } else if (typeof value === 'object' && value.year && value.month && value.date) {
+            value = `${value.year}-${String(value.month).padStart(2, '0')}-${String(value.date).padStart(2, '0')}`;
+          }
+        }
+        
+        return {
+          value: value,
+          submittedAt: travelerInApp.createdAt || travelerInApp.updatedAt,
+          source: 'applicationTravelers'
+        };
+      }
+    }
+    
+    // 3. Check drafts data (for traveler 1 or travelers added later)
+    if (selectedPerson?.type === 'traveler') {
+      const drafts = application.value?.drafts;
+      const step3PassportDetails = drafts?.step3?.passportDetails || [];
+      
+      // Determine which traveler index to use
+      let travelerIndex = -1;
+      if (isTraveler1) {
+        // Traveler 1 (customer traveler) is at index 0
+        travelerIndex = 0;
+      } else {
+        // Find traveler index in application.travelers
+        const travelerInApp = application.value?.travelers?.findIndex(t => t.id === selectedPerson.id);
+        if (travelerInApp !== -1) {
+          travelerIndex = travelerInApp;
+        }
+      }
+      
+      if (travelerIndex >= 0 && step3PassportDetails[travelerIndex]) {
+        const passportDetails = step3PassportDetails[travelerIndex];
+        
+        if (fieldKey === '_passport_number' && passportDetails.passportNumber) {
+          return {
+            value: passportDetails.passportNumber,
+            submittedAt: null,
+            source: 'drafts'
+          };
+        } else if (fieldKey === '_passport_expiry_date' && passportDetails.expiryYear && passportDetails.expiryMonth && passportDetails.expiryDate) {
+          const formattedDate = `${passportDetails.expiryYear}-${String(passportDetails.expiryMonth).padStart(2, '0')}-${String(passportDetails.expiryDate).padStart(2, '0')}`;
+          return {
+            value: formattedDate,
+            submittedAt: null,
+            source: 'drafts'
+          };
+        } else if (fieldKey === '_residence_country' && passportDetails.residenceCountry) {
+          return {
+            value: passportDetails.residenceCountry,
+            submittedAt: null,
+            source: 'drafts'
+          };
+        } else if (fieldKey === '_has_schengen_visa' && passportDetails.hasSchengenVisa) {
+          return {
+            value: passportDetails.hasSchengenVisa,
+            submittedAt: null,
+            source: 'drafts'
+          };
+        }
+      }
+    }
+    
+    return null;
+  };
+  
+  // Add passport fields - check multiple sources and always show at top
+  passportFieldKeys.forEach((fieldKey, index) => {
+    // Check if already included
+    const alreadyIncluded = fields.some(f => f.fieldId === fieldKey);
+    
+    if (!alreadyIncluded) {
+      const passportValue = getPassportFieldValue(fieldKey);
+      
+      if (passportValue && passportValue.value !== undefined && passportValue.value !== null && passportValue.value !== '') {
+        console.log(`🛂 Passport field found: ${fieldKey} (source: ${passportValue.source})`);
+        fields.push({
+          fieldId: fieldKey,
+          question: passportFieldLabels[fieldKey],
+          value: passportValue.value,
+          isFile: false,
+          submittedAt: passportValue.submittedAt,
+          fieldType: passportFieldTypes[fieldKey],
+          displayOrder: -100 + index, // Show passport fields first (negative displayOrder)
+          isPassportField: true // Flag to identify passport fields
+        });
+      } else {
+        // Even if value is empty, show the field if it exists in any source (user might have skipped it)
+        // But only show if there's at least some indication it was attempted
+        const travelerProp = passportFieldToTravelerProp[fieldKey];
+        const hasAnyData = 
+          (personData && personData[fieldKey] !== undefined) ||
+          (selectedPerson?.data && selectedPerson.data[travelerProp] !== undefined) ||
+          (selectedPerson?.type === 'traveler' && application.value?.travelers?.some(t => 
+            t.id === selectedPerson.id && t[travelerProp] !== undefined
+          )) ||
+          (selectedPerson?.type === 'traveler' && application.value?.drafts?.step3?.passportDetails?.some((p, idx) => {
+            // Check if this passport detail corresponds to the selected traveler
+            const isTraveler1 = selectedPerson.data?._isCustomerTraveler || 
+                               (application.value?.travelers?.[0]?.id === selectedPerson.id);
+            const travelerIndex = isTraveler1 ? 0 : 
+                                 (application.value?.travelers?.findIndex(t => t.id === selectedPerson.id) || -1);
+            return idx === travelerIndex && (
+              (fieldKey === '_passport_number' && p.passportNumber !== undefined) ||
+              (fieldKey === '_passport_expiry_date' && (p.expiryYear || p.expiryMonth || p.expiryDate)) ||
+              (fieldKey === '_residence_country' && p.residenceCountry !== undefined) ||
+              (fieldKey === '_has_schengen_visa' && p.hasSchengenVisa !== undefined)
+            );
+          }));
+        
+        if (hasAnyData) {
+          console.log(`🛂 Passport field found (empty/skipped): ${fieldKey}`);
+          fields.push({
+            fieldId: fieldKey,
+            question: passportFieldLabels[fieldKey],
+            value: '-',
+            isFile: false,
+            submittedAt: null,
+            fieldType: passportFieldTypes[fieldKey],
+            displayOrder: -100 + index,
+            isPassportField: true,
+            isEmpty: true
+          });
+        }
+      }
+    }
+  });
+  
   // Also include any responses that don't have matching field definitions (orphaned responses)
   Object.keys(personData).forEach(fieldId => {
     const fieldData = personData[fieldId];
     const numericFieldId = Number(fieldId);
+    
+    // Skip passport fields (already handled above)
+    if (passportFieldKeys.includes(fieldId)) {
+      return;
+    }
     
     // Check if this field is already included in fields array
     const alreadyIncluded = fields.some(f => {
@@ -1555,8 +2387,88 @@ const additionalInfoFields = computed(() => {
     });
     
     if (!alreadyIncluded) {
+      // Check if this is a field from a resubmission request (negative field ID)
+      console.log(`🔍 Checking orphaned response: fieldId="${fieldId}", numericFieldId=${numericFieldId}, travelerId=${travelerIdForResubmission}`);
+      const resubmissionField = findFieldInResubmissionRequests(numericFieldId, travelerIdForResubmission);
+      
+      // Check if question text is stored in the response data itself (fallback)
+      const questionFromResponse = fieldData?.question || fieldData?.questionText || fieldData?.fieldQuestion;
+      
+      if (resubmissionField) {
+        // This is from a resubmission request, use the field info from the request
+        console.log(`✅ Resubmission field found: Field ID "${fieldId}" -> "${resubmissionField.question}"`);
+        const isFile = fieldData.filePath !== undefined;
+        fields.push({
+          fieldId: numericFieldId || fieldId,
+          question: resubmissionField.question,
+          value: isFile ? fieldData : (fieldData.value !== undefined ? fieldData.value : fieldData),
+          isFile: isFile,
+          submittedAt: fieldData.submittedAt,
+          fieldType: resubmissionField.fieldType || 'text',
+          displayOrder: resubmissionField.displayOrder || 999
+        });
+      } else if (questionFromResponse && numericFieldId < 0) {
+        // Negative field ID with question text in response data (fulfilled resubmission request)
+        console.log(`✅ Resubmission field (from response data): Field ID "${fieldId}" -> "${questionFromResponse}"`);
+        const isFile = fieldData.filePath !== undefined;
+        fields.push({
+          fieldId: numericFieldId || fieldId,
+          question: questionFromResponse,
+          value: isFile ? fieldData : (fieldData.value !== undefined ? fieldData.value : fieldData),
+          isFile: isFile,
+          submittedAt: fieldData.submittedAt,
+          fieldType: fieldData?.fieldType || (isFile ? 'upload' : 'text'),
+          displayOrder: fieldData?.displayOrder || 999
+        });
+      } else if (numericFieldId < 0) {
+        // Negative field ID but no question text available - try one more time with more debugging
+        console.log(`⚠️ Resubmission field (fulfilled, no question): Field ID "${fieldId}" - attempting to find in all requests...`);
+        console.log(`  Available resubmission requests:`, {
+          activeCount: activeResubmissionRequests.value?.length || 0,
+          appCount: application.value?.resubmissionRequests?.length || 0,
+          allRequests: [
+            ...(activeResubmissionRequests.value || []),
+            ...(application.value?.resubmissionRequests || [])
+          ].map(r => ({
+            id: r.id,
+            target: r.target,
+            travelerId: r.travelerId,
+            fieldIds: r.fieldIds,
+            newFieldsCount: r.newFields?.length || 0
+          }))
+        });
+        
+        // Try to find in resubmissionFields that were already extracted
+        const foundInResubmissionFields = resubmissionFields.find(f => Number(f.id) === numericFieldId);
+        if (foundInResubmissionFields) {
+          console.log(`  ✅ Found in resubmissionFields: "${foundInResubmissionFields.question}"`);
+          const isFile = fieldData.filePath !== undefined;
+          fields.push({
+            fieldId: numericFieldId || fieldId,
+            question: foundInResubmissionFields.question,
+            value: isFile ? fieldData : (fieldData.value !== undefined ? fieldData.value : fieldData),
+            isFile: isFile,
+            submittedAt: fieldData.submittedAt,
+            fieldType: foundInResubmissionFields.fieldType || 'text',
+            displayOrder: foundInResubmissionFields.displayOrder || 999
+          });
+        } else {
+          // Still can't find it - show generic label
+          console.log(`  ❌ Still not found - showing generic label`);
+          const isFile = fieldData.filePath !== undefined;
+          fields.push({
+            fieldId: numericFieldId || fieldId,
+            question: `Resubmission Field ${fieldId}`,
+            value: isFile ? fieldData : (fieldData.value !== undefined ? fieldData.value : fieldData),
+            isFile: isFile,
+            submittedAt: fieldData.submittedAt,
+            fieldType: isFile ? 'upload' : 'text',
+            displayOrder: 999
+          });
+        }
+      } else {
+        // Truly orphaned response (not from resubmission request)
       console.log(`Orphaned response found: Field ID "${fieldId}" (numeric: ${numericFieldId})`);
-      // Field definition not found, still show the data with field ID as label
       const isFile = fieldData.filePath !== undefined;
       fields.push({
         fieldId: numericFieldId || fieldId,
@@ -1567,6 +2479,7 @@ const additionalInfoFields = computed(() => {
         fieldType: 'unknown',
         displayOrder: 999
       });
+      }
     }
   });
   
@@ -1611,7 +2524,12 @@ const documentsForSelectedTraveler = computed(() => {
   if (!selectedTravelerIdForDocuments.value) return [];
   
   const docs = [];
-  const selectedPerson = allPeople.value.find(p => p.id === selectedTravelerIdForDocuments.value);
+  // First try to find in allTravelers (for documents tab)
+  let selectedPerson = allTravelers.value.find(p => p.id === selectedTravelerIdForDocuments.value);
+  // If not found, try allPeople (fallback)
+  if (!selectedPerson) {
+    selectedPerson = allPeople.value.find(p => p.id === selectedTravelerIdForDocuments.value);
+  }
   if (!selectedPerson) return [];
   
   // Get documents from the static documents array (if any)
@@ -1621,6 +2539,16 @@ const documentsForSelectedTraveler = computed(() => {
   
   // Get files from field responses
   let personData = null;
+  
+  // IMPORTANT: Traveler 1 (customer traveler) has responses stored at application level
+  // Check if this is traveler 1 (customer traveler)
+  const isTraveler1 = selectedPerson.data?._isCustomerTraveler || 
+    (selectedPerson.type === 'traveler' && 
+     application.value?.travelers?.[0]?.id === selectedPerson.id) ||
+    (selectedPerson.type === 'traveler' && 
+     application.value?.customer?.email && 
+     selectedPerson.data?.email && 
+     application.value.customer.email.toLowerCase() === selectedPerson.data.email.toLowerCase());
   
   if (selectedPerson.type === 'customer') {
     // Get application-level field responses from application entity
@@ -1653,10 +2581,44 @@ const documentsForSelectedTraveler = computed(() => {
       }
     }
   } else if (selectedPerson.type === 'traveler') {
-    // Get traveler-level field responses from traveler entity
-    // The fieldResponses are stored directly on the traveler entity
-    if (selectedPerson.data?.fieldResponses) {
-      personData = selectedPerson.data.fieldResponses;
+    // For traveler 1 (customer traveler), use application-level fieldResponses
+    if (isTraveler1) {
+      console.log('📄 TRAVELER 1 (Customer Traveler): Using application-level fieldResponses for documents');
+      // Get application-level field responses
+      if (application.value?.fieldResponses) {
+        const fieldResponses = application.value.fieldResponses;
+        const rawData = fieldResponses.application || fieldResponses || {};
+        
+        // CRITICAL: If it's an array, convert it to an object keyed by fieldId
+        if (Array.isArray(rawData)) {
+          personData = {};
+          rawData.forEach((item, index) => {
+            const fieldId = item.fieldId || String(index);
+            // Extract the response data (value or file info)
+            if (item.filePath) {
+              personData[fieldId] = {
+                filePath: item.filePath,
+                fileName: item.fileName,
+                fileSize: item.fileSize,
+                submittedAt: item.submittedAt
+              };
+            } else {
+              personData[fieldId] = {
+                value: item.value,
+                submittedAt: item.submittedAt
+              };
+            }
+          });
+        } else {
+          personData = rawData;
+        }
+      }
+    } else {
+      // Get traveler-level field responses from traveler entity
+      // The fieldResponses are stored directly on the traveler entity
+      if (selectedPerson.data?.fieldResponses) {
+        personData = selectedPerson.data.fieldResponses;
+      }
     }
   }
   
@@ -1797,15 +2759,97 @@ const removeNewTravelerField = (travelerId, index) => {
 
 // ✅ ADD: After helper functions
 const loadActiveResubmissionRequests = async () => {
-  if (!applicationId.value) return
+  console.log('🚀 loadActiveResubmissionRequests called', { applicationId: applicationId.value })
+  if (!applicationId.value) {
+    console.log('⚠️ No applicationId, skipping loadActiveResubmissionRequests')
+    return
+  }
   try {
-    const { getActiveResubmissionRequests } = useApplication()
-    const response = await getActiveResubmissionRequests(Number(applicationId.value))
-    activeResubmissionRequests.value = response?.data || []
+    const { getActiveResubmissionRequests, getAllResubmissionRequests } = useApplication()
+    
+    console.log('📞 Calling getActiveResubmissionRequests...')
+    // Load active requests for UI display
+    const activeResponse = await getActiveResubmissionRequests(Number(applicationId.value))
+    console.log('📞 getActiveResubmissionRequests response:', activeResponse)
+    activeResubmissionRequests.value = activeResponse?.data || []
+    console.log('✅ Active resubmission requests loaded:', activeResubmissionRequests.value.length)
+    
+    // Also load all requests (including fulfilled) for field matching
+    // This ensures we can match negative field IDs even if requests are fulfilled
+    try {
+      console.log('🔵 Attempting to load all resubmission requests...')
+      const allResponse = await getAllResubmissionRequests(Number(applicationId.value))
+      console.log('🔵 getAllResubmissionRequests response:', allResponse)
+      const allRequests = allResponse?.data || []
+      
+      console.log('🔵 All requests from API:', {
+        count: allRequests.length,
+        requests: allRequests.map(r => ({
+          id: r.id,
+          target: r.target,
+          travelerId: r.travelerId,
+          fulfilledAt: r.fulfilledAt,
+          hasFieldIds: !!r.fieldIds,
+          fieldIdsCount: r.fieldIds?.length || 0,
+          hasNewFields: !!r.newFields,
+          newFieldsCount: r.newFields?.length || 0,
+          newFields: r.newFields // Log the actual newFields
+        }))
+      })
+      
+      // Merge with activeResubmissionRequests, avoiding duplicates
+      const existingIds = new Set(activeResubmissionRequests.value.map(r => r.id))
+      const fulfilledRequests = allRequests.filter(r => !existingIds.has(r.id))
+      activeResubmissionRequests.value = [...activeResubmissionRequests.value, ...fulfilledRequests]
+      
+      console.log('📋 Loaded resubmission requests:', {
+        active: activeResubmissionRequests.value.filter(r => !r.fulfilledAt).length,
+        fulfilled: fulfilledRequests.length,
+        total: activeResubmissionRequests.value.length,
+        allRequestsWithFields: activeResubmissionRequests.value.filter(r => r.newFields && r.newFields.length > 0).length,
+        sampleRequest: activeResubmissionRequests.value[0] ? {
+          id: activeResubmissionRequests.value[0].id,
+          target: activeResubmissionRequests.value[0].target,
+          fieldIds: activeResubmissionRequests.value[0].fieldIds,
+          newFieldsCount: activeResubmissionRequests.value[0].newFields?.length || 0,
+          firstNewField: activeResubmissionRequests.value[0].newFields?.[0] ? {
+            id: activeResubmissionRequests.value[0].newFields[0].id,
+            question: activeResubmissionRequests.value[0].newFields[0].question
+          } : null
+        } : null
+      })
+    } catch (err) {
+      console.error('❌ Could not load all resubmission requests:', err)
+      console.error('❌ Error details:', {
+        message: err?.message,
+        stack: err?.stack,
+        response: err?.response,
+        error: err
+      })
+      // Don't fail completely - continue with active requests only
+    }
   } catch (error) {
-    console.error('Error loading resubmission requests:', error)
+    console.error('❌ Error loading resubmission requests:', error)
+    console.error('❌ Full error:', {
+      message: error?.message,
+      stack: error?.stack,
+      error: error
+    })
     activeResubmissionRequests.value = []
   }
+  
+  // Final check - log what we have
+  console.log('✅ Final activeResubmissionRequests after load:', {
+    count: activeResubmissionRequests.value?.length || 0,
+    requests: activeResubmissionRequests.value?.map(r => ({
+      id: r.id,
+      target: r.target,
+      travelerId: r.travelerId,
+      fulfilledAt: r.fulfilledAt,
+      fieldIds: r.fieldIds,
+      newFieldsCount: r.newFields?.length || 0
+    })) || []
+  })
 }
 
 const openBulkResubmitModal = () => {
@@ -1824,32 +2868,7 @@ const submitBulkResubmissionRequest = async () => {
   try {
     const requests = []
     
-    // Process application-level request
-    const appFieldIds = bulkRequestSelection.value.application.fieldIds || []
-    const appNewFields = (bulkRequestSelection.value.application.newFields || [])
-      .filter(f => f.question && f.question.trim())
-      .map(f => ({
-        fieldType: f.fieldType,
-        question: f.question.trim(),
-        isRequired: f.isRequired || false,
-        ...(f.fieldType === 'upload' && f.allowedFileTypes ? {
-          allowedFileTypes: f.allowedFileTypes.split(',').map(t => t.trim()).filter(t => t)
-        } : {}),
-        ...(f.fieldType === 'dropdown' && f.options ? {
-          options: f.options.split(',').map(o => o.trim()).filter(o => o)
-        } : {})
-      }))
-    
-    if (appFieldIds.length > 0 || appNewFields.length > 0) {
-      requests.push({
-        target: 'application',
-        ...(appFieldIds.length > 0 ? { fieldIds: appFieldIds } : {}),
-        ...(appNewFields.length > 0 ? { newFields: appNewFields } : {}),
-        note: bulkRequestSelection.value.application.note || null
-      })
-    }
-    
-    // Process traveler-level requests
+    // Process traveler-level requests only (application fields removed)
     bulkRequestSelection.value.travelers.forEach(t => {
       const fieldIds = t.fieldIds || []
       const newFields = (t.newFields || [])
@@ -1923,8 +2942,7 @@ const getPersonPendingRequestsCount = (person) => {
 }
 
 const bulkRequestTotalCount = computed(() => {
-  let count = (bulkRequestSelection.value.application.fieldIds?.length || 0) + 
-              (bulkRequestSelection.value.application.newFields?.length || 0)
+  let count = 0
   bulkRequestSelection.value.travelers.forEach(t => {
     count += (t.fieldIds?.length || 0) + (t.newFields?.length || 0)
   })
@@ -1933,9 +2951,6 @@ const bulkRequestTotalCount = computed(() => {
 
 const bulkRequestTargetCount = computed(() => {
   let count = 0
-  const appHasFields = (bulkRequestSelection.value.application.fieldIds?.length || 0) > 0 || 
-                       (bulkRequestSelection.value.application.newFields?.length || 0) > 0
-  if (appHasFields) count++
   bulkRequestSelection.value.travelers.forEach(t => {
     const hasFields = (t.fieldIds?.length || 0) > 0 || (t.newFields?.length || 0) > 0
     if (hasFields) count++
@@ -2131,16 +3146,162 @@ const loadTravelers = async () => {
     const data = await getApplicationTravelers(applicationId.value);
     
     if (data) {
-      travelers.value = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+      const rawTravelers = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+      
+      console.log('📋 Raw travelers from API:', rawTravelers.map(t => ({ 
+        id: t.id, 
+        firstName: t.firstName, 
+        lastName: t.lastName,
+        email: t.email,
+        hasFieldResponses: !!t.fieldResponses,
+        fieldResponsesKeys: t.fieldResponses ? Object.keys(t.fieldResponses) : [],
+        allKeys: Object.keys(t) // Log all keys to see what's available
+      })));
+      
+      // Check if we need to add the first traveler (customer traveler)
+      // According to backend: when numberOfTravelers > 1, first traveler is the customer traveler
+      const numberOfTravelers = application.value?.numberOfTravelers || 0;
+      const customer = application.value?.customer;
+      const expectedTravelerCount = numberOfTravelers;
+      
+      console.log('📊 Traveler count check:', {
+        numberOfTravelers,
+        rawTravelersCount: rawTravelers.length,
+        expectedCount: expectedTravelerCount,
+        customerId: customer?.id,
+        customerEmail: customer?.email
+      });
+      
+      // Check if we need to add the first traveler (customer traveler)
+      // According to backend: when numberOfTravelers > 1, first traveler is the customer traveler
+      const appTravelers = application.value?.travelers || [];
+      const firstAppTraveler = appTravelers[0]; // First traveler is customer traveler
+      
+      // Check if first traveler (customer traveler) already exists in rawTravelers
+      // Check by ID first (most reliable), then by email, then by name match
+      let customerTravelerExists = false;
+      if (firstAppTraveler?.id) {
+        customerTravelerExists = rawTravelers.some(t => t.id === firstAppTraveler.id);
+      }
+      if (!customerTravelerExists && customer?.email) {
+        customerTravelerExists = rawTravelers.some(t => 
+          t.email && customer.email && t.email.toLowerCase() === customer.email.toLowerCase()
+        );
+      }
+      if (!customerTravelerExists && firstAppTraveler) {
+        // Check by name match as last resort
+        const firstTravelerName = `${firstAppTraveler.firstName || ''} ${firstAppTraveler.lastName || ''}`.trim().toLowerCase();
+        customerTravelerExists = rawTravelers.some(t => {
+          const travelerName = `${t.firstName || ''} ${t.lastName || ''}`.trim().toLowerCase();
+          return travelerName && firstTravelerName && travelerName === firstTravelerName;
+        });
+      }
+      
+      // Only add if we have fewer travelers than expected AND customer traveler doesn't exist
+      if (rawTravelers.length < expectedTravelerCount && customer && !customerTravelerExists) {
+        console.log('⚠️ First traveler (customer traveler) is missing, adding it...');
+        
+        // Create customer traveler entry - prefer data from application.travelers if available
+        const customerTraveler = {
+          id: firstAppTraveler?.id || null, // Use ID from application traveler if available
+          firstName: firstAppTraveler?.firstName || customer.fullname?.split(' ')[0] || customer.customerName?.split(' ')[0] || '',
+          lastName: firstAppTraveler?.lastName || customer.fullname?.split(' ').slice(1).join(' ') || customer.customerName?.split(' ').slice(1).join(' ') || '',
+          email: firstAppTraveler?.email || customer.email,
+          // Add other traveler fields from application traveler or customer
+          passportNumber: firstAppTraveler?.passportNumber || customer.passportNumber,
+          passportExpiryDate: firstAppTraveler?.passportExpiryDate || customer.passportExpiryDate,
+          residenceCountry: firstAppTraveler?.residenceCountry || customer.residenceCountry,
+          dateOfBirth: firstAppTraveler?.dateOfBirth || customer.dateOfBirth,
+          _isCustomerTraveler: true,
+          // Set fieldResponses from application-level responses if available
+          fieldResponses: application.value?.fieldResponses?.application || firstAppTraveler?.fieldResponses || {}
+        };
+        
+        console.log('✅ Adding customer traveler to travelers list:', {
+          ...customerTraveler,
+          fieldResponsesKeys: Object.keys(customerTraveler.fieldResponses || {})
+        });
+        rawTravelers.unshift(customerTraveler); // Add at the beginning
+      } else if (customerTravelerExists) {
+        console.log('✅ Customer traveler already exists in travelers list, skipping addition');
+      }
+      
+      // Remove duplicates before processing (by ID, then by name)
+      const seenIds = new Set();
+      const seenNames = new Set();
+      const uniqueTravelers = rawTravelers.filter(t => {
+        const travelerId = t.id;
+        const travelerName = `${t.firstName || ''} ${t.lastName || ''}`.trim().toLowerCase();
+        
+        // Check for duplicate by ID
+        if (travelerId && seenIds.has(travelerId)) {
+          console.log(`⚠️ Removing duplicate traveler by ID: ${travelerId}`, t);
+          return false;
+        }
+        if (travelerId) seenIds.add(travelerId);
+        
+        // Check for duplicate by name (if no ID or ID is null)
+        if (!travelerId && travelerName && seenNames.has(travelerName)) {
+          console.log(`⚠️ Removing duplicate traveler by name: ${travelerName}`, t);
+          return false;
+        }
+        if (travelerName) seenNames.add(travelerName);
+        
+        return true;
+      });
+      
+      console.log('📋 Travelers after deduplication:', uniqueTravelers.length, 'of', rawTravelers.length);
+      
+      // Filter out any customer entries that might have been included
+      // Be very lenient - include all entries unless they're clearly customers
+      // Assign temporary IDs to travelers with null IDs
+      travelers.value = uniqueTravelers.map((t, index) => {
+        // If traveler has no ID, assign a temporary one
+        if (!t.id || t.id === null || t.id === undefined) {
+          const tempId = `temp-traveler-${index}`;
+          console.log(`⚠️ Traveler has no ID, assigning temporary ID: ${tempId}`, t);
+          return { ...t, id: tempId, _isTempId: true };
+        }
+        return t;
+      }).filter(t => {
+        // Check if it's clearly customer data (has customer fields but NO traveler fields)
+        const hasCustomerFields = t.fullname || t.customerName || (t.name && !t.firstName && !t.lastName);
+        const hasTravelerFields = t.firstName || t.lastName || t.passportNumber || t.dateOfBirth || t.email;
+        
+        // Only exclude if it has customer fields but NO traveler fields at all
+        // BUT: if it's marked as customer traveler, include it
+        if (t._isCustomerTraveler) {
+          console.log('✅ Including customer traveler:', { id: t.id, firstName: t.firstName, lastName: t.lastName });
+          return true;
+        }
+        
+        if (hasCustomerFields && !hasTravelerFields) {
+          console.log('⚠️ Filtering out customer entry from travelers (has customer fields but no traveler fields):', {
+            id: t.id,
+            fullname: t.fullname,
+            customerName: t.customerName,
+            name: t.name
+          });
+          return false;
+        }
+        
+        // Include all other entries - they're travelers
+        console.log('✅ Including traveler:', { id: t.id, firstName: t.firstName, lastName: t.lastName, isTempId: t._isTempId });
+        return true;
+      });
+      
+      console.log('📋 Loaded travelers (filtered):', travelers.value.map(t => ({ id: t.id, name: `${t.firstName || ''} ${t.lastName || ''}`.trim() })));
       
       // Set first person as selected by default
       nextTick(() => {
         if (allPeople.value.length > 0) {
           if (!selectedTravelerId.value) {
-            selectedTravelerId.value = allPeople.value[0].id;
+            // For Additional Info, prefer travelers
+            selectedTravelerId.value = allTravelers.value[0]?.id || allPeople.value[0]?.id;
           }
           if (!selectedTravelerIdForDocuments.value) {
-            selectedTravelerIdForDocuments.value = allPeople.value[0].id;
+            // For documents tab, only use travelers (not customer)
+            selectedTravelerIdForDocuments.value = allTravelers.value[0]?.id;
           }
         }
       });
@@ -2189,6 +3350,17 @@ const loadApplication = async () => {
 
     const data = await getApplication(applicationId.value);
     application.value = data;
+    
+    // Debug: Check if resubmissionRequests are in the application object
+    console.log('📋 Application object loaded:', {
+      hasResubmissionRequests: !!application.value?.resubmissionRequests,
+      resubmissionRequestsType: typeof application.value?.resubmissionRequests,
+      resubmissionRequestsIsArray: Array.isArray(application.value?.resubmissionRequests),
+      resubmissionRequestsCount: application.value?.resubmissionRequests?.length || 0,
+      resubmissionRequests: application.value?.resubmissionRequests,
+      applicationKeys: Object.keys(application.value || {}),
+      fullApplication: JSON.parse(JSON.stringify(application.value)) // Deep clone to see full structure
+    });
 
     // Set status from application
     if (data.status) {
@@ -2358,6 +3530,37 @@ watch(activeTab, (newTab) => {
   }
   if (newTab === 'additional-info') {
     loadApplicationResponses();
+  }
+});
+
+// Watch for selectedTravelerId changes to preload field responses if not found
+watch(selectedTravelerId, async (newTravelerId) => {
+  if (!newTravelerId || activeTab.value !== 'additional-info') return;
+  
+  // Find the selected person
+  let selectedPerson = allTravelers.value.find(p => p.id === newTravelerId);
+  if (!selectedPerson) {
+    selectedPerson = allPeople.value.find(p => p.id === newTravelerId);
+  }
+  
+  if (!selectedPerson || selectedPerson.type !== 'traveler') return;
+  
+  // Check if we already have responses for this traveler
+  const hasResponses = selectedPerson.data?.fieldResponses || 
+                       travelerFieldResponsesCache.value[newTravelerId] ||
+                       (application.value?.fieldResponses?.travelers?.some(t => t.travelerId === newTravelerId));
+  
+  if (!hasResponses) {
+    console.log('🔄 Preloading field responses for traveler:', newTravelerId);
+    const responses = await loadTravelerFieldResponses(newTravelerId);
+    if (responses && Object.keys(responses).length > 0) {
+      travelerFieldResponsesCache.value[newTravelerId] = responses;
+      // Also update the traveler object if it exists
+      const traveler = travelers.value.find(t => t.id === newTravelerId);
+      if (traveler) {
+        traveler.fieldResponses = responses;
+      }
+    }
   }
 });
 

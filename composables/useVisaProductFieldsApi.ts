@@ -401,6 +401,84 @@ export const useVisaProductFieldsApi = () => {
     }
   }
 
+  /**
+   * Batch create/update fields for a visa product
+   * POST /visa-product-fields/batch
+   */
+  const batchCreateUpdateFields = async (
+    visaProductId: number | string,
+    fields: Array<CreateVisaProductFieldDto | (UpdateVisaProductFieldDto & { id: number | string })>
+  ): Promise<ApiResponse<VisaProductField[]>> => {
+    try {
+      const response = await api.post<VisaProductField[] | { status: boolean; message: string; data: VisaProductField[] }>(
+        '/visa-product-fields/batch',
+        {
+          visaProductId: Number(visaProductId),
+          fields: fields,
+        }
+      )
+
+      let fieldsData: VisaProductField[]
+
+      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
+        const wrappedResponse = response.data as { status: boolean; message: string; data: VisaProductField[] }
+        if (wrappedResponse.status && wrappedResponse.data) {
+          fieldsData = wrappedResponse.data
+        } else {
+          throw new Error(wrappedResponse.message || 'Failed to batch create/update visa product fields')
+        }
+      } else {
+        fieldsData = Array.isArray(response.data) ? response.data : []
+      }
+
+      return {
+        data: fieldsData,
+        message: 'Visa product fields saved successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
+  /**
+   * Batch get fields for multiple visa products
+   * POST /visa-product-fields/batch-by-visa-products
+   */
+  const batchGetFieldsByVisaProducts = async (
+    visaProductIds: Array<number | string>
+  ): Promise<ApiResponse<Record<string | number, VisaProductField[]>>> => {
+    try {
+      const response = await api.post<Record<string | number, VisaProductField[]> | { status: boolean; message: string; data: Record<string | number, VisaProductField[]> }>(
+        '/visa-product-fields/batch-by-visa-products',
+        {
+          visaProductIds: visaProductIds.map(id => Number(id)),
+        }
+      )
+
+      let fieldsData: Record<string | number, VisaProductField[]>
+
+      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
+        const wrappedResponse = response.data as { status: boolean; message: string; data: Record<string | number, VisaProductField[]> }
+        if (wrappedResponse.status && wrappedResponse.data) {
+          fieldsData = wrappedResponse.data
+        } else {
+          throw new Error(wrappedResponse.message || 'Failed to batch get visa product fields')
+        }
+      } else {
+        fieldsData = response.data as Record<string | number, VisaProductField[]>
+      }
+
+      return {
+        data: fieldsData,
+        message: 'Visa product fields fetched successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
   return {
     createVisaProductField,
     getVisaProductFieldsByVisaProduct,
@@ -411,5 +489,7 @@ export const useVisaProductFieldsApi = () => {
     getAllVisaProductFields,
     getFieldsWithResponsesByApplication,
     getResponsesByApplication,
+    batchCreateUpdateFields,
+    batchGetFieldsByVisaProducts,
   }
 }

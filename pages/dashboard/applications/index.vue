@@ -88,97 +88,93 @@
             </button>
           </div>
           
-          <!-- Columns Filter Button (only show in table view) -->
-          <div v-if="viewMode === 'table'" class="relative w-full sm:w-auto">
+        
+
+          <!-- Sort Button (only show in kanban view) -->
+          <div v-if="viewMode === 'kanban'" class="relative w-full sm:w-auto">
             <button
-              @click="toggleColumnsDropdown"
+              @click="toggleSortDropdown"
               class="w-full h-[36px] sm:w-auto bg-[#FFFFFF] dark:bg-[#18181B] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-white px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#2F2F31] transition-colors flex items-center justify-center space-x-2 text-sm"
               style="border-radius: 5px"
             >
-              <Columns class="h-4 w-4" />
-              <span class="sm:inline">Columns</span>
+              <ArrowUpDown class="h-4 w-4" />
+              <span class="sm:inline">Sort</span>
             </button>
 
-            <!-- Columns Dropdown -->
+            <!-- Sort Dropdown -->
             <div
-              v-if="columnsDropdownOpen"
-              class="absolute top-full right-0 z-10 mt-2 w-48 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
+              v-if="sortDropdownOpen"
+              class="absolute top-full right-0 z-10 mt-2 w-56 bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
               style="border-radius: 5px"
             >
-              <!-- Column Options -->
+              <!-- Sort Options -->
               <div class="py-1">
-                <label
-                  class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
+                <button
+                  @click="setSortOption('date_desc')"
+                  :class="[
+                    'w-full text-left flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer transition-colors',
+                    sortOption === 'date_desc' ? 'bg-[#E4E4E8] dark:bg-[#18181B]' : ''
+                  ]"
                   style="border-radius: 5px; margin: 3px"
                 >
                   <span
+                    v-if="sortOption === 'date_desc'"
                     class="mr-3 text-black dark:text-white text-sm font-bold"
                     >✓</span
                   >
-                  <span class="text-sm text-gray-900 dark:text-white"
-                    >Name</span
+                  <span
+                    v-else
+                    class="mr-3 text-transparent text-sm font-bold"
+                    >✓</span
                   >
-                </label>
-                <label
-                  class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
+                  <span class="text-sm text-gray-900 dark:text-white"
+                    >Latest First</span
+                  >
+                </button>
+                <button
+                  @click="setSortOption('date_asc')"
+                  :class="[
+                    'w-full text-left flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer transition-colors',
+                    sortOption === 'date_asc' ? 'bg-[#E4E4E8] dark:bg-[#18181B]' : ''
+                  ]"
                   style="border-radius: 5px; margin: 3px"
                 >
                   <span
+                    v-if="sortOption === 'date_asc'"
                     class="mr-3 text-black dark:text-white text-sm font-bold"
                     >✓</span
                   >
-                  <span class="text-sm text-gray-900 dark:text-white"
-                    >Role</span
+                  <span
+                    v-else
+                    class="mr-3 text-transparent text-sm font-bold"
+                    >✓</span
                   >
-                </label>
-                <label
-                  class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
+                  <span class="text-sm text-gray-900 dark:text-white"
+                    >Oldest First</span
+                  >
+                </button>
+                <button
+                  @click="setSortOption('amount_desc')"
+                  :class="[
+                    'w-full text-left flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer transition-colors',
+                    sortOption === 'amount_desc' ? 'bg-[#E4E4E8] dark:bg-[#18181B]' : ''
+                  ]"
                   style="border-radius: 5px; margin: 3px"
                 >
                   <span
+                    v-if="sortOption === 'amount_desc'"
                     class="mr-3 text-black dark:text-white text-sm font-bold"
                     >✓</span
                   >
-                  <span class="text-sm text-gray-900 dark:text-white"
-                    >Plan_name</span
-                  >
-                </label>
-                <label
-                  class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                  style="border-radius: 5px; margin: 3px"
-                >
                   <span
-                    class="mr-3 text-black dark:text-white text-sm font-bold"
+                    v-else
+                    class="mr-3 text-transparent text-sm font-bold"
                     >✓</span
                   >
                   <span class="text-sm text-gray-900 dark:text-white"
-                    >Email</span
+                    >Amount (High to Low)</span
                   >
-                </label>
-                <label
-                  class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                  style="border-radius: 5px; margin: 3px"
-                >
-                  <span
-                    class="mr-3 text-black dark:text-white text-sm font-bold"
-                    >✓</span
-                  >
-                  <span class="text-sm text-gray-900 dark:text-white"
-                    >Country</span
-                  >
-                </label>
-                <label
-                  class="flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer"
-                  style="border-radius: 5px; margin: 3px"
-                >
-                  <span
-                    class="mr-3 text-black dark:text-white text-sm font-bold"
-                    >✓</span
-                  >
-                  <span class="text-sm text-gray-900 dark:text-white"
-                    >Status</span
-                  >
-                </label>
+                </button>
               </div>
             </div>
           </div>
@@ -461,7 +457,7 @@
               <!-- Application Cards -->
               <div
                 v-for="application in getApplicationsByStatus(status.value)"
-                :key="application.id"
+                :key="`${application.id}-${sortOption}`"
                 draggable="true"
                 @dragstart="onDragStart($event, application)"
                 @dragend="onDragEnd"
@@ -515,8 +511,8 @@
                 <!-- Card Footer -->
                 <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span v-if="application.createdAt">
-                      {{ formatDate(application.createdAt) }}
+                    <span v-if="application.createdAt || application.created_at || application.created">
+                      {{ formatDate(application.createdAt || application.created_at || application.created || '') }}
                     </span>
                     <span v-else>-</span>
                     <span
@@ -619,6 +615,7 @@ import {
   Pencil,
   Table2,
   LayoutGrid,
+  ArrowUpDown,
 } from "lucide-vue-next";
 import { useApplication } from "~/composables/useApplication";
 
@@ -628,15 +625,43 @@ useHead({
 });
 
 const { getAllApplications, updateApplicationStatus, loading: applicationLoading, error: applicationError } = useApplication();
-const applications = ref([]);
+
+// Define application type
+interface Application {
+  id: number | string;
+  applicationId?: string;
+  applicationNumber?: string;
+  customerName?: string;
+  customer?: {
+    fullname?: string;
+    name?: string;
+    customerName?: string;
+  };
+  destinationCountry?: string;
+  destination?: string;
+  visaType?: string;
+  totalAmount?: number | string;
+  price?: string;
+  totalPrice?: string;
+  processingFee?: string;
+  status?: string;
+  createdAt?: string;
+  created_at?: string;
+  created?: string;
+  selected?: boolean;
+}
+
+const applications = ref<Application[]>([]);
 
 const searchQuery = ref("");
 const selectAll = ref(false);
 const currentPage = ref(1);
 const columnsDropdownOpen = ref(false);
 const viewMode = ref<'table' | 'kanban'>('kanban'); // Default to kanban view
-const draggedApplication = ref(null);
+const draggedApplication = ref<Application | null>(null);
 const isDragOver = ref<string | null>(null);
+const sortDropdownOpen = ref(false);
+const sortOption = ref<'date_desc' | 'date_asc' | 'amount_desc'>('date_desc'); // Default to latest first
 
 // Kanban statuses configuration
 const kanbanStatuses = [
@@ -660,9 +685,9 @@ const loadApplications = async () => {
       console.log('📋 Sample app:', applications.value[0]);
       
       // Log all unique statuses found
-      const uniqueStatuses = [...new Set(applications.value.map(app => app.status).filter(Boolean))];
+      const uniqueStatuses = [...new Set(applications.value.map((app: Application) => app.status).filter((s): s is string => Boolean(s)))];
       console.log('📊 Unique statuses in DB:', uniqueStatuses);
-      console.log('🗂️ Mapped to:', uniqueStatuses.map(s => ({ original: s, normalized: normalizeStatus(s) })));
+      console.log('🗂️ Mapped to:', uniqueStatuses.map((s: string) => ({ original: s, normalized: normalizeStatus(s) })));
     } else {
       applications.value = [];
     }
@@ -690,7 +715,7 @@ const filteredApplications = computed(() => {
   if (!searchQuery.value) return applications.value;
 
   return applications.value.filter(
-    (application) => {
+    (application: Application) => {
       const applicationId = getApplicationId(application).toLowerCase();
       const customerName = getCustomerName(application).toLowerCase();
       const destination = (application.destinationCountry || application.destination || '').toLowerCase();
@@ -706,19 +731,19 @@ const filteredApplications = computed(() => {
 });
 
 const selectedCount = computed(() => {
-  return applications.value.filter((application) => application.selected)
+  return applications.value.filter((application: Application) => application.selected)
     .length;
 });
 
 // Helper functions to extract data from API response
-const getApplicationId = (application) => {
+const getApplicationId = (application: Application): string => {
   if (application.applicationId) return application.applicationId;
   if (application.applicationNumber) return application.applicationNumber;
   if (application.id) return `APP-${application.id}`;
   return '-';
 };
 
-const getCustomerName = (application) => {
+const getCustomerName = (application: Application): string => {
   if (application.customerName) return application.customerName;
   if (application.customer?.fullname) return application.customer.fullname;
   if (application.customer?.name) return application.customer.name;
@@ -726,14 +751,14 @@ const getCustomerName = (application) => {
   return '-';
 };
 
-const formatAmount = (application) => {
+const formatAmount = (application: Application): string => {
   if (application.totalAmount) {
     // Format as currency if it's a number
     if (typeof application.totalAmount === 'number') {
       return `USD ${application.totalAmount.toFixed(2)}`;
     }
     // Return as is if it's already a string
-    return application.totalAmount;
+    return String(application.totalAmount);
   }
   if (application.price) return application.price;
   if (application.totalPrice) return application.totalPrice;
@@ -742,7 +767,7 @@ const formatAmount = (application) => {
 };
 
 // Status styling functions
-const getStatusPillClasses = (status) => {
+const getStatusPillClasses = (status: string | undefined): string => {
   if (!status) return "bg-gray-500 text-white border border-gray-500";
   
   // Normalize to get the kanban column
@@ -762,7 +787,7 @@ const getStatusPillClasses = (status) => {
   }
 };
 
-const getFormattedStatus = (status) => {
+const getFormattedStatus = (status: string | undefined): string => {
   if (!status) return '';
   
   const statusLower = status.toLowerCase().replace(/\s+/g, '_');
@@ -787,11 +812,20 @@ const getFormattedStatus = (status) => {
     'cancelled': 'Cancelled',
   };
   
-  return formattedMap[statusLower] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return formattedMap[statusLower] || status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
 };
 
 const toggleColumnsDropdown = () => {
   columnsDropdownOpen.value = !columnsDropdownOpen.value;
+};
+
+const toggleSortDropdown = () => {
+  sortDropdownOpen.value = !sortDropdownOpen.value;
+};
+
+const setSortOption = (option: typeof sortOption.value) => {
+  sortOption.value = option;
+  sortDropdownOpen.value = false;
 };
 
 // Kanban helper functions
@@ -863,26 +897,91 @@ const normalizeStatus = (status: string): string => {
   return mapped;
 };
 
-const getApplicationsByStatus = (status: string) => {
-  const result = filteredApplications.value.filter(app => {
-    const normalizedAppStatus = normalizeStatus(app.status || 'pending');
-    const matches = normalizedAppStatus === status;
-    return matches;
+// Helper to get date from application (try multiple field names)
+const getApplicationDate = (app: Application): Date | null => {
+  const dateStr = app.createdAt || app.created_at || app.created;
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+// Sort function that uses current sortOption
+const sortApplications = (apps: Application[]): Application[] => {
+  const sorted = [...apps].sort((a: Application, b: Application) => {
+    switch (sortOption.value) {
+      case 'date_desc':
+        // Latest first (newest dates first)
+        const dateA = getApplicationDate(a);
+        const dateB = getApplicationDate(b);
+        
+        // Handle missing dates by putting them at the end (no fallback to ID)
+        if (!dateA && !dateB) return 0; // Keep original order if both missing
+        if (!dateA) return 1; // a goes to end
+        if (!dateB) return -1; // b goes to end
+        
+        return dateB.getTime() - dateA.getTime(); // Descending (newest first)
+      
+      case 'date_asc':
+        // Oldest first
+        const dateA_asc = getApplicationDate(a);
+        const dateB_asc = getApplicationDate(b);
+        
+        // Handle missing dates by putting them at the end (no fallback to ID)
+        if (!dateA_asc && !dateB_asc) return 0; // Keep original order if both missing
+        if (!dateA_asc) return 1; // a goes to end
+        if (!dateB_asc) return -1; // b goes to end
+        
+        return dateA_asc.getTime() - dateB_asc.getTime(); // Ascending (oldest first)
+      
+      case 'amount_desc':
+        // High to low
+        const amountA = parseFloat(
+          String(a.totalAmount || a.price || a.totalPrice || a.processingFee || '0')
+        );
+        const amountB = parseFloat(
+          String(b.totalAmount || b.price || b.totalPrice || b.processingFee || '0')
+        );
+        return amountB - amountA;
+      
+      default:
+        return 0;
+    }
   });
   
-  // Debug logging
-  if (filteredApplications.value.length > 0) {
-    console.log(`🔍 Getting apps for status "${status}":`, {
-      totalApps: filteredApplications.value.length,
-      foundApps: result.length,
-      sampleStatuses: filteredApplications.value.slice(0, 3).map(app => ({
-        original: app.status,
-        normalized: normalizeStatus(app.status || 'pending')
-      }))
-    });
-  }
-  
+  return sorted;
+};
+
+// Create computed properties for each status - this makes it reactive
+const sortedApplicationsByStatus = computed(() => {
+  const result: Record<string, Application[]> = {
+    pending: [],
+    in_process: [],
+    completed: [],
+    rejected: [],
+  };
+
+  // Filter applications by status
+  filteredApplications.value.forEach((app: Application) => {
+    const normalizedStatus = normalizeStatus(app.status || 'pending');
+    if (result[normalizedStatus]) {
+      result[normalizedStatus].push(app);
+    }
+  });
+
+  // Sort each status group
+  Object.keys(result).forEach((status) => {
+    const apps = result[status];
+    if (apps) {
+      result[status] = sortApplications(apps);
+    }
+  });
+
   return result;
+});
+
+const getApplicationsByStatus = (status: string): Application[] => {
+  const apps = sortedApplicationsByStatus.value[status];
+  return apps || [];
 };
 
 const getStatusCount = (status: string) => {
@@ -904,7 +1003,7 @@ const formatDate = (dateString: string) => {
 };
 
 // Drag and drop handlers
-const onDragStart = (event: DragEvent, application: any) => {
+const onDragStart = (event: DragEvent, application: Application) => {
   console.log('🎯 Drag started for application:', application.id);
   draggedApplication.value = application;
   
@@ -960,7 +1059,7 @@ const onDrop = async (event: DragEvent, targetStatus: string) => {
   }
   
   const application = draggedApplication.value;
-  const currentStatus = normalizeStatus(application.status);
+  const currentStatus = normalizeStatus(application.status || 'pending');
   
   console.log('📊 Current status:', currentStatus, '-> Target status:', targetStatus);
   
@@ -978,8 +1077,8 @@ const onDrop = async (event: DragEvent, targetStatus: string) => {
     await updateApplicationStatus(application.id, targetStatus);
     
     // Update local state
-    const index = applications.value.findIndex(app => app.id === application.id);
-    if (index !== -1) {
+    const index = applications.value.findIndex((app: Application) => app.id === application.id);
+    if (index !== -1 && applications.value[index]) {
       applications.value[index].status = targetStatus;
       console.log('✅ Application status updated successfully');
       
@@ -1039,24 +1138,38 @@ const showErrorToast = (message: string) => {
 // Navigation functions
 const router = useRouter();
 
-const viewApplication = (application) => {
+const viewApplication = (application: Application) => {
   router.push(`/dashboard/applications/${application.id}`);
 };
 
-const editApplication = (application) => {
+const editApplication = (application: Application) => {
   router.push(`/dashboard/applications/add?id=${application.id}&mode=edit`);
 };
 
 // Watch for select all changes
 watch(selectAll, (newValue) => {
-  applications.value.forEach((application) => {
+  applications.value.forEach((application: Application) => {
     application.selected = newValue;
   });
 });
 
+// Close dropdowns when clicking outside
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.relative')) {
+    columnsDropdownOpen.value = false;
+    sortDropdownOpen.value = false;
+  }
+};
+
 // Load applications on mount
 onMounted(() => {
   loadApplications();
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 
 onActivated(() => {

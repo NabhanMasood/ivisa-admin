@@ -284,7 +284,7 @@ useHead({
 });
 
 // Initialize APIs
-const { getVisaProductFieldsByVisaProduct } = useVisaProductFieldsApi();
+const { getVisaProductFieldsByVisaProduct, batchGetFieldsByVisaProducts } = useVisaProductFieldsApi();
 const { getVisaProducts, duplicateVisaProduct: duplicateVisaProductApi, deleteVisaProduct: deleteVisaProductApi } = useVisaProductsApi();
 
 // Reactive state
@@ -338,7 +338,40 @@ const loadForms = async () => {
       return;
     }
 
-    // Get fields for each visa product
+    // Extract visa product IDs
+    const visaProductIds = visaProductsResponse.data
+      .filter(product => product.id !== null && product.id !== undefined)
+      .map(product => product.id!);
+
+    if (visaProductIds.length === 0) {
+      forms.value = [];
+      return;
+    }
+
+    // Batch fetch all fields for all visa products in one call
+    let fieldsByProductId: Record<string | number, VisaProductField[]> = {};
+    
+    try {
+      const batchResponse = await batchGetFieldsByVisaProducts(visaProductIds);
+      if (batchResponse.success && batchResponse.data) {
+        fieldsByProductId = batchResponse.data;
+      }
+    } catch (batchError) {
+      // Fallback to individual calls if batch endpoint doesn't exist or fails
+      console.warn('Batch fetch failed, falling back to individual calls:', batchError);
+      for (const productId of visaProductIds) {
+        try {
+          const fieldsResponse = await getVisaProductFieldsByVisaProduct(productId);
+          if (fieldsResponse.success && fieldsResponse.data && fieldsResponse.data.length > 0) {
+            fieldsByProductId[productId] = fieldsResponse.data;
+          }
+        } catch (error) {
+          console.error(`Failed to load fields for product ${productId}:`, error);
+        }
+      }
+    }
+
+    // Build forms data from visa products and their fields
     const formsData: Array<{
       visaProductId: number | string;
       visaProductName: string;
@@ -349,20 +382,15 @@ const loadForms = async () => {
 
     for (const product of visaProductsResponse.data) {
       if (product.id) {
-        try {
-          const fieldsResponse = await getVisaProductFieldsByVisaProduct(product.id);
-          
-          if (fieldsResponse.success && fieldsResponse.data && fieldsResponse.data.length > 0) {
-            formsData.push({
-              visaProductId: product.id,
-              visaProductName: product.productName,
-              country: product.country,
-              fields: fieldsResponse.data.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)),
-              selected: false,
-            });
-          }
-        } catch (error) {
-          console.error(`Failed to load fields for product ${product.id}:`, error);
+        const productFields = fieldsByProductId[product.id] || [];
+        if (productFields.length > 0) {
+          formsData.push({
+            visaProductId: product.id,
+            visaProductName: product.productName,
+            country: product.country,
+            fields: productFields.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)),
+            selected: false,
+          });
         }
       }
     }

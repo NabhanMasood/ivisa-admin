@@ -139,7 +139,7 @@
                 >
                   <span
                     class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
-                    >Passport Expiry Date</span
+                    >Passport Expiration Date</span
                   >
                   <span class="text-sm text-gray-900 dark:text-white">{{
                     formatDate(traveler.passportExpiryDate)
@@ -163,7 +163,7 @@
                 >
                   <span
                     class="pl-4 text-sm font-medium text-[#020617] dark:text-gray-400"
-                    >Has Schengen Visa</span
+                    >Do you have a valid visa or residence permit from the Schengen Area, USA, Australia, Canada, UK, Japan, Norway, New Zealand, Ireland, or Switzerland?</span
                   >
                   <span class="text-sm text-gray-900 dark:text-white">{{
                     traveler.hasSchengenVisa ? 'Yes' : 'No'
@@ -280,17 +280,145 @@ const loadTraveler = async () => {
     isLoadingTraveler.value = true;
     errorMessage.value = "";
     
+    // First, load application to get full data including drafts
+    if (!application.value) {
+      await loadApplication();
+    }
+    
     // Fetch travelers for the application
     const data = await getApplicationTravelers(applicationId.value);
     
     // Find the specific traveller
     const travelers = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
-    const foundTraveler = travelers.find((t) => t.id === Number(travellerId.value) || t.id === travellerId.value);
+    let foundTraveler = travelers.find((t) => t.id === Number(travellerId.value) || t.id === travellerId.value || String(t.id) === String(travellerId.value));
+    
+    // If not found, check if it's traveler 1 (customer traveler) with temporary ID or from application data
+    if (!foundTraveler) {
+      const isTempId = String(travellerId.value).startsWith('temp-traveler-');
+      const isNullId = travellerId.value === 'null' || travellerId.value === null;
+      
+      console.log('🔍 Traveler not found in API, checking if it\'s traveler 1:', {
+        travellerId: travellerId.value,
+        isTempId,
+        isNullId,
+        travelersCount: travelers.length,
+        applicationTravelersCount: application.value?.travelers?.length || 0,
+        firstTravelerId: application.value?.travelers?.[0]?.id
+      });
+      
+      // Check if it's traveler 1 (customer traveler)
+      // Traveler 1 is the first traveler in application.travelers array
+      const appTravelers = application.value?.travelers || [];
+      const firstAppTraveler = appTravelers[0];
+      const customer = application.value?.customer;
+      
+      // Check if the ID matches the first traveler's ID, or if it's a temp/null ID and we're looking for traveler 1
+      // Also check if the first traveler's ID matches the requested ID (even if not in API response)
+      const firstTravelerId = firstAppTraveler?.id;
+      const requestedId = travellerId.value;
+      const idMatches = firstTravelerId && (
+        firstTravelerId === Number(requestedId) || 
+        String(firstTravelerId) === String(requestedId) ||
+        firstTravelerId === requestedId
+      );
+      
+      const isTraveler1 = 
+        idMatches || // ID matches first traveler's ID
+        (isTempId && (requestedId === 'temp-traveler-0' || requestedId === 'temp-traveler-1')) || // Temp ID for traveler 1
+        (isNullId && firstAppTraveler) || // Null ID and we have first traveler
+        (firstAppTraveler && !firstTravelerId && isTempId) || // First traveler has no ID but we have temp ID
+        (firstAppTraveler && !firstTravelerId && !requestedId) || // Both have no ID
+        (firstAppTraveler && requestedId === String(firstTravelerId)); // String match
+      
+      if (isTraveler1 && (firstAppTraveler || customer)) {
+        console.log('✅ Found traveler 1 (customer traveler), constructing from application data');
+        
+        // Construct traveler 1 from application data
+        // Priority: application.travelers[0] > customer data > drafts data
+        const drafts = application.value?.drafts;
+        const step2Travelers = drafts?.step2?.travelers || [];
+        const step3PassportDetails = drafts?.step3?.passportDetails || [];
+        const traveler1Draft = step2Travelers[0];
+        const traveler1Passport = step3PassportDetails[0];
+        
+        foundTraveler = {
+          id: firstAppTraveler?.id || null,
+          firstName: firstAppTraveler?.firstName || traveler1Draft?.firstName || customer?.fullname?.split(' ')[0] || customer?.customerName?.split(' ')[0] || '',
+          lastName: firstAppTraveler?.lastName || traveler1Draft?.lastName || customer?.fullname?.split(' ').slice(1).join(' ') || customer?.customerName?.split(' ').slice(1).join(' ') || '',
+          email: firstAppTraveler?.email || traveler1Draft?.email || customer?.email || '',
+          phone: firstAppTraveler?.phone || traveler1Draft?.phone || customer?.phoneNumber || '',
+          dateOfBirth: firstAppTraveler?.dateOfBirth || (traveler1Draft?.birthYear && traveler1Draft?.birthMonth && traveler1Draft?.birthDate 
+            ? `${traveler1Draft.birthYear}-${String(traveler1Draft.birthMonth).padStart(2, '0')}-${String(traveler1Draft.birthDate).padStart(2, '0')}`
+            : null) || customer?.dateOfBirth,
+          dob: firstAppTraveler?.dob || customer?.dob,
+          passportNumber: firstAppTraveler?.passportNumber || traveler1Passport?.passportNumber || customer?.passportNumber || '',
+          passportExpiryDate: firstAppTraveler?.passportExpiryDate || (traveler1Passport?.expiryYear && traveler1Passport?.expiryMonth && traveler1Passport?.expiryDate
+            ? `${traveler1Passport.expiryYear}-${String(traveler1Passport.expiryMonth).padStart(2, '0')}-${String(traveler1Passport.expiryDate).padStart(2, '0')}`
+            : null) || customer?.passportExpiryDate,
+          passportIssueDate: firstAppTraveler?.passportIssueDate || customer?.passportIssueDate,
+          passportNationality: firstAppTraveler?.passportNationality || traveler1Passport?.nationality || customer?.nationality || '',
+          nationality: firstAppTraveler?.nationality || traveler1Passport?.nationality || customer?.nationality || '',
+          residenceCountry: firstAppTraveler?.residenceCountry || traveler1Passport?.residenceCountry || customer?.residenceCountry || '',
+          hasSchengenVisa: firstAppTraveler?.hasSchengenVisa || (traveler1Passport?.hasSchengenVisa === 'yes' || traveler1Passport?.hasSchengenVisa === true) || customer?.hasSchengenVisa || false,
+          createdAt: firstAppTraveler?.createdAt || application.value?.createdAt,
+          _isCustomerTraveler: true
+        };
+        
+        console.log('✅ Constructed traveler 1:', {
+          id: foundTraveler.id,
+          name: `${foundTraveler.firstName} ${foundTraveler.lastName}`.trim(),
+          email: foundTraveler.email,
+          passportNumber: foundTraveler.passportNumber
+        });
+      } else {
+        // Check if it's another traveler from drafts (traveler 2, 3, etc.)
+        // Match by index if travellerId is like "temp-traveler-1", "temp-traveler-2", etc.
+        if (isTempId) {
+          const tempIndex = parseInt(String(travellerId.value).replace('temp-traveler-', ''));
+          if (!isNaN(tempIndex) && tempIndex > 0) {
+            // This is traveler 2, 3, etc. (index 1, 2, etc. in drafts)
+            const drafts = application.value?.drafts;
+            const step2Travelers = drafts?.step2?.travelers || [];
+            const step3PassportDetails = drafts?.step3?.passportDetails || [];
+            const travelerDraft = step2Travelers[tempIndex];
+            const travelerPassport = step3PassportDetails[tempIndex];
+            
+            if (travelerDraft) {
+              console.log(`✅ Found traveler ${tempIndex + 1} from drafts`);
+              foundTraveler = {
+                id: null,
+                firstName: travelerDraft.firstName || '',
+                lastName: travelerDraft.lastName || '',
+                email: travelerDraft.email || '',
+                phone: travelerDraft.phone || '',
+                dateOfBirth: (travelerDraft.birthYear && travelerDraft.birthMonth && travelerDraft.birthDate 
+                  ? `${travelerDraft.birthYear}-${String(travelerDraft.birthMonth).padStart(2, '0')}-${String(travelerDraft.birthDate).padStart(2, '0')}`
+                  : null),
+                passportNumber: travelerPassport?.passportNumber || '',
+                passportExpiryDate: (travelerPassport?.expiryYear && travelerPassport?.expiryMonth && travelerPassport?.expiryDate
+                  ? `${travelerPassport.expiryYear}-${String(travelerPassport.expiryMonth).padStart(2, '0')}-${String(travelerPassport.expiryDate).padStart(2, '0')}`
+                  : null),
+                passportNationality: travelerPassport?.nationality || '',
+                nationality: travelerPassport?.nationality || '',
+                residenceCountry: travelerPassport?.residenceCountry || '',
+                hasSchengenVisa: (travelerPassport?.hasSchengenVisa === 'yes' || travelerPassport?.hasSchengenVisa === true) || false,
+                _isFromDrafts: true
+              };
+            }
+          }
+        }
+      }
+    }
     
     if (foundTraveler) {
       traveler.value = foundTraveler;
     } else {
       errorMessage.value = "Traveller not found";
+      console.error('❌ Traveler not found:', {
+        travellerId: travellerId.value,
+        travelersFromAPI: travelers.length,
+        applicationTravelers: application.value?.travelers?.length || 0
+      });
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Failed to load traveller details";
