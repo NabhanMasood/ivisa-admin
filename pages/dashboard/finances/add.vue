@@ -111,6 +111,7 @@
                 <input
                   v-model="form.datePaid"
                   type="date"
+                  :max="maxDate"
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
               </div>
@@ -191,6 +192,13 @@ const statusOptions = [
   "Pending",
   "Rejected"
 ];
+
+// Max date for date inputs (50 years from now to allow future years)
+const maxDate = computed(() => {
+  const futureDate = new Date();
+  futureDate.setFullYear(futureDate.getFullYear() + 50);
+  return futureDate.toISOString().split('T')[0];
+});
 
 // Navigation
 const router = useRouter();

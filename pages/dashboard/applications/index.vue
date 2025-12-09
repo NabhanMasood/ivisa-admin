@@ -390,18 +390,23 @@
 
           <!-- Kanban Columns -->
           <div
+            ref="kanbanContainer"
             class="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory sm:snap-none"
             style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
+            @dragover.prevent="handleKanbanDragOver"
           >
           <!-- Column for each status -->
           <div
             v-for="status in kanbanStatuses"
             :key="status.value"
-            class="flex-shrink-0 w-[85vw] sm:w-80 snap-center sm:snap-align-none bg-gray-50 dark:bg-[#18181B] rounded-2xl border border-gray-200 dark:border-gray-700 transition-colors overflow-hidden"
+            :data-status="status.value"
+            class="flex-shrink-0 w-[68vw] sm:w-80 snap-center sm:snap-align-none bg-gray-50 dark:bg-[#18181B] rounded-2xl border border-gray-200 dark:border-gray-700 transition-colors overflow-hidden"
             :class="{ 'ring-2 ring-blue-400 bg-blue-50 dark:bg-blue-900/20': isDragOver === status.value }"
             @dragover.prevent="onDragOver($event, status.value)"
             @dragleave="onDragLeave"
             @drop="onDrop($event, status.value)"
+            @touchmove.prevent="onTouchMove"
+            :ref="el => setColumnRef(el, status.value)"
           >
             <!-- Column Header -->
             <div class="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -421,6 +426,7 @@
 
             <!-- Cards Container -->
             <div 
+              :ref="el => setColumnScrollRef(el, status.value)"
               class="p-3 space-y-3 min-h-[calc(100vh-280px)] max-h-[calc(100vh-280px)] overflow-y-auto"
               @dragover.prevent="onDragOver($event, status.value)"
               @drop="onDrop($event, status.value)"
@@ -440,8 +446,16 @@
                 draggable="true"
                 @dragstart="onDragStart($event, application)"
                 @dragend="onDragEnd"
+                @touchstart="onTouchStart($event, application)"
+                @touchmove="onTouchMove"
+                @touchend="onTouchEnd"
                 class="bg-white dark:bg-[#09090B] border border-gray-200 dark:border-gray-700 rounded-xl p-4 cursor-move hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all select-none group"
-                :style="{ opacity: draggedApplication?.id === application.id ? '0.4' : '1' }"
+                :style="{ 
+                  opacity: draggedApplication?.id === application.id ? '0.4' : '1',
+                  touchAction: 'none',
+                  WebkitUserSelect: 'none',
+                  userSelect: 'none'
+                }"
                 title="Drag to change status"
               >
                 <!-- Card Header -->
@@ -457,6 +471,8 @@
                   <div class="flex items-center gap-1 ml-2">
                     <button
                       @click.stop="viewApplication(application)"
+                      @mousedown.stop
+                      @touchstart.stop
                       class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
                       title="View"
                     >
@@ -640,6 +656,29 @@ const draggedApplication = ref<Application | null>(null);
 const isDragOver = ref<string | null>(null);
 const sortDropdownOpen = ref(false);
 const sortOption = ref<'date_desc' | 'date_asc' | 'amount_desc'>('date_desc'); // Default to latest first
+
+// Auto-scroll refs and state
+const kanbanContainer = ref<HTMLElement | null>(null);
+const columnRefs = ref<Record<string, HTMLElement>>({});
+const columnScrollRefs = ref<Record<string, HTMLElement>>({});
+let horizontalScrollInterval: NodeJS.Timeout | null = null;
+let verticalScrollInterval: NodeJS.Timeout | null = null;
+const SCROLL_THRESHOLD = 100; // Distance from edge to trigger scroll (px)
+const SCROLL_SPEED = 10; // Pixels to scroll per interval
+
+// Set column ref
+const setColumnRef = (el: any, status: string) => {
+  if (el && el instanceof HTMLElement) {
+    columnRefs.value[status] = el;
+  }
+};
+
+// Set column scroll container ref
+const setColumnScrollRef = (el: any, status: string) => {
+  if (el && el instanceof HTMLElement) {
+    columnScrollRefs.value[status] = el;
+  }
+};
 
 // Kanban statuses configuration
 const kanbanStatuses = [
@@ -1033,63 +1072,91 @@ const formatDate = (dateString: string) => {
   }
 };
 
-// Drag and drop handlers
-const onDragStart = (event: DragEvent, application: Application) => {
-  console.log('🎯 Drag started for application:', application.id);
-  draggedApplication.value = application;
+// Auto-scroll functions
+const startHorizontalScroll = (direction: 'left' | 'right') => {
+  if (horizontalScrollInterval) return; // Already scrolling
   
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.dropEffect = 'move';
-    // Set data for compatibility
-    event.dataTransfer.setData('text/plain', application.id.toString());
+  horizontalScrollInterval = setInterval(() => {
+    if (!kanbanContainer.value) return;
+    
+    const scrollAmount = direction === 'left' ? -SCROLL_SPEED : SCROLL_SPEED;
+    kanbanContainer.value.scrollLeft += scrollAmount;
+  }, 16); // ~60fps
+};
+
+const stopHorizontalScroll = () => {
+  if (horizontalScrollInterval) {
+    clearInterval(horizontalScrollInterval);
+    horizontalScrollInterval = null;
   }
 };
 
-const onDragEnd = (event: DragEvent) => {
-  console.log('🏁 Drag ended');
-  draggedApplication.value = null;
-  isDragOver.value = null;
+const startVerticalScroll = (columnStatus: string, direction: 'up' | 'down') => {
+  if (verticalScrollInterval) return; // Already scrolling
+  
+  const columnScroll = columnScrollRefs.value[columnStatus];
+  if (!columnScroll) return;
+  
+  verticalScrollInterval = setInterval(() => {
+    if (!columnScroll) return;
+    
+    const scrollAmount = direction === 'up' ? -SCROLL_SPEED : SCROLL_SPEED;
+    columnScroll.scrollTop += scrollAmount;
+  }, 16); // ~60fps
 };
 
-const onDragOver = (event: DragEvent, targetStatus: string) => {
-  event.preventDefault();
-  event.stopPropagation();
-  
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
-  }
-  
-  // Update visual feedback
-  if (isDragOver.value !== targetStatus) {
-    isDragOver.value = targetStatus;
-  }
-};
-
-const onDragLeave = (event: DragEvent) => {
-  // Only clear if leaving the column completely
-  const target = event.currentTarget as HTMLElement;
-  const relatedTarget = event.relatedTarget as HTMLElement;
-  
-  if (!target.contains(relatedTarget)) {
-    isDragOver.value = null;
+const stopVerticalScroll = () => {
+  if (verticalScrollInterval) {
+    clearInterval(verticalScrollInterval);
+    verticalScrollInterval = null;
   }
 };
 
-const onDrop = async (event: DragEvent, targetStatus: string) => {
-  event.preventDefault();
-  event.stopPropagation();
-  
-  console.log('📦 Drop event triggered for status:', targetStatus);
-  
-  isDragOver.value = null;
-  
-  if (!draggedApplication.value) {
-    console.log('⚠️ No dragged application found');
+const handleKanbanDragOver = (event: DragEvent) => {
+  if (!kanbanContainer.value || !draggedApplication.value) {
+    stopHorizontalScroll();
+    stopVerticalScroll();
     return;
   }
   
-  const application = draggedApplication.value;
+  const containerRect = kanbanContainer.value.getBoundingClientRect();
+  const mouseX = event.clientX;
+  const mouseY = event.clientY;
+  
+  // Horizontal auto-scroll (left/right edges of kanban container)
+  const distanceFromLeft = mouseX - containerRect.left;
+  const distanceFromRight = containerRect.right - mouseX;
+  
+  if (distanceFromLeft < SCROLL_THRESHOLD) {
+    startHorizontalScroll('left');
+  } else if (distanceFromRight < SCROLL_THRESHOLD) {
+    startHorizontalScroll('right');
+  } else {
+    stopHorizontalScroll();
+  }
+  
+  // Vertical auto-scroll (find which column we're over)
+  const currentDragOverStatus = isDragOver.value;
+  if (currentDragOverStatus) {
+    const columnScroll = columnScrollRefs.value[currentDragOverStatus];
+    if (columnScroll) {
+      const columnRect = columnScroll.getBoundingClientRect();
+      const distanceFromTop = mouseY - columnRect.top;
+      const distanceFromBottom = columnRect.bottom - mouseY;
+      
+      if (distanceFromTop < SCROLL_THRESHOLD) {
+        startVerticalScroll(currentDragOverStatus, 'up');
+      } else if (distanceFromBottom < SCROLL_THRESHOLD) {
+        startVerticalScroll(currentDragOverStatus, 'down');
+      } else {
+        stopVerticalScroll();
+      }
+    }
+  }
+};
+
+// Helper function to handle status change
+const handleStatusChange = async (application: Application, targetStatus: string) => {
   const currentStatus = normalizeStatus(application.status || 'pending');
   
   console.log('📊 Current status:', currentStatus, '-> Target status:', targetStatus);
@@ -1097,7 +1164,6 @@ const onDrop = async (event: DragEvent, targetStatus: string) => {
   // Don't update if status is the same
   if (currentStatus === targetStatus) {
     console.log('ℹ️ Status unchanged, no update needed');
-    draggedApplication.value = null;
     return;
   }
   
@@ -1120,9 +1186,192 @@ const onDrop = async (event: DragEvent, targetStatus: string) => {
   } catch (error) {
     console.error('❌ Failed to update application status:', error);
     showErrorToast('Failed to update application status. Please try again.');
-  } finally {
-    draggedApplication.value = null;
   }
+};
+
+// Touch drag state
+const touchDragState = ref<{
+  application: Application | null;
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+} | null>(null);
+
+// Touch drag handlers for mobile
+const onTouchStart = (event: TouchEvent, application: Application) => {
+  if (event.touches.length !== 1) return;
+  
+  const touch = event.touches[0];
+  if (!touch) return;
+  
+  touchDragState.value = {
+    application,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    currentX: touch.clientX,
+    currentY: touch.clientY
+  };
+  
+  draggedApplication.value = application;
+  console.log('👆 Touch drag started for application:', application.id);
+};
+
+const onTouchMove = (event: TouchEvent) => {
+  if (!touchDragState.value || event.touches.length !== 1) return;
+  
+  event.preventDefault();
+  const touch = event.touches[0];
+  if (!touch) return;
+  
+  touchDragState.value.currentX = touch.clientX;
+  touchDragState.value.currentY = touch.clientY;
+  
+  // Find which column we're over
+  const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+  const columnElement = elements.find(el => {
+    const status = el.getAttribute('data-status');
+    return status && kanbanStatuses.some(s => s.value === status);
+  });
+  
+  if (columnElement) {
+    const status = columnElement.getAttribute('data-status');
+    if (status && isDragOver.value !== status) {
+      isDragOver.value = status;
+    }
+  }
+  
+  // Handle auto-scroll
+  if (kanbanContainer.value) {
+    const containerRect = kanbanContainer.value.getBoundingClientRect();
+    const mouseX = touch.clientX;
+    const distanceFromLeft = mouseX - containerRect.left;
+    const distanceFromRight = containerRect.right - mouseX;
+    
+    if (distanceFromLeft < SCROLL_THRESHOLD) {
+      startHorizontalScroll('left');
+    } else if (distanceFromRight < SCROLL_THRESHOLD) {
+      startHorizontalScroll('right');
+    } else {
+      stopHorizontalScroll();
+    }
+  }
+};
+
+const onTouchEnd = (event: TouchEvent) => {
+  if (!touchDragState.value) return;
+  
+  const touchState = touchDragState.value;
+  const moved = Math.abs(touchState.currentX - touchState.startX) > 10 || Math.abs(touchState.currentY - touchState.startY) > 10;
+  
+  if (moved && isDragOver.value && touchState.application) {
+    // Simulate drop
+    const targetStatus = isDragOver.value;
+    handleStatusChange(touchState.application, targetStatus);
+  }
+  
+  touchDragState.value = null;
+  draggedApplication.value = null;
+  isDragOver.value = null;
+  stopHorizontalScroll();
+  stopVerticalScroll();
+};
+
+// Drag and drop handlers
+const onDragStart = (event: DragEvent, application: Application) => {
+  console.log('🎯 Drag started for application:', application.id);
+  draggedApplication.value = application;
+  
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.dropEffect = 'move';
+    // Set data for compatibility
+    event.dataTransfer.setData('text/plain', application.id.toString());
+  }
+};
+
+const onDragEnd = (event: DragEvent) => {
+  console.log('🏁 Drag ended');
+  draggedApplication.value = null;
+  isDragOver.value = null;
+  // Stop all auto-scrolling
+  stopHorizontalScroll();
+  stopVerticalScroll();
+};
+
+const onDragOver = (event: DragEvent, targetStatus: string) => {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+  
+  // Update visual feedback
+  if (isDragOver.value !== targetStatus) {
+    isDragOver.value = targetStatus;
+  }
+  
+  // Handle auto-scroll for this column
+  if (draggedApplication.value) {
+    const columnScroll = columnScrollRefs.value[targetStatus];
+    if (columnScroll) {
+      const columnRect = columnScroll.getBoundingClientRect();
+      const mouseY = event.clientY;
+      const distanceFromTop = mouseY - columnRect.top;
+      const distanceFromBottom = columnRect.bottom - mouseY;
+      
+      if (distanceFromTop < SCROLL_THRESHOLD) {
+        startVerticalScroll(targetStatus, 'up');
+      } else if (distanceFromBottom < SCROLL_THRESHOLD) {
+        startVerticalScroll(targetStatus, 'down');
+      } else {
+        // Only stop vertical scroll if we're not near any edge
+        const kanbanContainerEl = kanbanContainer.value;
+        if (kanbanContainerEl) {
+          const containerRect = kanbanContainerEl.getBoundingClientRect();
+          const mouseX = event.clientX;
+          const distanceFromLeft = mouseX - containerRect.left;
+          const distanceFromRight = containerRect.right - mouseX;
+          
+          if (distanceFromLeft >= SCROLL_THRESHOLD && distanceFromRight >= SCROLL_THRESHOLD) {
+            stopVerticalScroll();
+          }
+        }
+      }
+    }
+  }
+};
+
+const onDragLeave = (event: DragEvent) => {
+  // Only clear if leaving the column completely
+  const target = event.currentTarget as HTMLElement;
+  const relatedTarget = event.relatedTarget as HTMLElement;
+  
+  if (!target.contains(relatedTarget)) {
+    isDragOver.value = null;
+  }
+};
+
+const onDrop = async (event: DragEvent, targetStatus: string) => {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  console.log('📦 Drop event triggered for status:', targetStatus);
+  
+  isDragOver.value = null;
+  // Stop all auto-scrolling on drop
+  stopHorizontalScroll();
+  stopVerticalScroll();
+  
+  if (!draggedApplication.value) {
+    console.log('⚠️ No dragged application found');
+    return;
+  }
+  
+  const application = draggedApplication.value;
+  await handleStatusChange(application, targetStatus);
+  draggedApplication.value = null;
 };
 
 // Toast notification functions
@@ -1200,6 +1449,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  // Cleanup scroll intervals
+  stopHorizontalScroll();
+  stopVerticalScroll();
   document.removeEventListener('click', handleClickOutside);
 });
 

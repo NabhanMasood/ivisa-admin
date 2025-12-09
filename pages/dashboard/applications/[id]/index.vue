@@ -2710,7 +2710,43 @@ const getApplicationFields = () => {
 }
 
 const getTravelerFields = (travelerId) => {
-  return fieldDefinitions.value.filter(f => !f.travelerId)
+  // Get all application-level fields (fields without travelerId)
+  const applicationFields = fieldDefinitions.value.filter(f => !f.travelerId)
+  
+  // Get resubmission fields for this specific traveler
+  const resubmissionFields = getFieldsFromResubmissionRequests(
+    activeResubmissionRequests.value,
+    travelerId
+  )
+  
+  // Combine application fields with resubmission fields for this traveler
+  // Only include resubmission fields that were requested for THIS traveler
+  const allFields = [...applicationFields, ...resubmissionFields]
+  
+  // Filter to ensure we only show fields that belong to this traveler
+  // Application-level fields (positive IDs) are shown to all travelers
+  // Resubmission fields (negative IDs) should only be shown to the traveler they were requested for
+  return allFields.filter(field => {
+    // If it's a positive field ID, it's an application-level field - show to all travelers
+    if (field.id > 0) {
+      return true
+    }
+    
+    // If it's a negative field ID, it's a resubmission field - only show if it was requested for this traveler
+    if (field.id < 0) {
+      // Check if this negative field ID belongs to this traveler
+      const request = activeResubmissionRequests.value.find(req => {
+        if (req.target !== 'traveler' || req.travelerId !== travelerId) {
+          return false
+        }
+        const fieldIds = req.fieldIds || []
+        return fieldIds.includes(field.id)
+      })
+      return !!request
+    }
+    
+    return true
+  })
 }
 
 const getBulkTravelerSelection = (travelerId) => {

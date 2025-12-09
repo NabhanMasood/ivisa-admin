@@ -96,23 +96,22 @@
             </div>
           </div>
 
-          <!-- Visa Product Info (Read-only for edit mode) -->
+          <!-- Visa Product Selection (editable in edit mode) -->
           <div v-if="isEditMode">
             <h3 class="text-base font-medium text-gray-900 dark:text-white mb-[30px]">
-              Visa Product
+              Select Visa Product
             </h3>
             <div class="flex flex-col gap-6">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-                  Selected Visa Product
-                </label>
-                <input
-                  :value="visaProductName"
-                  type="text"
-                  disabled
-                  class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm cursor-not-allowed"
-                  style="border-radius: 7px"
+                <CustomDropdown
+                  id="visaProduct"
+                  label="Visa Product"
+                  v-model="selectedVisaProductId"
+                  :options="visaProductOptions"
+                  placeholder="Select a visa product"
+                  search-placeholder="Search visa product"
                 />
+                <p v-if="fieldErrors.visaProduct" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ fieldErrors.visaProduct }}</p>
               </div>
             </div>
           </div>
@@ -691,10 +690,8 @@ const fieldTypeOptions = [
   { value: 'textarea', label: 'Textarea' },
 ];
 
-// Load visa products (only for add mode)
+// Load visa products (for both add and edit mode)
 const loadVisaProducts = async () => {
-  if (isEditMode.value) return;
-  
   try {
     const response = await getVisaProducts();
     if (response.success && response.data) {
@@ -716,12 +713,15 @@ const loadFields = async () => {
     isLoadingFields.value = true;
     errorMessage.value = '';
 
-    // Load visa product name
+    // Load visa products for dropdown
+    await loadVisaProducts();
+
+    // Load visa product name and set selected
     try {
       const productResponse = await getVisaProductById(visaProductId.value);
       if (productResponse.success && productResponse.data) {
         visaProductName.value = `${productResponse.data.productName} (${productResponse.data.country})`;
-        selectedVisaProductId.value = productResponse.data.id!;
+        selectedVisaProductId.value = String(productResponse.data.id!);
       }
     } catch (error) {
       console.error('Failed to load visa product:', error);
@@ -899,15 +899,45 @@ const saveForm = async () => {
     return;
   }
 
-  const targetVisaProductId = isEditMode.value ? visaProductId.value : selectedVisaProductId.value;
+  // Use selectedVisaProductId (which can be changed in edit mode) instead of visaProductId
+  const targetVisaProductId = selectedVisaProductId.value;
   
   if (!targetVisaProductId) {
     errorMessage.value = 'Please select a visa product';
     return;
   }
 
+  // Check if visa product was changed in edit mode
+  const originalVisaProductId = isEditMode.value ? visaProductId.value : null;
+  const visaProductChanged = isEditMode.value && originalVisaProductId && String(targetVisaProductId) !== String(originalVisaProductId);
+
   try {
     isLoading.value = true;
+
+    // If visa product was changed, delete old fields from original visa product
+    if (visaProductChanged && originalVisaProductId) {
+      try {
+        console.log(`🔄 Visa product changed from ${originalVisaProductId} to ${targetVisaProductId}, deleting old fields...`);
+        // Get old fields to delete them
+        const oldFieldsResponse = await getVisaProductFieldsByVisaProduct(originalVisaProductId);
+        if (oldFieldsResponse.success && oldFieldsResponse.data) {
+          // Delete all old fields
+          for (const oldField of oldFieldsResponse.data) {
+            if (oldField.id) {
+              try {
+                await deleteVisaProductField(oldField.id);
+                console.log(`✅ Deleted old field ${oldField.id}`);
+              } catch (error) {
+                console.error(`❌ Failed to delete old field ${oldField.id}:`, error);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to delete old fields:', error);
+        // Don't fail the entire save if old field deletion fails
+      }
+    }
 
     // IMPORTANT: Before saving, fix displayOrder values to ensure correct order
     // Strategy: Sort fields by their current displayOrder to get intended order,
@@ -1051,6 +1081,33 @@ const saveForm = async () => {
 const goBack = () => {
   router.push("/dashboard/additional-info");
 };
+
+// Watch for visa product changes in edit mode
+watch(selectedVisaProductId, async (newProductId, oldProductId) => {
+  if (isEditMode.value && newProductId && newProductId !== oldProductId && newProductId !== visaProductId.value) {
+    // User changed the visa product in edit mode
+    // Update the visa product name and clear field IDs so they're treated as new fields
+    // This allows reusing fields from duplicated form for a different visa product
+    try {
+      const productResponse = await getVisaProductById(String(newProductId));
+      if (productResponse.success && productResponse.data) {
+        visaProductName.value = `${productResponse.data.productName} (${productResponse.data.country})`;
+        
+        // Clear field IDs so they'll be created as new fields for the new visa product
+        // This allows reusing fields from the duplicated form
+        fields.value.forEach(field => {
+          if (field.id) {
+            // Remove the ID so it's treated as a new field when saving
+            delete field.id;
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load visa product:', error);
+      errorMessage.value = 'Failed to load visa product information';
+    }
+  }
+});
 
 // Load data on mount
 onMounted(async () => {

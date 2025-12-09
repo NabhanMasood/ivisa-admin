@@ -11,6 +11,7 @@
       :disabled="disabled"
       :class="inputClasses"
       :style="computedInputStyle"
+      :max="type === 'date' ? maxDate : undefined"
       @input="$emit('update:modelValue', $event.target.value)"
       @blur="$emit('blur', $event)"
       @focus="$emit('focus', $event)"
@@ -63,6 +64,14 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'blur', 'focus'])
 
 const inputId = computed(() => `input-${Math.random().toString(36).substr(2, 9)}`)
+
+// Max date for date inputs (50 years from now to allow future years)
+const maxDate = computed(() => {
+  if (props.type !== 'date') return undefined;
+  const futureDate = new Date();
+  futureDate.setFullYear(futureDate.getFullYear() + 50);
+  return futureDate.toISOString().split('T')[0];
+})
 
 const inputClasses = computed(() => {
   const baseClasses = 'block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200'
