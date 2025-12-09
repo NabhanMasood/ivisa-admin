@@ -1,6 +1,6 @@
 <template>
   <div class="h-screen flex flex-col lg:flex-row bg-gray-900 overflow-hidden">
-    <!-- Left Column - Image Section -->
+    <!-- Left Column - Image Secction -->
     <div class="hidden lg:flex w-[50%] relative overflow-hidden bg-gray-900">
       <!-- Background Image -->
       <img
