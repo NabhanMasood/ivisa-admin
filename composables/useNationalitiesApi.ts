@@ -7,6 +7,7 @@ export interface Nationality {
   id?: number | string
   nationality: string // Passport Country
   destinationCountry: string
+  isFreeVisa?: boolean
   visaProducts?: Array<{
     productId: number | string
     productName: string
@@ -29,6 +30,7 @@ export interface CreateNationalityDto {
   govtFee: number
   serviceFee: number
   totalAmount: number
+  isFreeVisa?: boolean
 }
 
 /**
@@ -41,6 +43,7 @@ export interface UpdateNationalityDto {
   govtFee?: number
   serviceFee?: number
   totalAmount?: number
+  isFreeVisa?: boolean
 }
 
 /**
@@ -283,8 +286,9 @@ export const useNationalitiesApi = () => {
   /**
    * Get products for a nationality-destination combination
    * GET http://localhost:5000/nationalities/Pakistan/germany/products
+   * GET http://localhost:5000/nationalities/Pakistan/germany/products?includeFreeVisas=true
    */
-  const getNationalityDestinationProducts = async (nationality: string, destination: string): Promise<ApiResponse<Array<{
+  const getNationalityDestinationProducts = async (nationality: string, destination: string, includeFreeVisas: boolean = false): Promise<ApiResponse<Array<{
     id?: number | string;
     productName: string;
     duration: number;
@@ -292,9 +296,10 @@ export const useNationalitiesApi = () => {
     totalAmount: number | string;
     govtFee?: number | string;
     serviceFee?: number | string;
+    isFreeVisa?: boolean;
   }>>> => {
     try {
-      const url = `/nationalities/${encodeURIComponent(nationality)}/${encodeURIComponent(destination)}/products`
+      const url = `/nationalities/${encodeURIComponent(nationality)}/${encodeURIComponent(destination)}/products${includeFreeVisas ? '?includeFreeVisas=true' : ''}`
       const response = await api.get<{ status: boolean; message: string; data: Array<any> }>(url)
 
       // Handle the response structure

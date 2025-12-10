@@ -100,12 +100,34 @@
                 search-placeholder="Search destination country"
                 :disabled="isLoadingDropdowns"
               />
+              
+              <!-- Free Visa Checkbox for the entire pair -->
+              <div
+                v-if="nationalityForm.name && nationalityForm.destinationCountry"
+                class="flex items-start gap-2 p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-md"
+              >
+                <input
+                  id="free-visa-pair"
+                  v-model="isFreeVisaPair"
+                  type="checkbox"
+                  :disabled="isViewMode"
+                  class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded mt-0.5"
+                />
+                <label
+                  for="free-visa-pair"
+                  class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1"
+                >
+                  <span class="font-medium text-orange-600 dark:text-orange-400">Free Visa</span>
+                 
+                </label>
+              </div>
             </div>
           </div>
 
           <!-- Visa Products Available Section -->
+          <!-- Hide this section when free visa is checked (products won't be shown to clients anyway) -->
           <div
-            v-if="nationalityForm.name && nationalityForm.destinationCountry"
+            v-if="nationalityForm.name && nationalityForm.destinationCountry && !isFreeVisaPair"
             class="mt-6"
           >
             <h3
@@ -160,7 +182,8 @@
                     :for="`visa-product-${product.productName}`"
                     class="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {{ product.productName }} - ${{ product.totalAmount }} ({{ product.duration }} days, Valid for {{ product.validity }} days)
+                    {{ product.productName }} - ${{ isFreeVisaPair ? '0.00' : product.totalAmount }} ({{ product.duration }} days, Valid for {{ product.validity }} days)
+                    <span v-if="isFreeVisaPair" class="ml-2 text-xs text-orange-600 dark:text-orange-400 font-medium">(Free Visa)</span>
                   </label>
                 </div>
               </div>
@@ -211,55 +234,64 @@
                     </label>
                   </div>
 
-                  <!-- Price Inputs (shown only if product is selected) -->
-                  <div
-                    v-if="customSelectedProducts.includes(product.productName)"
-                    class="mt-4 grid grid-cols-3 gap-4"
-                  >
-                    <div class="flex flex-col gap-2">
-                      <label
-                        class="block text-xs font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Gov't Fee <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        :id="`govt-fee-${product.productName}`"
-                        v-model.number="customPrices[product.productName].govtFee"
-                        type="number"
-                        placeholder="e.g. 50"
-                        :disabled="isLoading || isViewMode"
-                        class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
-                      />
-                    </div>
+                  <!-- Price Inputs (shown only if product is selected and NOT free visa pair) -->
+                  <template v-if="customSelectedProducts.includes(product.productName) && !isFreeVisaPair && customPrices[product.productName]">
+                    <div class="mt-4 grid grid-cols-3 gap-4">
+                      <div class="flex flex-col gap-2">
+                        <label
+                          class="block text-xs font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Gov't Fee <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          :id="`govt-fee-${product.productName}`"
+                          v-model.number="customPrices[product.productName]!.govtFee"
+                          type="number"
+                          placeholder="e.g. 50"
+                          :disabled="isLoading || isViewMode"
+                          class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
+                        />
+                      </div>
 
-                    <div class="flex flex-col gap-2">
-                      <label
-                        class="block text-xs font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Service Fee <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        :id="`service-fee-${product.productName}`"
-                        v-model.number="customPrices[product.productName].serviceFee"
-                        type="number"
-                        placeholder="e.g. 100"
-                        :disabled="isLoading || isViewMode"
-                        class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
-                      />
-                    </div>
+                      <div class="flex flex-col gap-2">
+                        <label
+                          class="block text-xs font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Service Fee <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          :id="`service-fee-${product.productName}`"
+                          v-model.number="customPrices[product.productName]!.serviceFee"
+                          type="number"
+                          placeholder="e.g. 100"
+                          :disabled="isLoading || isViewMode"
+                          class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
+                        />
+                      </div>
 
-                    <div class="flex flex-col gap-2">
-                      <label
-                        class="block text-xs font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Total Fee
-                      </label>
-                      <div
-                        class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#2F2F31] text-[#111] dark:text-white py-1 px-3 text-sm flex items-center font-semibold"
-                      >
-                        ${{ getCustomTotal(product.productName) || "0" }}
+                      <div class="flex flex-col gap-2">
+                        <label
+                          class="block text-xs font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Total Fee
+                        </label>
+                        <div
+                          class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#2F2F31] text-[#111] dark:text-white py-1 px-3 text-sm flex items-center font-semibold"
+                        >
+                          ${{ getCustomTotal(product.productName) || "0" }}
+                        </div>
                       </div>
                     </div>
+                  </template>
+                  
+                  <!-- Free Visa Info (shown when product is selected for custom pricing AND pair is marked as free visa) -->
+                  <div
+                    v-if="customSelectedProducts.includes(product.productName) && isFreeVisaPair"
+                    class="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md"
+                  >
+                    <p class="text-xs text-orange-700 dark:text-orange-300">
+                      <span class="font-medium">Free Visa Pair:</span> All fees are automatically set to $0.00. All products for this nationality-destination pair will not appear on the client-side application.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -291,12 +323,14 @@ const router = useRouter();
 // Initialize APIs
 const { getCountries } = useCountriesApi();
 const { getVisaProducts, getVisaProductsByCountry } = useVisaProductsApi();
-const { createNationality } = useNationalitiesApi();
+const { createNationality, getNationalities, getNationalityDestinationProducts, updateNationality, deleteNationality } = useNationalitiesApi();
 
 // Determine mode based on route parameters
 const isEditMode = computed(() => route.query.mode === "edit");
 const isViewMode = computed(() => route.query.mode === "view");
 const nationalityId = computed(() => route.query.id);
+const editNationality = computed(() => route.query.nationality as string | undefined);
+const editDestination = computed(() => route.query.destination as string | undefined);
 
 // Form data
 const nationalityForm = ref({
@@ -330,6 +364,8 @@ const availableVisaProducts = ref<
 const selectedVisaProducts = ref<string[]>([]);
 const customSelectedProducts = ref<string[]>([]);
 const customPricingEnabled = ref(false);
+// Free visa for the entire nationality-destination pair
+const isFreeVisaPair = ref(false);
 
 // Custom prices for selected products
 const customPrices = ref<
@@ -455,6 +491,44 @@ watch(
       selectedVisaProducts.value = [];
       customSelectedProducts.value = [];
       customPrices.value = {};
+      isFreeVisaPair.value = false;
+    }
+  }
+);
+
+// Watch nationality or destination changes - reset free visa when pair changes
+watch(
+  () => [nationalityForm.value.name, nationalityForm.value.destinationCountry],
+  () => {
+    isFreeVisaPair.value = false;
+  }
+);
+
+// Watch free visa pair - auto-set fees to 0 when marked as free visa
+watch(
+  isFreeVisaPair,
+  (isFree) => {
+    if (isFree) {
+      // When pair is marked as free visa, set all custom prices to 0
+      Object.keys(customPrices.value).forEach((productName) => {
+        if (customPrices.value[productName]) {
+          customPrices.value[productName].govtFee = 0;
+          customPrices.value[productName].serviceFee = 0;
+          customPrices.value[productName].totalAmount = 0;
+        }
+      });
+    } else {
+      // When pair is unmarked as free visa, restore original prices
+      Object.keys(customPrices.value).forEach((productName) => {
+        const product = availableVisaProducts.value.find(
+          (p) => p.productName === productName
+        );
+        if (product && customPrices.value[productName]) {
+          customPrices.value[productName].govtFee = product.govtFee ? Number(product.govtFee) : null;
+          customPrices.value[productName].serviceFee = product.serviceFee ? Number(product.serviceFee) : null;
+          customPrices.value[productName].totalAmount = product.totalAmount ? Number(product.totalAmount) : 0;
+        }
+      });
     }
   }
 );
@@ -487,11 +561,72 @@ watch(
   { deep: true }
 );
 
+// Load existing pair data if in edit mode
+const loadExistingPairData = async () => {
+  if (!isEditMode.value || !editNationality.value || !editDestination.value) {
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    
+    // Pre-fill nationality and destination
+    nationalityForm.value.name = editNationality.value;
+    nationalityForm.value.destinationCountry = editDestination.value;
+    
+    // Load products for this destination
+    await loadVisaProductsForDestination(editDestination.value);
+    
+    // Get existing nationality records for this pair
+    const nationalitiesResponse = await getNationalities();
+    if (nationalitiesResponse.success && nationalitiesResponse.data) {
+      const matchingNationalities = nationalitiesResponse.data.filter((nat: any) => {
+        const natName = (nat.nationality || '').toLowerCase().trim();
+        const destName = (nat.destination || nat.destinationCountry || '').toLowerCase().trim();
+        return natName === editNationality.value!.toLowerCase().trim() &&
+               destName === editDestination.value!.toLowerCase().trim();
+      });
+      
+      // Check if pair is free visa
+      const hasFreeVisa = matchingNationalities.some((nat: any) => {
+        return nat.isFreeVisa === true || nat.isFreeVisa === 'true' || nat.isFreeVisa === 1;
+      });
+      
+      if (hasFreeVisa) {
+        isFreeVisaPair.value = true;
+      }
+      
+      // Get existing products for this pair
+      const productsResponse = await getNationalityDestinationProducts(
+        editNationality.value,
+        editDestination.value,
+        true // includeFreeVisas=true
+      );
+      
+      if (productsResponse.success && productsResponse.data) {
+        // Extract unique product names
+        const existingProductNames = [...new Set(productsResponse.data.map((p: any) => p.productName))];
+        selectedVisaProducts.value = existingProductNames;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load existing pair data:', error);
+    errorMessage.value = "Failed to load existing pair data";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 // Load dropdown options on mount
 onMounted(async () => {
   isLoadingDropdowns.value = true;
   try {
     await Promise.all([loadNationalityOptions(), loadDestinationOptions()]);
+    
+    // If in edit mode, load existing data
+    if (isEditMode.value) {
+      await loadExistingPairData();
+    }
   } finally {
     isLoadingDropdowns.value = false;
   }
@@ -517,13 +652,15 @@ const saveNationality = async () => {
     return;
   }
 
-  if (selectedVisaProducts.value.length === 0) {
+  // Skip product selection validation if free visa is checked
+  // User can mark the pair as free visa without selecting products
+  if (selectedVisaProducts.value.length === 0 && !isFreeVisaPair.value) {
     errorMessage.value = "Please select at least one visa product";
     return;
   }
 
-  // Validate custom prices if enabled
-  if (customPricingEnabled.value && customSelectedProducts.value.length > 0) {
+  // Validate custom prices if enabled (skip validation for free visa pair)
+  if (customPricingEnabled.value && customSelectedProducts.value.length > 0 && !isFreeVisaPair.value) {
     for (const productName of customSelectedProducts.value) {
       const price = customPrices.value[productName];
       if (!price || price.govtFee === null || price.serviceFee === null) {
@@ -536,8 +673,15 @@ const saveNationality = async () => {
   try {
     isLoading.value = true;
 
+    // If free visa is checked but no products selected, use all available products
+    const productsToProcess = isFreeVisaPair.value && selectedVisaProducts.value.length === 0
+      ? availableVisaProducts.value.map(p => p.productName)
+      : selectedVisaProducts.value;
+
     // Prepare products for API calls - one call per product
-    const productsToCreate = selectedVisaProducts.value.map((productName) => {
+    // Note: If free visa is checked, only the FIRST product needs isFreeVisa=true
+    // The backend will hide all products for the pair if any product is marked as free visa
+    const productsToCreate = productsToProcess.map((productName, index) => {
       const product = availableVisaProducts.value.find(
         (p) => p.productName === productName
       );
@@ -546,62 +690,266 @@ const saveNationality = async () => {
         customSelectedProducts.value.includes(productName);
       const customPrice = customPrices.value[productName];
 
+      // If free visa pair, set fees to 0 for all products
+      // Only mark the first product as isFreeVisa=true (backend treats it at pair level)
+      const isFirstProduct = index === 0;
+      const govtFee = isFreeVisaPair.value ? 0 : (isCustomPriced && customPrice
+        ? Number(customPrice.govtFee)
+        : Number(product?.govtFee || 0));
+      const serviceFee = isFreeVisaPair.value ? 0 : (isCustomPriced && customPrice
+        ? Number(customPrice.serviceFee)
+        : Number(product?.serviceFee || 0));
+      const totalAmount = isFreeVisaPair.value ? 0 : (isCustomPriced && customPrice
+        ? Number(customPrice.totalAmount)
+        : Number(product?.totalAmount || 0));
+
       return {
         nationality: nationalityForm.value.name.trim(),
         destination: nationalityForm.value.destinationCountry.trim(),
-        productName: product?.productName || "",
-        govtFee: isCustomPriced && customPrice
-          ? Number(customPrice.govtFee)
-          : Number(product?.govtFee || 0),
-        serviceFee: isCustomPriced && customPrice
-          ? Number(customPrice.serviceFee)
-          : Number(product?.serviceFee || 0),
-        totalAmount: isCustomPriced && customPrice
-          ? Number(customPrice.totalAmount)
-          : Number(product?.totalAmount || 0),
+        productName: productName, // Use the productName from the map directly, not from product object
+        govtFee,
+        serviceFee,
+        totalAmount,
+        // Explicitly set isFreeVisa based on checkbox state
+        // If free visa is checked: only first product gets isFreeVisa=true (backend treats it at pair level)
+        // If free visa is unchecked: all products get isFreeVisa=false
+        isFreeVisa: isFreeVisaPair.value && isFirstProduct ? true : false,
       };
     });
 
-    // Make multiple API calls - one for each product
-    const results = [];
-    let hasError = false;
+    // If in edit mode, we need to update existing records or create new ones
+    if (isEditMode.value && editNationality.value && editDestination.value) {
+      // Get existing nationality records for this pair
+      const nationalitiesResponse = await getNationalities();
+      let existingNationalities: any[] = [];
+      
+      if (nationalitiesResponse.success && nationalitiesResponse.data) {
+        existingNationalities = nationalitiesResponse.data.filter((nat: any) => {
+          const natName = (nat.nationality || '').toLowerCase().trim();
+          const destName = (nat.destination || nat.destinationCountry || '').toLowerCase().trim();
+          return natName === editNationality.value!.toLowerCase().trim() &&
+                 destName === editDestination.value!.toLowerCase().trim();
+        });
+      }
+      
+      // Create a map of existing products by productName (only include records with valid IDs)
+      const existingProductsMap = new Map();
+      existingNationalities.forEach((nat: any) => {
+        if (nat.productName && nat.id) {
+          // Only add to map if both productName and id exist
+          existingProductsMap.set(nat.productName, nat);
+        }
+      });
+      
+      // Debug logging
+      if (process.dev) {
+        console.log('Edit mode - existing nationalities:', {
+          total: existingNationalities.length,
+          withIds: existingNationalities.filter((n: any) => n.id).length,
+          productsMap: Array.from(existingProductsMap.entries()).map(([name, nat]: [string, any]) => ({
+            productName: name,
+            id: nat.id,
+            isFreeVisa: nat.isFreeVisa
+          }))
+        });
+      }
+      
+      const results = [];
+      let hasError = false;
+      
+      // Process each product
+      for (const productPayload of productsToCreate) {
+        try {
+          const existingProduct = existingProductsMap.get(productPayload.productName);
+          
+          if (existingProduct && existingProduct.id) {
+            // Update existing record - verify ID exists
+            if (!existingProduct.id) {
+              console.warn(`No ID found for product ${productPayload.productName}, creating new record instead`);
+              // Create new record if ID is missing
+              const response = await createNationality(productPayload);
+              if (response.success) {
+                results.push(response);
+              } else {
+                hasError = true;
+                errorMessage.value = response.message || "Failed to create some nationality entries.";
+              }
+            } else {
+              // Update existing record - include all required fields
+              const updatePayload: any = {
+                productName: productPayload.productName, // Include productName as it might be required
+                govtFee: productPayload.govtFee,
+                serviceFee: productPayload.serviceFee,
+                totalAmount: productPayload.totalAmount,
+                isFreeVisa: productPayload.isFreeVisa,
+              };
+              
+              try {
+                const response = await updateNationality(existingProduct.id, updatePayload);
+                if (response.success) {
+                  results.push(response);
+                } else {
+                  hasError = true;
+                  errorMessage.value = response.message || "Failed to update some nationality entries.";
+                }
+              } catch (updateError: any) {
+                // If update fails (e.g., 404 - backend doesn't support PATCH or record doesn't exist), create new record instead
+                const updateErrorMessage = updateError?.message || String(updateError);
+                console.warn(`Update failed for product ${productPayload.productName} (ID: ${existingProduct.id}): ${updateErrorMessage}. Creating new record instead.`);
+                
+                // Verify productPayload has all required fields before creating
+                if (!productPayload.productName || !productPayload.nationality || !productPayload.destination) {
+                  console.error(`Cannot create record - missing required fields:`, productPayload);
+                  hasError = true;
+                  errorMessage.value = `Missing required fields for product ${productPayload.productName || 'unknown'}`;
+                  continue; // Skip this product and continue with others
+                }
+                
+                // When creating fallback record, ensure isFreeVisa is set correctly
+                const fallbackPayload = {
+                  ...productPayload,
+                  isFreeVisa: isFreeVisaPair.value ? false : false, // Explicitly false when checkbox is unchecked
+                };
+                
+                try {
+                  const response = await createNationality(fallbackPayload);
+                  if (response.success) {
+                    results.push(response);
+                  } else {
+                    hasError = true;
+                    errorMessage.value = response.message || "Failed to create some nationality entries.";
+                  }
+                } catch (createError: any) {
+                  hasError = true;
+                  const createErrorMsg = createError instanceof Error ? createError.message : "Failed to create nationality. Please try again.";
+                  console.error(`Create failed for product ${productPayload.productName}:`, createError);
+                  errorMessage.value = createErrorMsg;
+                }
+              }
+            }
+          } else {
+            // Create new record - verify all required fields are present
+            if (!productPayload.productName || !productPayload.nationality || !productPayload.destination) {
+              console.error(`Cannot create record - missing required fields:`, productPayload);
+              hasError = true;
+              errorMessage.value = `Missing required fields for product ${productPayload.productName || 'unknown'}`;
+              continue; // Skip this product and continue with others
+            }
+            
+            // Ensure isFreeVisa is explicitly set based on checkbox state
+            const createPayload = {
+              ...productPayload,
+              isFreeVisa: isFreeVisaPair.value ? productPayload.isFreeVisa : false,
+            };
+            
+            const response = await createNationality(createPayload);
+            if (response.success) {
+              results.push(response);
+            } else {
+              hasError = true;
+              errorMessage.value = response.message || "Failed to create some nationality entries.";
+            }
+          }
+        } catch (error) {
+          hasError = true;
+          const errorMsg = error instanceof Error ? error.message : "Failed to save nationality. Please try again.";
+          console.error(`Error processing product ${productPayload.productName}:`, error);
+          errorMessage.value = errorMsg;
+          // Don't break - continue processing other products
+        }
+      }
+      
+      // If free visa is unchecked, delete all old records with isFreeVisa=true for this pair
+      // This ensures the pair is no longer marked as free visa (backend checks if ANY record has isFreeVisa=true)
+      if (!isFreeVisaPair.value) {
+        const freeVisaRecords = existingNationalities.filter((nat: any) => {
+          return nat.isFreeVisa === true || nat.isFreeVisa === 'true' || nat.isFreeVisa === 1;
+        });
+        
+        if (freeVisaRecords.length > 0) {
+          if (process.dev) {
+            console.log(`🗑️ Deleting ${freeVisaRecords.length} old free visa records for ${editNationality.value} → ${editDestination.value}`);
+          }
+          
+          // Delete old free visa records
+          for (const freeVisaRecord of freeVisaRecords) {
+            if (freeVisaRecord.id) {
+              try {
+                await deleteNationality(freeVisaRecord.id);
+                if (process.dev) {
+                  console.log(`✅ Deleted free visa record: ${freeVisaRecord.productName} (ID: ${freeVisaRecord.id})`);
+                }
+              } catch (deleteError) {
+                console.warn(`Failed to delete free visa record ${freeVisaRecord.id}:`, deleteError);
+                // Continue with other deletions even if one fails
+              }
+            }
+          }
+        }
+      }
+      
+      // Delete products that are no longer selected (if any)
+      const selectedProductNames = new Set(productsToCreate.map(p => p.productName));
+      for (const existingNat of existingNationalities) {
+        if (existingNat.productName && !selectedProductNames.has(existingNat.productName)) {
+          // Optionally delete removed products - for now, we'll just skip them
+          // You can add delete functionality here if needed
+        }
+      }
+      
+      if (!hasError && results.length > 0) {
+        successMessage.value = `Successfully updated ${results.length} nationality entr${results.length > 1 ? "ies" : "y"}!`;
+        
+        setTimeout(() => {
+          // Navigate back to products page
+          const nationalitySlug = nationalityForm.value.name.toLowerCase().replace(/\s+/g, '-');
+          const destinationSlug = nationalityForm.value.destinationCountry.toLowerCase().replace(/\s+/g, '-');
+          router.push(`/dashboard/nationalities/${nationalitySlug}/${destinationSlug}/products`);
+        }, 1500);
+      }
+    } else {
+      // Create mode - create new nationality entries
+      const results = [];
+      let hasError = false;
 
-    for (const productPayload of productsToCreate) {
-      try {
-        const response = await createNationality(productPayload);
-        if (response.success) {
-          results.push(response);
-        } else {
+      for (const productPayload of productsToCreate) {
+        try {
+          const response = await createNationality(productPayload);
+          if (response.success) {
+            results.push(response);
+          } else {
+            hasError = true;
+            errorMessage.value =
+              response.message || "Failed to create some nationality entries.";
+          }
+        } catch (error) {
           hasError = true;
           errorMessage.value =
-            response.message || "Failed to create some nationality entries.";
+            error instanceof Error
+              ? error.message
+              : "Failed to create nationality. Please try again.";
+          break;
         }
-      } catch (error) {
-        hasError = true;
-        errorMessage.value =
-          error instanceof Error
-            ? error.message
-            : "Failed to create nationality. Please try again.";
-        break;
       }
-    }
 
-    if (!hasError && results.length > 0) {
-      successMessage.value = `Successfully created ${results.length} nationality entr${results.length > 1 ? "ies" : "y"}!`;
+      if (!hasError && results.length > 0) {
+        successMessage.value = `Successfully created ${results.length} nationality entr${results.length > 1 ? "ies" : "y"}!`;
 
-      // Reset form
-      nationalityForm.value = {
-        name: "",
-        destinationCountry: "",
-      };
-      selectedVisaProducts.value = [];
-      customSelectedProducts.value = [];
-      customPrices.value = {};
-      customPricingEnabled.value = false;
+        // Reset form
+        nationalityForm.value = {
+          name: "",
+          destinationCountry: "",
+        };
+        selectedVisaProducts.value = [];
+        customSelectedProducts.value = [];
+        customPrices.value = {};
+        customPricingEnabled.value = false;
+        isFreeVisaPair.value = false;
 
-      setTimeout(() => {
-        goBack();
-      }, 1500);
+        setTimeout(() => {
+          goBack();
+        }, 1500);
+      }
     }
   } catch (error) {
     errorMessage.value =

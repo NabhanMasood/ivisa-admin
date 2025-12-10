@@ -154,6 +154,7 @@
                   <select
                     id="entryType"
                     v-model="visaProductForm.entryType"
+                    @change="handleEntryTypeChange"
                     :disabled="isLoading || isViewMode"
                     :class="[
                       'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
@@ -164,9 +165,33 @@
                     <option value="" disabled>Select entry type</option>
                     <option value="single">Single Entry</option>
                     <option value="multiple">Multiple Entry</option>
+                    <option value="custom">Custom</option>
                   </select>
                   <p v-if="fieldErrors.entryType" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ fieldErrors.entryType }}</p>
                 </div>
+
+              <!-- Custom Entry Name Input (shown only when entryType is "custom") -->
+              <div v-if="visaProductForm.entryType === 'custom'">
+                <label
+                  for="customEntryName"
+                  class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                >
+                  Custom Entry Name <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="customEntryName"
+                  v-model="visaProductForm.customEntryName"
+                  type="text"
+                  placeholder="e.g. Double Entry, Triple Entry"
+                  :disabled="isLoading || isViewMode"
+                  :class="[
+                    'w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm',
+                    fieldErrors.customEntryName ? 'border-red-500 dark:border-red-500' : '',
+                    isViewMode ? 'bg-gray-50 dark:bg-gray-900 cursor-not-allowed' : ''
+                  ]"
+                />
+                <p v-if="fieldErrors.customEntryName" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ fieldErrors.customEntryName }}</p>
+              </div>
 
               <!-- Government Fee Input -->
               <div>
@@ -440,6 +465,7 @@ const fieldErrors = ref({
   duration: '',
   validity: '',
   entryType: '',
+  customEntryName: '',
   govtFee: '',
   serviceFee: '',
 });
@@ -455,7 +481,8 @@ const visaProductForm = ref({
   productName: '',
   duration: null as number | null,
   validity: null as number | null,
-  entryType: '' as string, 
+  entryType: '' as string,
+  customEntryName: '' as string,
   govtFee: null as number | null,
   serviceFee: null as number | null,
   processingFees: [
@@ -573,6 +600,7 @@ const loadVisaProductData = async () => {
           duration: response.data.duration || null,
           validity: response.data.validity || null,
           entryType: response.data.entryType || '',
+          customEntryName: response.data.customEntryName || '',
           govtFee: response.data.govtFee || null,
           serviceFee: response.data.serviceFee || null,
           processingFees: processingFeesData,
@@ -597,6 +625,14 @@ const goBack = () => {
   router.push("/dashboard/visaproducts");
 };
 
+// Handle entry type change - clear customEntryName if not custom
+const handleEntryTypeChange = () => {
+  if (visaProductForm.value.entryType !== 'custom') {
+    visaProductForm.value.customEntryName = '';
+    fieldErrors.value.customEntryName = '';
+  }
+};
+
 // Form validation
 const validateForm = (): boolean => {
   fieldErrors.value = {
@@ -605,6 +641,7 @@ const validateForm = (): boolean => {
     duration: '',
     validity: '',
     entryType: '',
+    customEntryName: '',
     govtFee: '',
     serviceFee: '',
   };
@@ -634,6 +671,14 @@ const validateForm = (): boolean => {
   if (!visaProductForm.value.entryType || !visaProductForm.value.entryType.trim()) {
     fieldErrors.value.entryType = 'Entry type is required';
     isValid = false;
+  }
+  
+  // Validate customEntryName when entryType is "custom"
+  if (visaProductForm.value.entryType === 'custom') {
+    if (!visaProductForm.value.customEntryName || !visaProductForm.value.customEntryName.trim()) {
+      fieldErrors.value.customEntryName = 'Custom entry name is required when entry type is custom';
+      isValid = false;
+    }
   }
   
   if (visaProductForm.value.govtFee === null || visaProductForm.value.govtFee === undefined || visaProductForm.value.govtFee < 0) {
@@ -685,7 +730,7 @@ const saveVisaProduct = async () => {
       }));
     
     // Ensure ALL numeric fields are actually numbers, not strings
-    const payload = {
+    const payload: any = {
       country: visaProductForm.value.country.trim(),
       productName: visaProductForm.value.productName.trim(),
       duration: Number(visaProductForm.value.duration!),
@@ -696,6 +741,11 @@ const saveVisaProduct = async () => {
       totalAmount: totalAmountValue,
       processingFees: validProcessingFees.length > 0 ? validProcessingFees : undefined,
     };
+    
+    // Only include customEntryName when entryType is "custom"
+    if (visaProductForm.value.entryType === 'custom' && visaProductForm.value.customEntryName) {
+      payload.customEntryName = visaProductForm.value.customEntryName.trim();
+    }
     
     console.log('📤 Payload being sent:', payload);
     console.log('📤 Type check - govtFee:', typeof payload.govtFee, payload.govtFee);
@@ -723,7 +773,8 @@ const saveVisaProduct = async () => {
           productName: '',
           duration: null,
           validity: null,
-          entryType: '', 
+          entryType: '',
+          customEntryName: '',
           govtFee: null,
           serviceFee: null,
           processingFees: [
@@ -775,6 +826,14 @@ watch(() => visaProductForm.value.serviceFee, () => {
 
 watch(() => visaProductForm.value.entryType, () => {
   if (fieldErrors.value.entryType) fieldErrors.value.entryType = '';
+  // Clear customEntryName when entryType changes away from custom
+  if (visaProductForm.value.entryType !== 'custom') {
+    visaProductForm.value.customEntryName = '';
+  }
+});
+
+watch(() => visaProductForm.value.customEntryName, () => {
+  if (fieldErrors.value.customEntryName) fieldErrors.value.customEntryName = '';
 });
 
 // Load data on mount

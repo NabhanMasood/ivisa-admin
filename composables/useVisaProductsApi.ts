@@ -21,6 +21,7 @@ export interface VisaProduct {
   duration: number
   validity: number
   entryType: string
+  customEntryName?: string
   govtFee: number
   serviceFee: number
   totalAmount: number
@@ -38,6 +39,7 @@ export interface CreateVisaProductDto {
   duration: number
   validity: number
   entryType: string
+  customEntryName?: string
   govtFee: number
   serviceFee: number
   totalAmount: number
@@ -53,6 +55,7 @@ export interface UpdateVisaProductDto {
   duration?: number
   validity?: number
   entryType?: string
+  customEntryName?: string
   govtFee?: number
   serviceFee?: number
   totalAmount?: number

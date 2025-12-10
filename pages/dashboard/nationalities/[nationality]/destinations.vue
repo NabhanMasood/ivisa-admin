@@ -105,7 +105,14 @@
                 <td
                   class="px-4 py-3 text-sm text-[#475467] dark:text-white font-medium"
                 >
-                  {{ destination.destination }}
+                  <div class="flex items-center gap-2">
+                    <span
+                      v-if="destination.isFreeVisa"
+                      class="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"
+                      title="Free Visa - All products for this pair are hidden from client"
+                    ></span>
+                    {{ destination.destination }}
+                  </div>
                 </td>
                 <td
                   class="px-4 py-3 text-sm text-[#475467] dark:text-white"
@@ -160,7 +167,7 @@ const route = useRoute();
 const router = useRouter();
 
 // Initialize API
-const { getNationalityDestinations } = useNationalitiesApi();
+const { getNationalityDestinations, getNationalityDestinationProducts, getNationalities } = useNationalitiesApi();
 
 // Get nationality name from route params
 const nationalityName = computed(() => {
@@ -179,10 +186,12 @@ useHead({
 const destinations = ref<Array<{
   destination: string;
   products: number;
+  isFreeVisa?: boolean;
 }>>([]);
 const allDestinations = ref<Array<{
   destination: string;
   products: number;
+  isFreeVisa?: boolean;
 }>>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
@@ -202,8 +211,75 @@ const loadDestinations = async () => {
     const response = await getNationalityDestinations(nationalityName.value);
     
     if (response.success && response.data) {
-      allDestinations.value = response.data;
-      destinations.value = response.data;
+      // Get all nationalities to check free visa status
+      let allNationalities: any[] = [];
+      try {
+        const nationalitiesResponse = await getNationalities();
+        if (nationalitiesResponse.success && nationalitiesResponse.data) {
+          allNationalities = nationalitiesResponse.data;
+        }
+      } catch (error) {
+        console.warn('Failed to load nationalities for free visa check:', error);
+      }
+      
+      // Check free visa status and recalculate product count for each destination
+      const destinationsWithFreeVisa = await Promise.all(
+        response.data.map(async (dest) => {
+          // Check if any nationality record for this pair has isFreeVisa=true
+          // Note: API uses 'destination' field, not 'destinationCountry'
+          const matchingNationalities = allNationalities.filter((nat: any) => {
+            const natName = (nat.nationality || '').toLowerCase().trim();
+            const destName = (nat.destination || nat.destinationCountry || '').toLowerCase().trim();
+            const currentNatName = nationalityName.value.toLowerCase().trim();
+            const currentDestName = dest.destination.toLowerCase().trim();
+            
+            return natName === currentNatName && destName === currentDestName;
+          });
+          
+          // If any nationality record for this pair has isFreeVisa=true, the pair is free visa
+          const isFreeVisa = matchingNationalities.some((nat: any) => {
+            return nat.isFreeVisa === true || nat.isFreeVisa === 'true' || nat.isFreeVisa === 1;
+          });
+          
+          // Recalculate actual product count by fetching products (include free visas for admin view)
+          let actualProductCount = dest.products; // Fallback to API count
+          try {
+            const productsResponse = await getNationalityDestinationProducts(
+              nationalityName.value,
+              dest.destination,
+              true // includeFreeVisas=true for admin panel
+            );
+            
+            if (productsResponse.success && productsResponse.data) {
+              // Count unique products (by productName to avoid duplicates)
+              const uniqueProducts = new Set(productsResponse.data.map((p: any) => p.productName));
+              actualProductCount = uniqueProducts.size;
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch products for ${dest.destination}:`, error);
+            // Keep the original count from API
+          }
+          
+          // Debug logging
+          if (process.dev) {
+            console.log(`🔍 Checking ${nationalityName.value} → ${dest.destination}:`, {
+              apiProductCount: dest.products,
+              actualProductCount,
+              matchingCount: matchingNationalities.length,
+              isFreeVisa,
+            });
+          }
+          
+          return {
+            ...dest,
+            products: actualProductCount,
+            isFreeVisa,
+          };
+        })
+      );
+      
+      allDestinations.value = destinationsWithFreeVisa;
+      destinations.value = destinationsWithFreeVisa;
     } else {
       allDestinations.value = [];
       destinations.value = [];

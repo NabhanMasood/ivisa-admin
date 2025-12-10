@@ -20,13 +20,21 @@
             </h1>
           </div>
         </div>
-        <button
-          @click="loadProducts"
-          :disabled="isLoading"
-          class="p-2 hover:bg-[#E4E4E8] dark:hover:bg-[#2F2F31] transition-colors border border-gray-200 dark:border-gray-800 w-[42px] h-[36px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          style="border-radius: 5px"
-          title="Refresh products"
-        >
+        <div class="flex items-center gap-2">
+          <button
+            @click="editPair"
+            class="px-4 py-2 text-sm font-medium rounded-[6px] text-gray-700 dark:text-gray-300 bg-[#F1F1F1] dark:bg-[#18181B] dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors"
+            title="Edit pair settings"
+          >
+            Edit Pair
+          </button>
+          <button
+            @click="loadProducts"
+            :disabled="isLoading"
+            class="p-2 hover:bg-[#E4E4E8] dark:hover:bg-[#2F2F31] transition-colors border border-gray-200 dark:border-gray-800 w-[42px] h-[36px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            style="border-radius: 5px"
+            title="Refresh products"
+          >
           <svg
             class="h-4 w-4 text-gray-600 dark:text-gray-300"
             :class="{ 'animate-spin': isLoading }"
@@ -42,6 +50,7 @@
             ></path>
           </svg>
         </button>
+        </div>
       </div>
 
       <!-- Search Bar -->
@@ -153,7 +162,14 @@
                 <td
                   class="px-4 py-3 text-sm text-[#475467] dark:text-white font-medium"
                 >
-                  {{ product.productName }}
+                  <div class="flex items-center gap-2">
+                    <span
+                      v-if="product.isFreeVisa"
+                      class="w-2 h-2 bg-green-500 rounded-full"
+                      title="Free Visa"
+                    ></span>
+                    {{ product.productName }}
+                  </div>
                 </td>
                 <td
                   class="px-4 py-3 text-sm text-[#475467] dark:text-white"
@@ -297,6 +313,7 @@ const products = ref<Array<{
   totalAmount: number | string;
   govtFee?: number | string;
   serviceFee?: number | string;
+  isFreeVisa?: boolean;
   selected: boolean;
 }>>([]);
 const isLoading = ref(false);
@@ -317,10 +334,12 @@ const loadProducts = async () => {
     errorMessage.value = "";
     
     // Fetch both nationality products and latest visa products
+    // Use includeFreeVisas=true for admin panel to see all products including free visas
     const [nationalityResponse, visaProductsResponse] = await Promise.all([
       getNationalityDestinationProducts(
         nationalityName.value,
-        destinationName.value
+        destinationName.value,
+        true // includeFreeVisas=true for admin panel
       ),
       getVisaProductsByCountry(destinationName.value)
     ]);
@@ -343,6 +362,10 @@ const loadProducts = async () => {
         }
       });
       
+      // Check if any product in the pair is marked as free visa
+      // If so, all products for this pair are free visa (backend treats it at pair level)
+      const hasFreeVisaProduct = nationalityResponse.data.some((p: any) => p.isFreeVisa === true);
+      
       // Map API data and merge with latest visa product prices
       products.value = nationalityResponse.data.map((product: any) => {
         const latestPrices = latestPricesMap.get(product.productName);
@@ -353,6 +376,8 @@ const loadProducts = async () => {
           totalAmount: latestPrices?.totalAmount ?? product.totalAmount,
           govtFee: latestPrices?.govtFee ?? product.govtFee,
           serviceFee: latestPrices?.serviceFee ?? product.serviceFee,
+          // Mark all products as free visa if any product in the pair is free visa
+          isFreeVisa: hasFreeVisaProduct,
           selected: false,
         };
       });
@@ -410,6 +435,11 @@ const goBack = () => {
 
 const navigateToAddNationality = () => {
   router.push("/dashboard/nationalities/add");
+};
+
+const editPair = () => {
+  // Navigate to add page with nationality and destination pre-filled for editing
+  router.push(`/dashboard/nationalities/add?nationality=${encodeURIComponent(nationalityName.value)}&destination=${encodeURIComponent(destinationName.value)}&mode=edit`);
 };
 
 const editProduct = (product: { id?: number | string }) => {
