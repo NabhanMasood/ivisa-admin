@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     },
   },
 
-  // 👇 Add this block
+  // 👇 Add this blockk
   nitro: {
     preset: "vercel",
   },
