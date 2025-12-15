@@ -321,6 +321,64 @@ export const useNationalitiesApi = () => {
     }
   }
 
+  /**
+   * Import nationalities and visa products from CSV file
+   * POST http://localhost:5000/nationalities/import
+   */
+  const importNationalitiesFromCSV = async (file: File): Promise<ApiResponse<{
+    totalRows: number
+    processed: number
+    visaProductsCreated: number
+    visaProductsReused: number
+    nationalitiesCreated: number
+    errors: Array<{ row: number; error: string }>
+  }>> => {
+    try {
+      const config = useRuntimeConfig()
+      const token = useCookie('admin_auth_token')
+
+      // Create FormData
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Get base URL
+      const baseURL = (config.public.apiBase as string) || 'http://localhost:5001'
+      const url = `${baseURL}/nationalities/import`
+
+      // Use $fetch for file upload (handles multipart/form-data better)
+      const response = await $fetch<{
+        status: boolean
+        message: string
+        data: {
+          totalRows: number
+          processed: number
+          visaProductsCreated: number
+          visaProductsReused: number
+          nationalitiesCreated: number
+          errors: Array<{ row: number; error: string }>
+        }
+      }>(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
+        },
+      })
+
+      if (response.status && response.data) {
+        return {
+          data: response.data,
+          message: response.message || 'CSV imported successfully',
+          success: true,
+        }
+      }
+
+      throw new Error(response.message || 'Failed to import CSV')
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
   return {
     createNationality,
     getNationalities,
@@ -330,6 +388,7 @@ export const useNationalitiesApi = () => {
     getNationalitiesList,
     getNationalityDestinations,
     getNationalityDestinationProducts,
+    importNationalitiesFromCSV,
   }
 }
 
