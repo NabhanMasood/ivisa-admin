@@ -154,6 +154,50 @@
                     >Amount (High to Low)</span
                   >
                 </button>
+                <button
+                  @click="setSortOption('processing_fast')"
+                  :class="[
+                    'w-full text-left flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer transition-colors',
+                    sortOption === 'processing_fast' ? 'bg-[#E4E4E8] dark:bg-[#18181B]' : ''
+                  ]"
+                  style="border-radius: 5px; margin: 3px"
+                >
+                  <span
+                    v-if="sortOption === 'processing_fast'"
+                    class="mr-3 text-black dark:text-white text-sm font-bold"
+                    >✓</span
+                  >
+                  <span
+                    v-else
+                    class="mr-3 text-transparent text-sm font-bold"
+                    >✓</span
+                  >
+                  <span class="text-sm text-gray-900 dark:text-white"
+                    >Lower Processing Time</span
+                  >
+                </button>
+                <button
+                  @click="setSortOption('processing_slow')"
+                  :class="[
+                    'w-full text-left flex items-center px-3 py-2 hover:bg-[#E4E4E8] dark:hover:bg-[#18181B] cursor-pointer transition-colors',
+                    sortOption === 'processing_slow' ? 'bg-[#E4E4E8] dark:bg-[#18181B]' : ''
+                  ]"
+                  style="border-radius: 5px; margin: 3px"
+                >
+                  <span
+                    v-if="sortOption === 'processing_slow'"
+                    class="mr-3 text-black dark:text-white text-sm font-bold"
+                    >✓</span
+                  >
+                  <span
+                    v-else
+                    class="mr-3 text-transparent text-sm font-bold"
+                    >✓</span
+                  >
+                  <span class="text-sm text-gray-900 dark:text-white"
+                    >Higher Processing Time</span
+                  >
+                </button>
               </div>
             </div>
           </div>
@@ -496,6 +540,12 @@
                     </span>
                   </div>
                   <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-500 dark:text-gray-400">Processing</span>
+                    <span :class="getProcessingTimePillClasses(application)" class="px-2 py-0.5 rounded-full text-[10px] font-medium">
+                      {{ formatProcessingTime(application) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs">
                     <span class="text-gray-500 dark:text-gray-400">Amount</span>
                     <span class="text-gray-900 dark:text-white font-medium">
                       {{ formatAmount(application) }}
@@ -637,7 +687,38 @@ interface Application {
   totalAmount?: number | string;
   price?: string;
   totalPrice?: string;
-  processingFee?: string;
+  // Processing fee can be a string (amount) or an object with full details
+  processingFee?: string | {
+    id?: number;
+    feeType?: string;
+    fee_type?: string;
+    timeValue?: number;
+    time_value?: number;
+    timeUnit?: 'hours' | 'days';
+    time_unit?: 'hours' | 'days';
+    amount?: number;
+  };
+  // Also check for snake_case version
+  processing_fee?: {
+    id?: number;
+    feeType?: string;
+    fee_type?: string;
+    timeValue?: number;
+    time_value?: number;
+    timeUnit?: 'hours' | 'days';
+    time_unit?: 'hours' | 'days';
+    amount?: number;
+  };
+  // Direct fields (camelCase variants)
+  processingType?: string;
+  processingTime?: string; // Combined string like "5 days" or "48 hours"
+  processingTimeValue?: number;
+  processingTimeUnit?: 'hours' | 'days';
+  // Direct fields (snake_case variants from API)
+  processing_type?: string;
+  processing_time?: string; // Combined string like "5 days" or "48 hours"
+  processing_time_value?: number;
+  processing_time_unit?: 'hours' | 'days';
   status?: string;
   createdAt?: string;
   created_at?: string;
@@ -655,7 +736,7 @@ const viewMode = ref<'table' | 'kanban'>('kanban'); // Default to kanban view
 const draggedApplication = ref<Application | null>(null);
 const isDragOver = ref<string | null>(null);
 const sortDropdownOpen = ref(false);
-const sortOption = ref<'date_desc' | 'date_asc' | 'amount_desc'>('date_desc'); // Default to latest first
+const sortOption = ref<'date_desc' | 'date_asc' | 'amount_desc' | 'processing_fast' | 'processing_slow'>('date_desc'); // Default to latest first
 
 // Auto-scroll refs and state
 const kanbanContainer = ref<HTMLElement | null>(null);
@@ -814,9 +895,9 @@ const getStatusPillClasses = (status: string | undefined): string => {
 
 const getFormattedStatus = (status: string | undefined): string => {
   if (!status) return '';
-  
+
   const statusLower = status.toLowerCase().replace(/\s+/g, '_');
-  
+
   // Format common status values nicely
   const formattedMap: Record<string, string> = {
     'pending': 'Pending',
@@ -836,8 +917,189 @@ const getFormattedStatus = (status: string | undefined): string => {
     'declined': 'Declined',
     'cancelled': 'Cancelled',
   };
-  
+
   return formattedMap[statusLower] || status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+};
+
+// Processing time formatting and styling
+
+// Helper to parse combined processingTime string (e.g., "5 days", "48 hours")
+const parseProcessingTimeString = (timeStr: string | undefined): { value: number; unit: 'hours' | 'days' } | null => {
+  if (!timeStr || typeof timeStr !== 'string') return null;
+
+  const trimmed = timeStr.trim().toLowerCase();
+  // Match patterns like "5 days", "48 hours", "1 day", "24 hour"
+  const match = trimmed.match(/^(\d+)\s*(hours?|days?)$/i);
+  if (!match || !match[1] || !match[2]) return null;
+
+  const value = parseInt(match[1], 10);
+  const unitStr = match[2].toLowerCase();
+  const unit: 'hours' | 'days' = unitStr.startsWith('hour') ? 'hours' : 'days';
+
+  return { value, unit };
+};
+
+// Helper to get processing fee object (checks both camelCase and snake_case)
+const getProcessingFeeObject = (app: Application): { timeValue?: number; timeUnit?: string; feeType?: string } | null => {
+  // Check processingFee object
+  if (app.processingFee && typeof app.processingFee === 'object') {
+    const fee = app.processingFee;
+    return {
+      timeValue: fee.timeValue || fee.time_value,
+      timeUnit: fee.timeUnit || fee.time_unit,
+      feeType: fee.feeType || fee.fee_type,
+    };
+  }
+  // Check processing_fee object (snake_case)
+  if (app.processing_fee && typeof app.processing_fee === 'object') {
+    const fee = app.processing_fee;
+    return {
+      timeValue: fee.timeValue || fee.time_value,
+      timeUnit: fee.timeUnit || fee.time_unit,
+      feeType: fee.feeType || fee.fee_type,
+    };
+  }
+  return null;
+};
+
+// Helper to get processing time value (checks direct fields, processingTime string, and processingFee object)
+const getProcessingTimeValueFromApp = (app: Application): number | undefined => {
+  // First check direct numeric fields
+  if (app.processingTimeValue) return app.processingTimeValue;
+  if (app.processing_time_value) return app.processing_time_value;
+  // Then check combined processingTime string (e.g., "5 days")
+  const parsed = parseProcessingTimeString(app.processingTime || app.processing_time);
+  if (parsed) return parsed.value;
+  // Finally check processingFee object
+  const feeObj = getProcessingFeeObject(app);
+  if (feeObj?.timeValue) return feeObj.timeValue;
+  return undefined;
+};
+
+const getProcessingTimeUnitFromApp = (app: Application): string | undefined => {
+  // First check direct fields
+  if (app.processingTimeUnit) return app.processingTimeUnit;
+  if (app.processing_time_unit) return app.processing_time_unit;
+  // Then check combined processingTime string (e.g., "5 days")
+  const parsed = parseProcessingTimeString(app.processingTime || app.processing_time);
+  if (parsed) return parsed.unit;
+  // Finally check processingFee object
+  const feeObj = getProcessingFeeObject(app);
+  if (feeObj?.timeUnit) return feeObj.timeUnit;
+  return undefined;
+};
+
+const getProcessingTypeFromApp = (app: Application): string | undefined => {
+  // First check direct fields
+  if (app.processingType) return app.processingType;
+  if (app.processing_type) return app.processing_type;
+  // Then check processingFee object for feeType
+  const feeObj = getProcessingFeeObject(app);
+  if (feeObj?.feeType) return feeObj.feeType;
+  return undefined;
+};
+
+const hasProcessingTime = (app: Application): boolean => {
+  // First check if processingTime string is provided directly
+  const parsedTimeStr = parseProcessingTimeString(app.processingTime || app.processing_time);
+  if (parsedTimeStr) {
+    return true;
+  }
+
+  const timeValue = getProcessingTimeValueFromApp(app);
+  const timeUnit = getProcessingTimeUnitFromApp(app);
+  const procType = getProcessingTypeFromApp(app);
+
+  // Check if explicit time value is provided
+  if (timeValue && timeUnit) {
+    return true;
+  }
+  // Check if processing type/feeType is set (not empty/null/undefined)
+  if (procType && procType.trim() !== '') {
+    return true;
+  }
+  return false;
+};
+
+const getProcessingTimeInDays = (app: Application): number => {
+  const timeValue = getProcessingTimeValueFromApp(app);
+  const timeUnit = getProcessingTimeUnitFromApp(app);
+  const procType = getProcessingTypeFromApp(app);
+
+  // If explicit time value is provided, use it
+  if (timeValue && timeUnit) {
+    if (timeUnit === 'hours') {
+      return timeValue / 24;
+    }
+    return timeValue;
+  }
+
+  // If processing type/feeType is set, use default values
+  if (procType && procType.trim() !== '') {
+    const processingType = procType.toLowerCase();
+    switch (processingType) {
+      case 'super-rush':
+        return 1; // 1 day (24 hours)
+      case 'rush':
+        return 3; // 3 days
+      case 'standard':
+        return 7; // 7 days
+      default:
+        return 7; // Default to standard if unknown type
+    }
+  }
+
+  // No processing time set - return large number for sorting (puts them at the end)
+  return 999;
+};
+
+const formatProcessingTime = (app: Application): string => {
+  // If no processing time is set, return "-"
+  if (!hasProcessingTime(app)) {
+    return '-';
+  }
+
+  const timeValue = getProcessingTimeValueFromApp(app);
+  const timeUnit = getProcessingTimeUnitFromApp(app);
+  const procType = getProcessingTypeFromApp(app);
+
+  // If explicit time value is provided, format it
+  if (timeValue && timeUnit) {
+    if (timeUnit === 'hours') {
+      return timeValue === 1 ? '1 Hour' : `${timeValue} Hours`;
+    }
+    return timeValue === 1 ? '1 Day' : `${timeValue} Days`;
+  }
+
+  // Fall back to default display based on processing type
+  const processingType = (procType || '').toLowerCase();
+  switch (processingType) {
+    case 'super-rush':
+      return '1 Day';
+    case 'rush':
+      return '3 Days';
+    case 'standard':
+      return '7 Days';
+    default:
+      return '-';
+  }
+};
+
+const getProcessingTimePillClasses = (app: Application): string => {
+  // If no processing time is set, return neutral styling
+  if (!hasProcessingTime(app)) {
+    return 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400';
+  }
+
+  const days = getProcessingTimeInDays(app);
+
+  if (days <= 1) {
+    return 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'; // Fastest
+  } else if (days <= 3) {
+    return 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'; // Medium
+  } else {
+    return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'; // Standard
+  }
 };
 
 const toggleColumnsDropdown = () => {
@@ -944,6 +1206,7 @@ const getNumericId = (app: Application): number => {
   return 0;
 };
 
+
 // Sort function that uses current sortOption
 const sortApplications = (apps: Application[]): Application[] => {
   const sorted = [...apps].sort((a: Application, b: Application) => {
@@ -1002,16 +1265,54 @@ const sortApplications = (apps: Application[]): Application[] => {
         const amountB = parseFloat(
           String(b.totalAmount || b.price || b.totalPrice || b.processingFee || '0')
         );
-        
+
         const amountDiff = amountB - amountA;
-        
+
         // If amounts are equal, sort by ID (highest first)
         if (amountDiff === 0) {
           return getNumericId(b) - getNumericId(a);
         }
-        
+
         return amountDiff;
-      
+
+      case 'processing_fast':
+        // Fastest processing first (lowest days first)
+        const daysA_fast = getProcessingTimeInDays(a);
+        const daysB_fast = getProcessingTimeInDays(b);
+
+        const daysDiff_fast = daysA_fast - daysB_fast;
+
+        // If processing days are equal, sort by date (latest first)
+        if (daysDiff_fast === 0) {
+          const dateA_fast = getApplicationDate(a);
+          const dateB_fast = getApplicationDate(b);
+          if (dateA_fast && dateB_fast) {
+            return dateB_fast.getTime() - dateA_fast.getTime();
+          }
+          return getNumericId(b) - getNumericId(a);
+        }
+
+        return daysDiff_fast;
+
+      case 'processing_slow':
+        // Slowest processing first (highest days first)
+        const daysA_slow = getProcessingTimeInDays(a);
+        const daysB_slow = getProcessingTimeInDays(b);
+
+        const daysDiff_slow = daysB_slow - daysA_slow;
+
+        // If processing days are equal, sort by date (latest first)
+        if (daysDiff_slow === 0) {
+          const dateA_slow = getApplicationDate(a);
+          const dateB_slow = getApplicationDate(b);
+          if (dateA_slow && dateB_slow) {
+            return dateB_slow.getTime() - dateA_slow.getTime();
+          }
+          return getNumericId(b) - getNumericId(a);
+        }
+
+        return daysDiff_slow;
+
       default:
         return 0;
     }

@@ -1230,7 +1230,7 @@ const hasFieldResponses = (person) => {
     // If not found, check in application.value.fieldResponses.travelers array
     if (!travelerData && application.value?.fieldResponses?.travelers) {
       const travelersArray = application.value.fieldResponses.travelers;
-      const travelerResponse = travelersArray.find(t => t.travelerId === person.id);
+      const travelerResponse = travelersArray.find(t => Number(t.travelerId) === Number(person.id));
       if (travelerResponse && travelerResponse.responses) {
         // Convert array of responses to object keyed by fieldId
         travelerData = {};
@@ -1630,7 +1630,8 @@ const getFieldsFromResubmissionRequests = (requests, travelerId = null) => {
       }
     } else {
       // Processing traveler - only include requests for this specific traveler
-      if (req.target !== 'traveler' || req.travelerId !== travelerId) {
+      // Use Number() for comparison to handle string/number type mismatch
+      if (req.target !== 'traveler' || Number(req.travelerId) !== Number(travelerId)) {
         console.log(`  ⏭️ Skipping: target="${req.target}", req.travelerId=${req.travelerId}, currentTravelerId=${travelerId}`);
         return; // Skip application requests or requests for other travelers
       }
@@ -1726,11 +1727,12 @@ const findFieldInResubmissionRequests = (fieldId, travelerId = null) => {
       }
     } else {
       // Processing traveler - only check requests for this specific traveler
-      if (req.target !== 'traveler' || req.travelerId !== travelerId) {
+      // Use Number() for comparison to handle string/number type mismatch
+      if (req.target !== 'traveler' || Number(req.travelerId) !== Number(travelerId)) {
         continue; // Skip application requests or requests for other travelers
       }
     }
-    
+
     const fieldIds = req.fieldIds || [];
     const newFields = req.newFields || [];
     
@@ -1923,7 +1925,7 @@ const additionalInfoFields = computed(() => {
     if (!personData && !isTraveler1 && application.value?.fieldResponses?.travelers) {
       console.log('TRAVELER: Checking application.value.fieldResponses.travelers array...');
       const travelersArray = application.value.fieldResponses.travelers;
-      const travelerResponse = travelersArray.find(t => t.travelerId === selectedPerson.id);
+      const travelerResponse = travelersArray.find(t => Number(t.travelerId) === Number(selectedPerson.id));
       if (travelerResponse && travelerResponse.responses) {
         console.log('TRAVELER: Found in travelers array, converting to object...');
         // Convert array of responses to object keyed by fieldId
@@ -1998,24 +2000,27 @@ const additionalInfoFields = computed(() => {
     }
   }
   
-  if (!personData || Object.keys(personData).length === 0) {
-    console.log('No personData found, returning empty array');
-    return [];
+  // Even if personData is empty, we should still check for passport fields
+  // from the traveler object, so don't return early here
+  const hasPersonData = personData && Object.keys(personData).length > 0;
+
+  if (!hasPersonData) {
+    console.log('No personData (fieldResponses) found, but will still check passport fields from traveler object');
+  } else {
+    console.log('Field Definitions Count:', fieldDefinitions.value.length);
+    console.log('Field Definitions:', fieldDefinitions.value.map(f => ({ id: f.id, question: f.question, displayOrder: f.displayOrder })));
+    console.log('Resubmission Fields Count:', resubmissionFields.length);
+    console.log('Resubmission Fields:', resubmissionFields.map(f => ({ id: f.id, question: f.question })));
+    console.log('PersonData Keys:', Object.keys(personData));
+    console.log('PersonData:', JSON.stringify(personData, null, 2));
   }
-  
-  console.log('Field Definitions Count:', fieldDefinitions.value.length);
-  console.log('Field Definitions:', fieldDefinitions.value.map(f => ({ id: f.id, question: f.question, displayOrder: f.displayOrder })));
-  console.log('Resubmission Fields Count:', resubmissionFields.length);
-  console.log('Resubmission Fields:', resubmissionFields.map(f => ({ id: f.id, question: f.question })));
-  console.log('PersonData Keys:', Object.keys(personData));
-  console.log('PersonData:', JSON.stringify(personData, null, 2));
-  
+
   // Combine regular fields and resubmission request fields
   const allFieldDefinitions = [...fieldDefinitions.value, ...resubmissionFields];
-  
+
   // CRITICAL: Iterate over allFieldDefinitions FIRST (sorted by displayOrder)
   // This ensures fields are displayed in the correct order and matched correctly
-  // 
+  //
   // How this handles new fields:
   // - New fields added to fieldDefinitions will be processed, but won't have responses
   //   in old applications, so they won't be displayed (correct behavior)
@@ -2023,6 +2028,8 @@ const additionalInfoFields = computed(() => {
   // - Responses with negative field IDs are matched to resubmission request fields
   // - Orphaned responses (from deleted fields) are shown at the end
   // - Order is always determined by displayOrder in allFieldDefinitions, ensuring consistency
+  // Only process field definitions if we have personData (fieldResponses)
+  if (hasPersonData) {
   allFieldDefinitions.forEach((fieldDef, index) => {
     console.log(`\n--- Processing Field Definition ${index + 1} ---`);
     console.log('FieldDef ID:', fieldDef.id, 'Type:', typeof fieldDef.id);
@@ -2096,7 +2103,8 @@ const additionalInfoFields = computed(() => {
       console.log('No response data found for this field definition');
     }
   });
-  
+  } // End of if (hasPersonData)
+
   console.log('\n--- Checking for orphaned responses ---');
   console.log('Fields matched so far:', fields.length);
   
@@ -2148,15 +2156,30 @@ const additionalInfoFields = computed(() => {
   // Helper function to get passport value from multiple sources
   const getPassportFieldValue = (fieldKey) => {
     const isTraveler1 = isTraveler1Check();
-    
+    const travelerProp = passportFieldToTravelerProp[fieldKey];
+
+    console.log(`🔍 getPassportFieldValue called for: ${fieldKey} (travelerProp: ${travelerProp})`);
+    console.log(`  selectedPerson:`, selectedPerson ? { id: selectedPerson.id, name: selectedPerson.name, type: selectedPerson.type } : null);
+    console.log(`  selectedPerson.data keys:`, selectedPerson?.data ? Object.keys(selectedPerson.data) : 'N/A');
+    console.log(`  selectedPerson.data[${travelerProp}]:`, selectedPerson?.data?.[travelerProp]);
+    console.log(`  isTraveler1:`, isTraveler1);
+
     // 1. First check personData (fieldResponses)
+    // BUT: only return if the value is actually non-empty, otherwise continue to check traveler object
     if (personData && personData[fieldKey] !== undefined) {
       const fieldData = personData[fieldKey];
-      return {
-        value: fieldData?.value !== undefined ? fieldData.value : fieldData,
-        submittedAt: fieldData?.submittedAt,
-        source: 'fieldResponses'
-      };
+      const value = fieldData?.value !== undefined ? fieldData.value : fieldData;
+      // Only return if value is not empty - otherwise fall through to check traveler object
+      if (value !== undefined && value !== null && value !== '') {
+        console.log(`  ✅ Found in fieldResponses with value: ${value}`);
+        return {
+          value: value,
+          submittedAt: fieldData?.submittedAt,
+          source: 'fieldResponses'
+        };
+      } else {
+        console.log(`  ⚠️ fieldResponses has empty value, checking traveler object...`);
+      }
     }
     
     // 1b. For traveler 1, check application-level fieldResponses directly
@@ -2198,7 +2221,6 @@ const additionalInfoFields = computed(() => {
     }
     
     // 2. Check traveler object directly (from selectedPerson.data)
-    const travelerProp = passportFieldToTravelerProp[fieldKey];
     if (selectedPerson?.data && selectedPerson.data[travelerProp] !== undefined && selectedPerson.data[travelerProp] !== null && selectedPerson.data[travelerProp] !== '') {
       let value = selectedPerson.data[travelerProp];
       
@@ -2367,6 +2389,8 @@ const additionalInfoFields = computed(() => {
   });
   
   // Also include any responses that don't have matching field definitions (orphaned responses)
+  // Only process if we have personData
+  if (hasPersonData) {
   Object.keys(personData).forEach(fieldId => {
     const fieldData = personData[fieldId];
     const numericFieldId = Number(fieldId);
@@ -2481,7 +2505,8 @@ const additionalInfoFields = computed(() => {
       }
     }
   });
-  
+  } // End of if (hasPersonData) for orphaned responses
+
   console.log('\n--- Before Sorting ---');
   console.log('Fields array:', fields.map(f => ({ 
     fieldId: f.fieldId, 
@@ -2524,16 +2549,16 @@ const documentsForSelectedTraveler = computed(() => {
   
   const docs = [];
   // First try to find in allTravelers (for documents tab)
-  let selectedPerson = allTravelers.value.find(p => p.id === selectedTravelerIdForDocuments.value);
+  let selectedPerson = allTravelers.value.find(p => Number(p.id) === Number(selectedTravelerIdForDocuments.value));
   // If not found, try allPeople (fallback)
   if (!selectedPerson) {
-    selectedPerson = allPeople.value.find(p => p.id === selectedTravelerIdForDocuments.value);
+    selectedPerson = allPeople.value.find(p => Number(p.id) === Number(selectedTravelerIdForDocuments.value));
   }
   if (!selectedPerson) return [];
-  
+
   // Get documents from the static documents array (if any)
   if (selectedPerson.type === 'traveler') {
-    docs.push(...documents.value.filter(doc => doc.travelerId === selectedTravelerIdForDocuments.value));
+    docs.push(...documents.value.filter(doc => Number(doc.travelerId) === Number(selectedTravelerIdForDocuments.value)));
   }
   
   // Get files from field responses
@@ -2684,22 +2709,24 @@ const activeRequestsForSelectedPerson = computed(() => {
   if (!selectedTravelerId.value) return []
   const person = allPeople.value.find(p => p.id === selectedTravelerId.value)
   if (!person) return []
-  
+
   if (person.type === 'customer') {
     return activeResubmissionRequests.value.filter(
       req => !req.fulfilledAt && req.target === 'application'
     )
   } else {
+    // Use Number() for comparison to handle string/number type mismatch
+    const personIdNum = Number(person.id)
     return activeResubmissionRequests.value.filter(
-      req => !req.fulfilledAt && req.target === 'traveler' && req.travelerId === person.id
+      req => !req.fulfilledAt && req.target === 'traveler' && Number(req.travelerId) === personIdNum
     )
   }
 })
 
 // ✅ ADD: After computed properties
 const getTravelerNameById = (travelerId) => {
-   if (!travelerId) return 'Application' 
-  const person = allPeople.value.find(p => p.id === travelerId)
+   if (!travelerId) return 'Application'
+  const person = allPeople.value.find(p => Number(p.id) === Number(travelerId))
   return person ? person.name : `Traveler ${travelerId}`
 }
 
@@ -2735,8 +2762,9 @@ const getTravelerFields = (travelerId) => {
     // If it's a negative field ID, it's a resubmission field - only show if it was requested for this traveler
     if (field.id < 0) {
       // Check if this negative field ID belongs to this traveler
+      // Use Number() for comparison to handle string/number type mismatch
       const request = activeResubmissionRequests.value.find(req => {
-        if (req.target !== 'traveler' || req.travelerId !== travelerId) {
+        if (req.target !== 'traveler' || Number(req.travelerId) !== Number(travelerId)) {
           return false
         }
         const fieldIds = req.fieldIds || []
@@ -2750,7 +2778,7 @@ const getTravelerFields = (travelerId) => {
 }
 
 const getBulkTravelerSelection = (travelerId) => {
-  let existing = bulkRequestSelection.value.travelers.find(t => t.travelerId === travelerId)
+  let existing = bulkRequestSelection.value.travelers.find(t => Number(t.travelerId) === Number(travelerId))
   if (!existing) {
     existing = { travelerId, fieldIds: [], newFields: [], note: '' }
     bulkRequestSelection.value.travelers.push(existing)
@@ -2965,8 +2993,10 @@ const getPersonPendingRequestsCount = (person) => {
       return sum + fieldIdsCount + newFieldsCount
     }, 0)
   } else {
+    // Use Number() for comparison to handle string/number type mismatch
+    const personIdNum = Number(person.id)
     const requests = activeResubmissionRequests.value.filter(
-      req => !req.fulfilledAt && req.target === 'traveler' && req.travelerId === person.id
+      req => !req.fulfilledAt && req.target === 'traveler' && Number(req.travelerId) === personIdNum
     )
     return requests.reduce((sum, req) => {
       const fieldIdsCount = (req.fieldIds || []).length
@@ -3026,8 +3056,8 @@ const openResubmitModal = (doc) => {
     const setAndOpen = () => {
       const match = documentsForSelectedTraveler.value.find(d => {
         // Match by fieldId and travelerId (more reliable than id)
-        return d.fieldId === doc.fieldId && 
-               d.travelerId === doc.travelerId &&
+        return d.fieldId === doc.fieldId &&
+               Number(d.travelerId) === Number(doc.travelerId) &&
                d.isAdditionalInfo === true;
       });
       if (match) {
@@ -3115,9 +3145,9 @@ const submitResubmissionRequest = async () => {
       // Check each traveler's docs (only numeric traveler IDs)
       for (const traveler of travelers.value) {
         const travelerDocs = documentsForSelectedTraveler.value.filter(
-          d => d.selected && 
-               d.isAdditionalInfo && 
-               d.travelerId === traveler.id &&
+          d => d.selected &&
+               d.isAdditionalInfo &&
+               Number(d.travelerId) === Number(traveler.id) &&
                !String(d.travelerId).startsWith('customer-') // Exclude customer IDs
         )
         
@@ -3581,9 +3611,9 @@ watch(selectedTravelerId, async (newTravelerId) => {
   if (!selectedPerson || selectedPerson.type !== 'traveler') return;
   
   // Check if we already have responses for this traveler
-  const hasResponses = selectedPerson.data?.fieldResponses || 
+  const hasResponses = selectedPerson.data?.fieldResponses ||
                        travelerFieldResponsesCache.value[newTravelerId] ||
-                       (application.value?.fieldResponses?.travelers?.some(t => t.travelerId === newTravelerId));
+                       (application.value?.fieldResponses?.travelers?.some(t => Number(t.travelerId) === Number(newTravelerId)));
   
   if (!hasResponses) {
     console.log('🔄 Preloading field responses for traveler:', newTravelerId);
@@ -3591,7 +3621,7 @@ watch(selectedTravelerId, async (newTravelerId) => {
     if (responses && Object.keys(responses).length > 0) {
       travelerFieldResponsesCache.value[newTravelerId] = responses;
       // Also update the traveler object if it exists
-      const traveler = travelers.value.find(t => t.id === newTravelerId);
+      const traveler = travelers.value.find(t => Number(t.id) === Number(newTravelerId));
       if (traveler) {
         traveler.fieldResponses = responses;
       }

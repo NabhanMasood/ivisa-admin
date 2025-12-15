@@ -452,6 +452,67 @@ export const useApplication = () => {
     }
   }
 
+  const removeAdminFields = async (applicationId: number | string, fieldIds: number[]) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = (config.public.apiBase as string).replace(/\/+$/, '')
+
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/admin-fields`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fieldIds }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to remove admin fields')
+      }
+
+      return result.data
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const acceptResubmissionRequest = async (applicationId: number | string, requestId: number | string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = (config.public.apiBase as string).replace(/\/+$/, '')
+
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/resubmission-requests/${requestId}/accept`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to accept resubmission request')
+      }
+
+      return result.data
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading,
     error,
@@ -466,5 +527,7 @@ export const useApplication = () => {
     getActiveResubmissionRequests,
     getAllResubmissionRequests,
     updateApplicationStatus,
+    removeAdminFields,
+    acceptResubmissionRequest,
   };
 };

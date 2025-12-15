@@ -339,7 +339,7 @@ useHead({
 });
 
 // Initialize APIs
-const { getVisaProductFieldsByVisaProduct, batchGetFieldsByVisaProducts, deleteVisaProductField, createVisaProductField } = useVisaProductFieldsApi();
+const { getVisaProductFieldsByVisaProduct, batchGetFieldsByVisaProducts, deleteVisaProductField, batchDeleteVisaProductFields, createVisaProductField } = useVisaProductFieldsApi();
 const { getVisaProducts } = useVisaProductsApi();
 
 // Reactive state
@@ -633,7 +633,7 @@ const deleteForm = async (group: { visaProductId: number | string; visaProductNa
   try {
     // Filter out fields without IDs (shouldn't happen, but just in case)
     const fieldsToDelete = group.fields.filter(field => field.id);
-    
+
     if (fieldsToDelete.length === 0) {
       // No fields to delete, just remove from list
       forms.value = forms.value.filter(f => f.visaProductId !== group.visaProductId);
@@ -644,30 +644,17 @@ const deleteForm = async (group: { visaProductId: number | string; visaProductNa
       return;
     }
 
-    // Delete all fields for this visa product sequentially to avoid race conditions
-    const deleteResults = [];
-    console.log(`🗑️ Deleting ${fieldsToDelete.length} field(s) for visa product ${group.visaProductId}`);
-    
-    for (const field of fieldsToDelete) {
-      try {
-        console.log(`🗑️ Deleting field ${field.id}: ${field.question}`);
-        const result = await deleteVisaProductField(field.id!);
-        deleteResults.push(result);
-        console.log(`✅ Field ${field.id} deleted successfully`);
-      } catch (error) {
-        console.error(`❌ Failed to delete field ${field.id}:`, error);
-        deleteResults.push({ success: false, message: error instanceof Error ? error.message : 'Failed to delete field' });
-      }
-    }
-    
-    console.log(`📊 Deletion results: ${deleteResults.filter(r => r.success).length} succeeded, ${deleteResults.filter(r => !r.success).length} failed`);
+    // Get all field IDs to delete
+    const fieldIds = fieldsToDelete.map(field => field.id!);
 
-    const failed = deleteResults.filter(r => !r.success);
+    // Use bulk delete endpoint - single request
+    const result = await batchDeleteVisaProductFields(fieldIds);
 
-    if (failed.length === 0) {
-      successMessage.value = "Additional info form deleted successfully";
+
+    if (result.success) {
+      successMessage.value = `Additional info form deleted successfully (${result.data?.removedCount || fieldIds.length} field(s) removed)`;
       // Small delay to ensure backend has processed deletions
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       // Reload forms to verify deletion and get fresh data from backend
       await loadForms();
       // Clear success message after 3 seconds
@@ -675,16 +662,16 @@ const deleteForm = async (group: { visaProductId: number | string; visaProductNa
         successMessage.value = "";
       }, 3000);
     } else {
-      errorMessage.value = `Failed to delete ${failed.length} of ${fieldsToDelete.length} field(s). Please try again.`;
+      errorMessage.value = result.message || "Failed to delete form. Please try again.";
       // Still reload to show current state
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       await loadForms();
     }
   } catch (error) {
     console.error("Failed to delete form:", error);
     errorMessage.value = error instanceof Error ? error.message : "Failed to delete form. Please try again.";
     // Reload to show current state even if there was an error
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
     await loadForms();
   } finally {
     isDeleting.value = false;

@@ -245,6 +245,42 @@ export const useVisaProductFieldsApi = () => {
   }
 
   /**
+   * Bulk delete visa product fields by IDs
+   * DELETE /visa-product-fields/bulk
+   */
+  const batchDeleteVisaProductFields = async (
+    fieldIds: (number | string)[]
+  ): Promise<ApiResponse<{ removedFieldIds: number[]; removedCount: number }>> => {
+    try {
+      const response = await api.delete<{ status: boolean; message: string; data: { removedFieldIds: number[]; removedCount: number } }>(
+        '/visa-product-fields/bulk',
+        { data: { fieldIds: fieldIds.map(id => Number(id)) } }
+      )
+
+      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
+        const wrappedResponse = response.data
+        if (wrappedResponse.status && wrappedResponse.data) {
+          return {
+            data: wrappedResponse.data,
+            message: wrappedResponse.message || `${wrappedResponse.data.removedCount} field(s) deleted successfully`,
+            success: true,
+          }
+        } else {
+          throw new Error(wrappedResponse.message || 'Failed to delete visa product fields')
+        }
+      }
+
+      return {
+        data: { removedFieldIds: [], removedCount: 0 },
+        message: 'Visa product fields deleted successfully',
+        success: true,
+      }
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
+  /**
    * Duplicate a visa product field by ID
    * POST /visa-product-fields/:id/duplicate
    */
@@ -485,6 +521,7 @@ export const useVisaProductFieldsApi = () => {
     getVisaProductFieldById,
     updateVisaProductField,
     deleteVisaProductField,
+    batchDeleteVisaProductFields,
     duplicateVisaProductField,
     getAllVisaProductFields,
     getFieldsWithResponsesByApplication,
