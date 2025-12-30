@@ -18,28 +18,60 @@
             Here you can find all the additional info forms
           </label>
         </div>
-        <button
-          @click="navigateToAddForm"
-          class="bg-black h-[36px] dark:bg-white text-white dark:text-black px-3 sm:px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 rounded-[7px] flex-shrink-0"
-        >
-          <div
-            class="flex items-center justify-center w-4 h-4 border border-white dark:border-black rounded-full bg-black dark:bg-white"
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button
+            @click="openImportModal"
+            class="bg-white dark:bg-[#18181B] h-[36px] border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-white px-3 sm:px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors flex items-center justify-center space-x-2 rounded-[7px] flex-shrink-0"
           >
-            <Plus class="h-4 w-4 text-white dark:text-black" />
-          </div>
-          <span
-            class="text-sm sm:text-base"
-            style="
-              font-size: 14px;
-              font-weight: 400;
-              font-style: normal;
-              line-height: 20px;
-              font-family: 'Geist', sans-serif;
-              letter-spacing: 0;
-            "
-            >Add New</span
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              ></path>
+            </svg>
+            <span
+              class="text-sm sm:text-base hidden sm:inline"
+              style="
+                font-size: 14px;
+                font-weight: 400;
+                font-style: normal;
+                line-height: 20px;
+                font-family: 'Geist', sans-serif;
+                letter-spacing: 0;
+              "
+              >Import CSV</span
+            >
+          </button>
+          <button
+            @click="navigateToAddForm"
+            class="bg-black h-[36px] dark:bg-white text-white dark:text-black px-3 sm:px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 rounded-[7px] flex-shrink-0"
           >
-        </button>
+            <div
+              class="flex items-center justify-center w-4 h-4 border border-white dark:border-black rounded-full bg-black dark:bg-white"
+            >
+              <Plus class="h-4 w-4 text-white dark:text-black" />
+            </div>
+            <span
+              class="text-sm sm:text-base"
+              style="
+                font-size: 14px;
+                font-weight: 400;
+                font-style: normal;
+                line-height: 20px;
+                font-family: 'Geist', sans-serif;
+                letter-spacing: 0;
+              "
+              >Add New</span
+            >
+          </button>
+        </div>
       </div>
 
       <!-- Search and Filters Row -->
@@ -322,6 +354,190 @@
           </div>
         </div>
       </div>
+
+      <!-- CSV Import Modal -->
+      <div
+        v-if="showImportModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 dark:bg-opacity-70"
+        @click.self="closeImportModal"
+      >
+        <div
+          class="bg-white dark:bg-[#09090B] rounded-lg border border-gray-200 dark:border-gray-800 shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+          style="border-radius: 7px"
+        >
+          <!-- Modal Header -->
+          <div
+            class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800"
+          >
+            <h2
+              class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white"
+            >
+              Import Additional Info CSV
+            </h2>
+            <button
+              @click="closeImportModal"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <svg
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-4 sm:p-6 space-y-4">
+            <!-- File Upload Area -->
+            <div
+              @click="triggerFileInput"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="handleFileDrop"
+              class="border-2 border-dashed rounded-lg p-6 sm:p-8 text-center cursor-pointer transition-colors"
+              :class="
+                isDragging
+                  ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
+                  : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
+              "
+              style="border-radius: 7px"
+            >
+              <input
+                ref="csvFileInput"
+                type="file"
+                accept=".csv"
+                @change="handleFileSelect"
+                class="hidden"
+              />
+              <div class="flex flex-col items-center space-y-3">
+                <svg
+                  class="h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  ></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    <span class="text-black dark:text-white">Click to upload</span>
+                    <span class="text-gray-500 dark:text-gray-400"> or drag and drop</span>
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    CSV file (max. 10MB)
+                  </p>
+                </div>
+                <p
+                  v-if="selectedImportFile"
+                  class="text-sm text-gray-700 dark:text-gray-300 font-medium"
+                >
+                  Selected: {{ selectedImportFile.name }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Import Info -->
+            <div
+              class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-2"
+              style="border-radius: 7px"
+            >
+              <p class="text-sm text-blue-800 dark:text-blue-300">
+                <strong>Note:</strong> The CSV file should include columns: destination, productName, fieldType, question, and optional columns like placeholder, isRequired, displayOrder, options, etc.
+              </p>
+              <p class="text-sm text-amber-700 dark:text-amber-400">
+                <strong>Important:</strong> Make sure the visa products referenced in your CSV (destination + productName) already exist in the system before importing.
+              </p>
+            </div>
+
+            <!-- Error Messages -->
+            <div
+              v-if="importError"
+              class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+              style="border-radius: 7px"
+            >
+              <p class="text-sm text-red-800 dark:text-red-300">
+                {{ importError }}
+              </p>
+            </div>
+
+            <!-- Import Results -->
+            <div
+              v-if="importResult"
+              class="space-y-3"
+            >
+              <div
+                class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
+                style="border-radius: 7px"
+              >
+                <p class="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
+                  {{ importResult.message }}
+                </p>
+                <div class="text-xs text-green-700 dark:text-green-400 space-y-1">
+                  <p>Total rows: {{ importResult.data.totalRows }}</p>
+                  <p>Processed: {{ importResult.data.processed }}</p>
+                  <p>Fields created: {{ importResult.data.fieldsCreated }}</p>
+                  <p>Fields updated: {{ importResult.data.fieldsUpdated }}</p>
+                  <p>Products affected: {{ importResult.data.productsAffected }}</p>
+                </div>
+              </div>
+
+              <!-- Errors List -->
+              <div
+                v-if="importResult.data.errors && importResult.data.errors.length > 0"
+                class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4"
+                style="border-radius: 7px"
+              >
+                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+                  Errors ({{ importResult.data.errors.length }}):
+                </p>
+                <ul class="text-xs text-yellow-700 dark:text-yellow-400 space-y-1 max-h-32 overflow-y-auto">
+                  <li
+                    v-for="(error, index) in importResult.data.errors"
+                    :key="index"
+                  >
+                    Row {{ error.row }}: {{ error.error }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div
+            class="flex items-center justify-end gap-3 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-800"
+          >
+            <button
+              @click="closeImportModal"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#18181B] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2F2F31] transition-colors"
+              style="border-radius: 7px"
+            >
+              {{ importResult ? 'Close' : 'Cancel' }}
+            </button>
+            <button
+              @click="handleImport"
+              :disabled="!selectedImportFile || isImporting"
+              class="px-4 py-2 text-sm font-medium text-white bg-black dark:bg-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style="border-radius: 7px"
+            >
+              <span v-if="isImporting">Importing...</span>
+              <span v-else>Upload</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </DashboardLayout>
 </template>
@@ -339,7 +555,7 @@ useHead({
 });
 
 // Initialize APIs
-const { getVisaProductFieldsByVisaProduct, batchGetFieldsByVisaProducts, deleteVisaProductField, batchDeleteVisaProductFields, createVisaProductField } = useVisaProductFieldsApi();
+const { getVisaProductFieldsByVisaProduct, batchGetFieldsByVisaProducts, deleteVisaProductField, batchDeleteVisaProductFields, createVisaProductField, importFromCSV } = useVisaProductFieldsApi();
 const { getVisaProducts } = useVisaProductsApi();
 
 // Reactive state
@@ -354,6 +570,25 @@ const showDuplicateModal = ref(false);
 const formToDuplicate = ref<{ visaProductId: number | string; visaProductName: string; country: string; fields: VisaProductField[] } | null>(null);
 const targetVisaProductIdForDuplicate = ref<string | number | undefined>(undefined);
 const availableVisaProductsForDuplicate = ref<Array<{ value: string | number; label: string }>>([]);
+
+// CSV Import state
+const showImportModal = ref(false);
+const selectedImportFile = ref<File | null>(null);
+const csvFileInput = ref<HTMLInputElement | null>(null);
+const isDragging = ref(false);
+const isImporting = ref(false);
+const importError = ref("");
+const importResult = ref<{
+  message: string;
+  data: {
+    totalRows: number;
+    processed: number;
+    fieldsCreated: number;
+    fieldsUpdated: number;
+    productsAffected: number;
+    errors: Array<{ row: number; error: string }>;
+  };
+} | null>(null);
 const forms = ref<Array<{
   visaProductId: number | string;
   visaProductName: string;
@@ -675,6 +910,101 @@ const deleteForm = async (group: { visaProductId: number | string; visaProductNa
     await loadForms();
   } finally {
     isDeleting.value = false;
+  }
+};
+
+// CSV Import functions
+const openImportModal = () => {
+  showImportModal.value = true;
+  selectedImportFile.value = null;
+  importError.value = "";
+  importResult.value = null;
+};
+
+const closeImportModal = () => {
+  showImportModal.value = false;
+  selectedImportFile.value = null;
+  importError.value = "";
+  importResult.value = null;
+  isDragging.value = false;
+  
+  // Reload forms if import was successful
+  if (importResult.value && importResult.value.data.fieldsCreated > 0) {
+    loadForms();
+  }
+};
+
+const triggerFileInput = () => {
+  csvFileInput.value?.click();
+};
+
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0];
+    if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      selectedImportFile.value = file;
+      importError.value = "";
+    } else {
+      importError.value = "Please select a valid CSV file";
+      selectedImportFile.value = null;
+    }
+  }
+};
+
+const handleFileDrop = (event: DragEvent) => {
+  isDragging.value = false;
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0];
+    if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      selectedImportFile.value = file;
+      importError.value = "";
+    } else {
+      importError.value = "Please drop a valid CSV file";
+      selectedImportFile.value = null;
+    }
+  }
+};
+
+const handleImport = async () => {
+  if (!selectedImportFile.value) {
+    importError.value = "Please select a CSV file";
+    return;
+  }
+
+  try {
+    isImporting.value = true;
+    importError.value = "";
+    importResult.value = null;
+
+    const response = await importFromCSV(selectedImportFile.value);
+
+    if (response.success && response.data) {
+      importResult.value = {
+        message: response.message || "Import completed successfully",
+        data: response.data,
+      };
+
+      // Reload forms after successful import
+      await loadForms();
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        if (!importResult.value) return;
+        
+        // Only auto-close if there are no errors
+        if (!importResult.value.data.errors || importResult.value.data.errors.length === 0) {
+          closeImportModal();
+        }
+      }, 5000);
+    } else {
+      importError.value = response.message || "Failed to import CSV file";
+    }
+  } catch (error) {
+    console.error("Failed to import CSV:", error);
+    importError.value = error instanceof Error ? error.message : "Failed to import CSV file. Please try again.";
+  } finally {
+    isImporting.value = false;
   }
 };
 

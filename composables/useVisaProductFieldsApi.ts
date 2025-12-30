@@ -515,6 +515,64 @@ export const useVisaProductFieldsApi = () => {
     }
   }
 
+  /**
+   * Import visa product fields from CSV
+   * POST /visa-product-fields/import
+   */
+  const importFromCSV = async (
+    file: File
+  ): Promise<ApiResponse<{
+    totalRows: number
+    processed: number
+    fieldsCreated: number
+    fieldsUpdated: number
+    productsAffected: number
+    errors: Array<{ row: number; error: string }>
+  }>> => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await api.post<{
+        status: boolean
+        message: string
+        data: {
+          totalRows: number
+          processed: number
+          fieldsCreated: number
+          fieldsUpdated: number
+          productsAffected: number
+          errors: Array<{ row: number; error: string }>
+        }
+      }>(
+        '/visa-product-fields/import',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
+      if (typeof response.data === 'object' && response.data !== null && 'status' in response.data) {
+        const wrappedResponse = response.data
+        if (wrappedResponse.status && wrappedResponse.data) {
+          return {
+            data: wrappedResponse.data,
+            message: wrappedResponse.message || 'CSV imported successfully',
+            success: true,
+          }
+        } else {
+          throw new Error(wrappedResponse.message || 'Failed to import CSV')
+        }
+      }
+
+      throw new Error('Unexpected response format')
+    } catch (error) {
+      throw new Error(handleApiError(error))
+    }
+  }
+
   return {
     createVisaProductField,
     getVisaProductFieldsByVisaProduct,
@@ -528,5 +586,6 @@ export const useVisaProductFieldsApi = () => {
     getResponsesByApplication,
     batchCreateUpdateFields,
     batchGetFieldsByVisaProducts,
+    importFromCSV,
   }
 }
