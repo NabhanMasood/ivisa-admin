@@ -10,7 +10,7 @@
       <div class="absolute inset-0 bg-black/20"></div>
     </div>
 
-    <!-- Right Column - Form Section -->
+    <!-- Right Column - Form Sections -->
     <div class="flex flex-col w-full lg:w-[50%] h-full bg-white">
       <!-- Mobile Header -->
       <div class="lg:hidden px-6 py-4 border-b border-gray-200 bg-white">
