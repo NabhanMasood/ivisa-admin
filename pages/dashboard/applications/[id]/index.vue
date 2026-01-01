@@ -511,13 +511,15 @@
                     <!-- File Upload Display -->
                     <div v-if="field.isFile" class="flex items-center gap-2">
                       <a
-                        :href="getFileUrl(field.value.filePath)"
+                        :href="getFileUrl(field.value?.filePath)"
                         target="_blank"
+                        rel="noopener noreferrer"
+                        @click.stop.prevent="openFileInNewTab(field.value?.filePath)"
                         class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors inline-flex items-center gap-2"
                       >
-                        <span>{{ field.value.fileName }}</span>
+                        <span>{{ field.value?.fileName || 'Download' }}</span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">
-                          ({{ formatFileSize(field.value.fileSize) }})
+                          ({{ formatFileSize(field.value?.fileSize) }})
                         </span>
                       </a>
                     </div>
@@ -685,6 +687,8 @@
                         v-if="document.isAdditionalInfo"
                         :href="getFileUrl(document.filePath)"
                         target="_blank"
+                        rel="noopener noreferrer"
+                        @click.stop.prevent="openFileInNewTab(document.filePath)"
                         class="px-3 py-1 bg-gray-100 border border-gray-300 dark:border-gray-700 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-[12px] text-sm hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
                       >
                         {{ document.fieldName || 'Document' }}
@@ -1630,9 +1634,18 @@ const getFieldsFromResubmissionRequests = (requests, travelerId = null) => {
       }
     } else {
       // Processing traveler - only include requests for this specific traveler
-      // Use Number() for comparison to handle string/number type mismatch
-      if (req.target !== 'traveler' || Number(req.travelerId) !== Number(travelerId)) {
-        console.log(`  ⏭️ Skipping: target="${req.target}", req.travelerId=${req.travelerId}, currentTravelerId=${travelerId}`);
+      // Special case: req.travelerId === null means "first traveler / customer traveler"
+      const isFirstTraveler = String(travelerId).startsWith('temp-traveler-0') ||
+        (allTravelers.value.length > 0 && allTravelers.value[0]?.id === travelerId);
+      const reqIsForFirstTraveler = req.travelerId === null || req.travelerId === undefined;
+
+      // Match if: target is 'traveler' AND (IDs match OR request is for first traveler and we ARE first traveler)
+      const idsMatch = Number(req.travelerId) === Number(travelerId) ||
+        String(req.travelerId) === String(travelerId);
+      const matchesFirstTraveler = reqIsForFirstTraveler && isFirstTraveler;
+
+      if (req.target !== 'traveler' || (!idsMatch && !matchesFirstTraveler)) {
+        console.log(`  ⏭️ Skipping: target="${req.target}", req.travelerId=${req.travelerId}, currentTravelerId=${travelerId}, isFirstTraveler=${isFirstTraveler}, reqIsForFirstTraveler=${reqIsForFirstTraveler}`);
         return; // Skip application requests or requests for other travelers
       }
     }
@@ -2546,19 +2559,34 @@ const additionalInfoFields = computed(() => {
 // Documents for selected traveler (including files from additional info)
 const documentsForSelectedTraveler = computed(() => {
   if (!selectedTravelerIdForDocuments.value) return [];
-  
+
+  console.log('📄 DOCUMENTS TAB DEBUG START');
+  console.log('📄 selectedTravelerIdForDocuments:', selectedTravelerIdForDocuments.value);
+
   const docs = [];
+  // Helper to compare IDs (handles both numeric and string IDs like 'temp-traveler-0')
+  const idsMatch = (id1, id2) => {
+    if (id1 === id2) return true;
+    if (id1 === null || id2 === null || id1 === undefined || id2 === undefined) return false;
+    const num1 = Number(id1);
+    const num2 = Number(id2);
+    if (!isNaN(num1) && !isNaN(num2)) return num1 === num2;
+    return String(id1) === String(id2);
+  };
+
   // First try to find in allTravelers (for documents tab)
-  let selectedPerson = allTravelers.value.find(p => Number(p.id) === Number(selectedTravelerIdForDocuments.value));
+  let selectedPerson = allTravelers.value.find(p => idsMatch(p.id, selectedTravelerIdForDocuments.value));
+  console.log('📄 selectedPerson from allTravelers:', selectedPerson ? { id: selectedPerson.id, name: selectedPerson.name, type: selectedPerson.type, hasData: !!selectedPerson.data, dataKeys: selectedPerson.data ? Object.keys(selectedPerson.data) : [] } : null);
+  console.log('📄 selectedPerson.data?.fieldResponses:', selectedPerson?.data?.fieldResponses ? Object.keys(selectedPerson.data.fieldResponses) : 'none');
   // If not found, try allPeople (fallback)
   if (!selectedPerson) {
-    selectedPerson = allPeople.value.find(p => Number(p.id) === Number(selectedTravelerIdForDocuments.value));
+    selectedPerson = allPeople.value.find(p => idsMatch(p.id, selectedTravelerIdForDocuments.value));
   }
   if (!selectedPerson) return [];
 
   // Get documents from the static documents array (if any)
   if (selectedPerson.type === 'traveler') {
-    docs.push(...documents.value.filter(doc => Number(doc.travelerId) === Number(selectedTravelerIdForDocuments.value)));
+    docs.push(...documents.value.filter(doc => idsMatch(doc.travelerId, selectedTravelerIdForDocuments.value)));
   }
   
   // Get files from field responses
@@ -2643,36 +2671,102 @@ const documentsForSelectedTraveler = computed(() => {
       if (selectedPerson.data?.fieldResponses) {
         personData = selectedPerson.data.fieldResponses;
       }
+
+      // Fallback 1: Check application.value.fieldResponses.travelers array
+      if (!personData && application.value?.fieldResponses?.travelers) {
+        const travelersArray = application.value.fieldResponses.travelers;
+        const travelerResponse = travelersArray.find(t => Number(t.travelerId) === Number(selectedPerson.id));
+        if (travelerResponse && travelerResponse.responses) {
+          personData = {};
+          travelerResponse.responses.forEach(response => {
+            const fId = response.fieldId;
+            if (response.filePath) {
+              personData[fId] = {
+                filePath: response.filePath,
+                fileName: response.fileName,
+                fileSize: response.fileSize,
+                submittedAt: response.submittedAt
+              };
+            } else {
+              personData[fId] = {
+                value: response.value,
+                submittedAt: response.submittedAt
+              };
+            }
+          });
+        }
+      }
+
+      // Fallback 2: Check application.value.travelers for fieldResponses
+      if (!personData && application.value?.travelers) {
+        const travelerInApp = application.value.travelers.find(t => t.id === selectedPerson.id);
+        if (travelerInApp?.fieldResponses) {
+          personData = travelerInApp.fieldResponses;
+        }
+      }
+
+      // Fallback 3: Check if fieldResponses is keyed by traveler ID
+      if (!personData && application.value?.fieldResponses) {
+        const fieldResponses = application.value.fieldResponses;
+        if (fieldResponses[selectedPerson.id]) {
+          personData = fieldResponses[selectedPerson.id];
+        }
+      }
+
+      // Fallback 4: Check cache
+      if (!personData && travelerFieldResponsesCache.value[selectedPerson.id]) {
+        personData = travelerFieldResponsesCache.value[selectedPerson.id];
+      }
     }
   }
-  
+
+  console.log('📄 DOCUMENTS TAB - personData found:', personData ? Object.keys(personData) : 'none');
+  console.log('📄 DOCUMENTS TAB - personData details:', personData ? JSON.stringify(personData, null, 2) : 'null');
+
+  // Get resubmission field definitions for looking up negative field IDs
+  const travelerIdForResubmission = selectedPerson.type === 'traveler' ? selectedPerson.id : null;
+  const allResubmissionRequests = [
+    ...(activeResubmissionRequests.value || []),
+    ...(application.value?.resubmissionRequests || [])
+  ];
+  const uniqueRequests = allResubmissionRequests.filter((req, index, self) =>
+    index === self.findIndex(r => r.id === req.id)
+  );
+  const resubmissionFields = getFieldsFromResubmissionRequests(uniqueRequests, travelerIdForResubmission);
+  const allFieldDefs = [...fieldDefinitions.value, ...resubmissionFields];
+
   if (personData) {
     Object.keys(personData).forEach(fieldId => {
       const fieldData = personData[fieldId];
       if (fieldData.filePath) {
-        // Try to find field definition by matching both string and number IDs
-        const fieldDef = fieldDefinitions.value.find(f => 
-          f.id === Number(fieldId) || String(f.id) === String(fieldId)
+        const numericFieldId = Number(fieldId);
+        const isResubmission = numericFieldId < 0;
+
+        // Try to find field definition in combined list (regular + resubmission)
+        const fieldDef = allFieldDefs.find(f =>
+          f.id === numericFieldId || String(f.id) === String(fieldId)
         );
-        const fieldName = fieldDef?.question || `Field ${fieldId}`;
-        
+        const fieldName = fieldDef?.question || (isResubmission ? 'Resubmission Upload' : `Field ${fieldId}`);
+        const documentType = isResubmission ? 'Resubmission Upload' : (fieldDef?.fieldType === 'upload' ? 'Upload' : 'Document');
+
         docs.push({
           id: `additional-info-${selectedPerson.id}-${fieldId}`,
           travelerId: selectedPerson.id,
-          documentType: fieldDef?.fieldType === 'upload' ? 'Upload' : 'Document',
+          documentType: documentType,
           fileName: fieldData.fileName || 'Unknown file',
           filePath: fieldData.filePath,
           fileSize: fieldData.fileSize,
           dateUploaded: fieldData.submittedAt ? formatDate(fieldData.submittedAt) : '-',
           fieldName: fieldName,
-          fieldId: Number(fieldId),
+          fieldId: numericFieldId,
           selected: false,
-          isAdditionalInfo: true
+          isAdditionalInfo: true,
+          isResubmission: isResubmission
         });
       }
     });
   }
-  
+
   return docs;
 });
 
@@ -2778,12 +2872,22 @@ const getTravelerFields = (travelerId) => {
 }
 
 const getBulkTravelerSelection = (travelerId) => {
-  let existing = bulkRequestSelection.value.travelers.find(t => Number(t.travelerId) === Number(travelerId))
-  if (!existing) {
-    existing = { travelerId, fieldIds: [], newFields: [], note: '' }
-    bulkRequestSelection.value.travelers.push(existing)
+  // Normalize ID: convert to number if numeric, otherwise keep as string (e.g., 'temp-traveler-0')
+  const normalizeId = (id) => {
+    if (id === null || id === undefined) return null
+    const num = Number(id)
+    return isNaN(num) ? String(id) : num
   }
-  return existing
+
+  const normalizedId = normalizeId(travelerId)
+
+  // Find existing entry using normalized comparison
+  const existing = bulkRequestSelection.value.travelers.find(t => {
+    return normalizeId(t.travelerId) === normalizedId
+  })
+
+  // Return existing or a NON-REACTIVE fallback (do NOT push during render to avoid infinite loops)
+  return existing || { travelerId: normalizedId, fieldIds: [], newFields: [], note: '' }
 }
 
 // Add new custom field for application
@@ -2820,105 +2924,66 @@ const removeNewTravelerField = (travelerId, index) => {
   selection.newFields.splice(index, 1)
 }
 
-// ✅ ADD: After helper functions
-const loadActiveResubmissionRequests = async () => {
-  console.log('🚀 loadActiveResubmissionRequests called', { applicationId: applicationId.value })
+// ✅ OPTIMIZED: Load all admin modal data in one API call
+// This replaces 2 separate calls (getActiveResubmissionRequests + getAllResubmissionRequests)
+// and optionally loads field definitions too
+const loadActiveResubmissionRequests = async (alsoLoadFieldDefinitions = false) => {
+  console.log('🚀 loadActiveResubmissionRequests called (using consolidated endpoint)', { applicationId: applicationId.value })
   if (!applicationId.value) {
     console.log('⚠️ No applicationId, skipping loadActiveResubmissionRequests')
     return
   }
   try {
-    const { getActiveResubmissionRequests, getAllResubmissionRequests } = useApplication()
-    
-    console.log('📞 Calling getActiveResubmissionRequests...')
-    // Load active requests for UI display
-    const activeResponse = await getActiveResubmissionRequests(Number(applicationId.value))
-    console.log('📞 getActiveResubmissionRequests response:', activeResponse)
-    activeResubmissionRequests.value = activeResponse?.data || []
-    console.log('✅ Active resubmission requests loaded:', activeResubmissionRequests.value.length)
-    
-    // Also load all requests (including fulfilled) for field matching
-    // This ensures we can match negative field IDs even if requests are fulfilled
-    try {
-      console.log('🔵 Attempting to load all resubmission requests...')
-      const allResponse = await getAllResubmissionRequests(Number(applicationId.value))
-      console.log('🔵 getAllResubmissionRequests response:', allResponse)
-      const allRequests = allResponse?.data || []
-      
-      console.log('🔵 All requests from API:', {
-        count: allRequests.length,
-        requests: allRequests.map(r => ({
-          id: r.id,
-          target: r.target,
-          travelerId: r.travelerId,
-          fulfilledAt: r.fulfilledAt,
-          hasFieldIds: !!r.fieldIds,
-          fieldIdsCount: r.fieldIds?.length || 0,
-          hasNewFields: !!r.newFields,
-          newFieldsCount: r.newFields?.length || 0,
-          newFields: r.newFields // Log the actual newFields
-        }))
-      })
-      
-      // Merge with activeResubmissionRequests, avoiding duplicates
-      const existingIds = new Set(activeResubmissionRequests.value.map(r => r.id))
-      const fulfilledRequests = allRequests.filter(r => !existingIds.has(r.id))
-      activeResubmissionRequests.value = [...activeResubmissionRequests.value, ...fulfilledRequests]
-      
-      console.log('📋 Loaded resubmission requests:', {
-        active: activeResubmissionRequests.value.filter(r => !r.fulfilledAt).length,
-        fulfilled: fulfilledRequests.length,
-        total: activeResubmissionRequests.value.length,
-        allRequestsWithFields: activeResubmissionRequests.value.filter(r => r.newFields && r.newFields.length > 0).length,
-        sampleRequest: activeResubmissionRequests.value[0] ? {
-          id: activeResubmissionRequests.value[0].id,
-          target: activeResubmissionRequests.value[0].target,
-          fieldIds: activeResubmissionRequests.value[0].fieldIds,
-          newFieldsCount: activeResubmissionRequests.value[0].newFields?.length || 0,
-          firstNewField: activeResubmissionRequests.value[0].newFields?.[0] ? {
-            id: activeResubmissionRequests.value[0].newFields[0].id,
-            question: activeResubmissionRequests.value[0].newFields[0].question
-          } : null
-        } : null
-      })
-    } catch (err) {
-      console.error('❌ Could not load all resubmission requests:', err)
-      console.error('❌ Error details:', {
-        message: err?.message,
-        stack: err?.stack,
-        response: err?.response,
-        error: err
-      })
-      // Don't fail completely - continue with active requests only
+    const { getAdminModalData } = useApplication()
+
+    console.log('📞 Calling getAdminModalData (consolidated endpoint)...')
+    const response = await getAdminModalData(Number(applicationId.value))
+    console.log('📞 getAdminModalData response:', response)
+
+    const data = response?.data || {}
+
+    // Set resubmission requests (already enriched with newFields from backend)
+    activeResubmissionRequests.value = data.resubmissionRequests || []
+
+    // Optionally set field definitions if requested and available
+    if (alsoLoadFieldDefinitions && data.fieldDefinitions && data.fieldDefinitions.length > 0) {
+      fieldDefinitions.value = data.fieldDefinitions
+      console.log('✅ Field definitions loaded from consolidated endpoint:', fieldDefinitions.value.length)
     }
-  } catch (error) {
-    console.error('❌ Error loading resubmission requests:', error)
-    console.error('❌ Full error:', {
-      message: error?.message,
-      stack: error?.stack,
-      error: error
+
+    console.log('✅ Loaded from consolidated endpoint:', {
+      resubmissionRequests: activeResubmissionRequests.value.length,
+      active: activeResubmissionRequests.value.filter(r => !r.fulfilledAt).length,
+      fulfilled: activeResubmissionRequests.value.filter(r => r.fulfilledAt).length,
+      withNewFields: activeResubmissionRequests.value.filter(r => r.newFields && r.newFields.length > 0).length,
+      fieldDefinitions: data.fieldDefinitions?.length || 0,
+      adminRequestedFields: data.adminRequestedFields?.length || 0
     })
+  } catch (error) {
+    console.error('❌ Error loading admin modal data:', error)
     activeResubmissionRequests.value = []
   }
-  
-  // Final check - log what we have
-  console.log('✅ Final activeResubmissionRequests after load:', {
-    count: activeResubmissionRequests.value?.length || 0,
-    requests: activeResubmissionRequests.value?.map(r => ({
-      id: r.id,
-      target: r.target,
-      travelerId: r.travelerId,
-      fulfilledAt: r.fulfilledAt,
-      fieldIds: r.fieldIds,
-      newFieldsCount: r.newFields?.length || 0
-    })) || []
-  })
 }
 
 const openBulkResubmitModal = () => {
+  // Normalize ID: convert to number if numeric, otherwise keep as string (e.g., 'temp-traveler-0')
+  const normalizeId = (id) => {
+    if (id === null || id === undefined) return null
+    const num = Number(id)
+    return isNaN(num) ? String(id) : num
+  }
+
+  // Pre-populate all travelers with normalized IDs to avoid type mismatches
+  const travelerSelections = validTravelersForModal.value.map(t => ({
+    travelerId: normalizeId(t.id),
+    fieldIds: [],
+    newFields: [],
+    note: ''
+  }))
+
   bulkRequestSelection.value = {
     application: { fieldIds: [], newFields: [], note: '' },
-    travelers: []
+    travelers: travelerSelections
   }
   showBulkResubmitModal.value = true
 }
@@ -3432,11 +3497,10 @@ const loadApplication = async () => {
       applicationStatus.value = data.status.toLowerCase();
     }
     
-    // Load field definitions if visa product ID is available
+    // Load field definitions AND resubmission requests in ONE API call (optimized)
     if (data.visaProductId) {
-      await loadFieldDefinitions();
-      await loadActiveResubmissionRequests()
-
+      // Pass true to also load field definitions from the consolidated endpoint
+      await loadActiveResubmissionRequests(true)
     }
     
     // Set first person as selected by default (will be set after travelers load)
@@ -3559,7 +3623,21 @@ const getFileUrl = (filePath) => {
   if (!filePath) return '#';
   const config = useRuntimeConfig();
   const baseUrl = config.public.apiBase.replace(/\/+$/, '');
-  return filePath.startsWith('http') ? filePath : `${baseUrl}${filePath}`;
+  // If already a full URL, return as-is
+  if (filePath.startsWith('http')) return filePath;
+  // Ensure filePath starts with / for proper URL construction
+  const normalizedPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
+  return `${baseUrl}${normalizedPath}`;
+};
+
+// Open file in new tab (handles click to avoid Vue Router interference)
+const openFileInNewTab = (filePath) => {
+  const url = getFileUrl(filePath);
+  if (url && url !== '#') {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } else {
+    alert('Unable to open file. The file path is missing.');
+  }
 };
 
 // Format file size helper

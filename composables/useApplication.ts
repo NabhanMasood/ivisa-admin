@@ -362,6 +362,33 @@ export const useApplication = () => {
     }
   }
 
+  /**
+   * Get all data needed for admin modal in one call
+   * Returns: fieldDefinitions, resubmissionRequests (enriched), adminRequestedFields, travelers
+   */
+  const getAdminModalData = async (applicationId: number | string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const config = useRuntimeConfig()
+      const baseUrl = (config.public.apiBase as string).replace(/\/+$/, '')
+
+      const response = await fetch(`${baseUrl}/visa-applications/${applicationId}/admin-modal-data`)
+      const result = await response.json()
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to fetch admin modal data')
+      }
+
+      return result
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
   const requestResubmission = async (
     applicationId: number | string,
@@ -526,6 +553,7 @@ export const useApplication = () => {
     requestResubmission,
     getActiveResubmissionRequests,
     getAllResubmissionRequests,
+    getAdminModalData,
     updateApplicationStatus,
     removeAdminFields,
     acceptResubmissionRequest,
