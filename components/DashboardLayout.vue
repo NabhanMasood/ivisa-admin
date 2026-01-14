@@ -483,6 +483,29 @@
             </a>
           </div>
 
+          <!-- Sales Board -->
+          <div v-if="isSuperAdmin() || hasPermission('applications')">
+            <a
+              href="/dashboard/sales-kanban"
+              class="group flex items-center justify-between w-full py-2 text-sm font-medium rounded-md transition-colors dark:hover:bg-[#2F2F31] text-gray-700 dark:text-white hover:bg-[#DCDCDE] hover:text-gray-900 dark:text-white hover:rounded-[5px]"
+              :class="[
+                sidebarCollapsed ? 'justify-center px-2' : 'px-3',
+                isSalesKanbanActive ? 'bg-[#DCDCDE] dark:bg-[#2F2F31] text-gray-900 dark:text-white' : ''
+              ]"
+            >
+              <div class="flex items-center">
+                <Target class="h-4 w-4" :class="sidebarCollapsed ? '' : 'mr-3'" />
+                <span v-show="!sidebarCollapsed" class="truncate">Sales Board</span>
+              </div>
+              <span
+                v-if="newLeadCount > 0 && !sidebarCollapsed"
+                class="px-2 py-0.5 text-xs font-medium rounded-full bg-red-500 text-white"
+              >
+                {{ newLeadCount > 99 ? '99+' : newLeadCount }}
+              </span>
+            </a>
+          </div>
+
           <!-- Finances -->
           <div v-if="isSuperAdmin() || hasPermission('finances')">
             <a
@@ -949,6 +972,7 @@ import {
   Folder,
   Network,
   Clock,
+  Target,
 } from "lucide-vue-next";
 import Countries from "./svg/countries.vue";
 import VisaProducts from "./svg/visaproducts.vue";
@@ -964,6 +988,7 @@ import Guides from "./svg/guides.vue";
 import UsersIcon from "./svg/users.vue";
 import { usePermissions } from "~/composables/usePermissions";
 import { useAuthApi } from "~/composables/useAuthApi";
+import { useSalesKanban } from "~/composables/useSalesKanban";
 
 const props = defineProps({
   pageTitle: {
@@ -982,6 +1007,19 @@ const router = useRouter();
 // State management
 const sidebarCollapsed = ref(false);
 const isDarkMode = ref(false);
+
+// Sales Board new lead count
+const { getNewLeadCount } = useSalesKanban();
+const newLeadCount = ref(0);
+
+// Fetch new lead count on mount and periodically
+const fetchNewLeadCount = async () => {
+  try {
+    newLeadCount.value = await getNewLeadCount();
+  } catch (err) {
+    console.error("Failed to fetch new lead count:", err);
+  }
+};
 
 // Navigation state - Persist across page navigation
 const countriesOpen = ref(false);
@@ -1004,6 +1042,7 @@ const isNationalitiesActive = computed(() => route.path.startsWith('/dashboard/n
 const isEmbassiesActive = computed(() => route.path.startsWith('/dashboard/embassies'))
 const isCustomersActive = computed(() => route.path.startsWith('/dashboard/customers'))
 const isApplicationsActive = computed(() => route.path.startsWith('/dashboard/applications'))
+const isSalesKanbanActive = computed(() => route.path.startsWith('/dashboard/sales-kanban'))
 const isFinancesActive = computed(() => route.path.startsWith('/dashboard/finances'))
 const isSettingsActive = computed(() => route.path.startsWith('/dashboard/settings'))
 const isCouponsActive = computed(() => route.path.startsWith('/dashboard/coupons'))
@@ -1031,6 +1070,11 @@ const isEmbassiesAddActive = computed(() => route.path === '/dashboard/embassies
 
 // Initialize dropdown states from localStorage and route
 onMounted(() => {
+  // Fetch new lead count for sidebar badge
+  fetchNewLeadCount();
+  // Refresh every 60 seconds
+  setInterval(fetchNewLeadCount, 60000);
+
   if (process.client) {
     // Check if we should open dropdowns based on current route
     if (isCountriesActive.value) {
