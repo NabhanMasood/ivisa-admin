@@ -18,6 +18,14 @@
             Here you can find all the applications
           </label>
         </div>
+        <!-- Create Application Button -->
+        <button
+          @click="router.push('/dashboard/applications/create')"
+          class="px-4 py-2 text-sm font-medium rounded-[6px] text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center gap-2"
+        >
+          <Plus class="h-4 w-4" />
+          <span class="hidden sm:inline">Create Application</span>
+        </button>
       </div>
       <!-- Search and Filters Row -->
       <div
@@ -505,9 +513,18 @@
                 <!-- Card Header -->
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                      {{ getApplicationId(application) }}
-                    </h4>
+                    <div class="flex items-center gap-2">
+                      <h4 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        {{ getApplicationId(application) }}
+                      </h4>
+                      <!-- Manual Badge -->
+                      <span
+                        v-if="(application as any).sourceType === 'manual'"
+                        class="px-2 py-0.5 text-[10px] font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full"
+                      >
+                        Manual
+                      </span>
+                    </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
                       {{ getCustomerName(application) }}
                     </p>
@@ -660,6 +677,7 @@ import {
   Table2,
   LayoutGrid,
   ArrowUpDown,
+  Plus,
 } from "lucide-vue-next";
 import { useApplication } from "~/composables/useApplication";
 
@@ -720,6 +738,7 @@ interface Application {
   processing_time_value?: number;
   processing_time_unit?: 'hours' | 'days';
   status?: string;
+  sourceType?: string; // 'application' | 'inquiry' | 'manual'
   createdAt?: string;
   created_at?: string;
   created?: string;
@@ -763,6 +782,7 @@ const setColumnScrollRef = (el: any, status: string) => {
 
 // Kanban statuses configuration
 const kanbanStatuses = [
+  { label: 'Manual Orders', value: 'manual', color: 'bg-purple-500' },
   { label: 'Pending', value: 'pending', color: 'bg-orange-500' },
   { label: 'In Process', value: 'in_process', color: 'bg-blue-500' },
   { label: 'Completed', value: 'completed', color: 'bg-green-500' },
@@ -786,6 +806,10 @@ const loadApplications = async () => {
       const uniqueStatuses = [...new Set(applications.value.map((app: Application) => app.status).filter((s): s is string => Boolean(s)))];
       console.log('📊 Unique statuses in DB:', uniqueStatuses);
       console.log('🗂️ Mapped to:', uniqueStatuses.map((s: string) => ({ original: s, normalized: normalizeStatus(s) })));
+
+      // Log manual applications
+      const manualApps = applications.value.filter((app: Application) => app.sourceType === 'manual' || app.status === 'manual');
+      console.log('📦 Manual applications found:', manualApps.length, manualApps.map((a: Application) => ({ id: a.id, status: a.status, sourceType: a.sourceType })));
     } else {
       applications.value = [];
     }
@@ -1124,12 +1148,16 @@ const normalizeStatus = (status: string): string => {
   
   const statusLower = status.toLowerCase().replace(/\s+/g, '_');
   
-  // Map various status formats to our 4 kanban columns:
+  // Map various status formats to our 5 kanban columns:
+  // - manual: Manual orders created by admin
   // - pending: New submissions, Additional Info Required
   // - in_process: Processing, In Review, Resubmission, etc.
   // - completed: Approved, Accepted, Active, Completed
   // - rejected: Rejected, Declined
   const statusMap: Record<string, string> = {
+    // MANUAL
+    'manual': 'manual',
+
     // PENDING
     'pending': 'pending',
     'submitted': 'pending',
@@ -1324,18 +1352,26 @@ const sortApplications = (apps: Application[]): Application[] => {
 // Create computed properties for each status - this makes it reactive
 const sortedApplicationsByStatus = computed(() => {
   const result: Record<string, Application[]> = {
+    manual: [],
     pending: [],
     in_process: [],
     completed: [],
     rejected: [],
   };
 
-  
+
   // Filter applications by status
+  // Applications with status='manual' stay in Manual Orders column
+  // When status changes (pending, in_process, etc.), they move to that column
+  // sourceType='manual' is only used to show the "Manual" badge, not for column placement
   filteredApplications.value.forEach((app: Application) => {
-    const normalizedStatus = normalizeStatus(app.status || 'pending');
-    if (result[normalizedStatus]) {
-      result[normalizedStatus].push(app);
+    if (app.status === 'manual') {
+      result['manual'].push(app);
+    } else {
+      const normalizedStatus = normalizeStatus(app.status || 'pending');
+      if (result[normalizedStatus]) {
+        result[normalizedStatus].push(app);
+      }
     }
   });
 
