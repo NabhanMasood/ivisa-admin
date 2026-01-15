@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-// Redirect to dashboard on mountt
+// Redirect to dashboard on mount
 onMounted(() => {
   navigateTo('/dashboard')
 })
