@@ -508,6 +508,84 @@
         <p class="text-sm text-green-600 dark:text-green-400">{{ successMessage }}</p>
       </div>
     </div>
+
+    <!-- Payment Link Modal -->
+    <div
+      v-if="showPaymentLinkModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      @click.self="closePaymentModal"
+    >
+      <div class="bg-white dark:bg-[#09090B] rounded-xl w-full max-w-lg shadow-xl">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-800">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Application Created!
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ createdApplicationNumber }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              <span class="text-sm font-medium text-purple-700 dark:text-purple-300">Payment Link Generated</span>
+            </div>
+            <p class="text-sm text-purple-600 dark:text-purple-400 mb-3">
+              Send this link to the customer to collect payment of <strong>£{{ createdTotalAmount?.toFixed(2) }}</strong>
+            </p>
+            <div class="flex gap-2">
+              <input
+                :value="paymentLinkUrl"
+                readonly
+                class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-700 dark:text-gray-300"
+              />
+              <button
+                @click="copyPaymentLink"
+                :class="[
+                  'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2',
+                  linkCopied
+                    ? 'bg-green-500 text-white'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                ]"
+              >
+                <svg v-if="!linkCopied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {{ linkCopied ? 'Copied!' : 'Copy' }}
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Once the customer completes payment, the application will automatically move to the "Pending" column.
+          </p>
+        </div>
+
+        <div class="p-6 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
+          <button
+            @click="closePaymentModal"
+            class="px-4 py-2 text-sm font-medium rounded-lg bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
   </DashboardLayout>
 </template>
 
@@ -533,6 +611,13 @@ const isSubmitting = ref(false);
 const errorMessage = ref<string | null>(null);
 const successMessage = ref<string | null>(null);
 const errorMessageRef = ref<HTMLElement | null>(null);
+
+// Payment link modal state
+const showPaymentLinkModal = ref(false);
+const paymentLinkUrl = ref<string | null>(null);
+const createdApplicationNumber = ref<string | null>(null);
+const createdTotalAmount = ref<number | null>(null);
+const linkCopied = ref(false);
 
 // Customer selection
 const customerMode = ref<'existing' | 'new'>('new');
@@ -661,6 +746,25 @@ const isFormValid = computed(() => {
 
 // Methods
 const goBack = () => {
+  router.push('/dashboard/applications');
+};
+
+const copyPaymentLink = async () => {
+  if (paymentLinkUrl.value) {
+    try {
+      await navigator.clipboard.writeText(paymentLinkUrl.value);
+      linkCopied.value = true;
+      setTimeout(() => {
+        linkCopied.value = false;
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  }
+};
+
+const closePaymentModal = () => {
+  showPaymentLinkModal.value = false;
   router.push('/dashboard/applications');
 };
 
@@ -827,12 +931,21 @@ const submitApplication = async () => {
     };
 
     const result = await createManualApplication(applicationData);
-    successMessage.value = `Application ${result.applicationNumber} created successfully!`;
 
-    // Redirect after short delay
-    setTimeout(() => {
-      router.push('/dashboard/applications');
-    }, 1500);
+    // Check if payment link was generated
+    if (result.paymentUrl) {
+      createdApplicationNumber.value = result.applicationNumber;
+      paymentLinkUrl.value = result.paymentUrl;
+      createdTotalAmount.value = result.totalAmount || 0;
+      showPaymentLinkModal.value = true;
+      linkCopied.value = false;
+    } else {
+      successMessage.value = `Application ${result.applicationNumber} created successfully!`;
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push('/dashboard/applications');
+      }, 1500);
+    }
   } catch (err: any) {
     errorMessage.value = err.message || 'Failed to create application';
     // Scroll to error message after it renders

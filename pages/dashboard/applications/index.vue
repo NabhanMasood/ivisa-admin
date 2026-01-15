@@ -524,6 +524,18 @@
                       >
                         Manual
                       </span>
+                      <!-- Payment Status Badge (for all manual apps) -->
+                      <span
+                        v-if="(application as any).sourceType === 'manual'"
+                        :class="[
+                          'px-2 py-0.5 text-[10px] font-medium rounded-full',
+                          (application as any).stripeCheckoutSessionId
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                            : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+                        ]"
+                      >
+                        {{ (application as any).stripeCheckoutSessionId ? 'Paid' : 'Unpaid' }}
+                      </span>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
                       {{ getCustomerName(application) }}
