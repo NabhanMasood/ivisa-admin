@@ -540,6 +540,66 @@ export const useApplication = () => {
     }
   }
 
+  // Create a manual application (admin-created)
+  interface ManualTraveler {
+    firstName: string
+    lastName: string
+    dateOfBirth: string
+    passportNumber?: string
+    passportExpiryDate?: string
+    residenceCountry?: string
+    hasSchengenVisa?: boolean
+  }
+
+  interface CustomerSelection {
+    customerId?: number
+    fullname?: string
+    email?: string
+    phone?: string
+  }
+
+  interface CreateManualApplicationData {
+    nationality: string
+    destinationCountry: string
+    visaProductId: number
+    visaType: string
+    numberOfTravelers: number
+    email: string
+    customer: CustomerSelection
+    travelers: ManualTraveler[]
+    notes?: string
+  }
+
+  const createManualApplication = async (data: CreateManualApplicationData) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const baseUrl = getApiBaseUrl()
+
+      const response = await fetch(`${baseUrl}/visa-applications/manual`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || 'Failed to create manual application')
+      }
+
+      return result.data
+    } catch (err: any) {
+      error.value = err.message || 'An error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading,
     error,
@@ -557,5 +617,6 @@ export const useApplication = () => {
     updateApplicationStatus,
     removeAdminFields,
     acceptResubmissionRequest,
+    createManualApplication,
   };
 };
