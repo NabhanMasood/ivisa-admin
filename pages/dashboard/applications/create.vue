@@ -543,7 +543,7 @@
               <span class="text-sm font-medium text-purple-700 dark:text-purple-300">Payment Link Generated</span>
             </div>
             <p class="text-sm text-purple-600 dark:text-purple-400 mb-3">
-              Send this link to the customer to collect payment of <strong>£{{ createdTotalAmount?.toFixed(2) }}</strong>
+              Send this link to the customer to collect payment of <strong>${{ createdTotalAmount?.toFixed(2) }}</strong>
             </p>
             <div class="flex gap-2">
               <input

@@ -12,6 +12,7 @@ export interface VisaProductField {
   displayOrder: number
   isActive: boolean
   options?: string[] // For dropdown fields
+  useCountriesList?: boolean // For dropdown fields - use countries from API
   minLength?: number // For text/number fields
   maxLength?: number // For text/number fields
   allowedFileTypes?: string[] // For upload fields
@@ -31,6 +32,7 @@ export interface CreateVisaProductFieldDto {
   displayOrder?: number
   isActive?: boolean
   options?: string[]
+  useCountriesList?: boolean
   minLength?: number
   maxLength?: number
   allowedFileTypes?: string[]
@@ -48,6 +50,7 @@ export interface UpdateVisaProductFieldDto {
   displayOrder?: number
   isActive?: boolean
   options?: string[]
+  useCountriesList?: boolean
   minLength?: number
   maxLength?: number
   allowedFileTypes?: string[]

@@ -829,7 +829,7 @@
               </span>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Send this link to the customer to collect payment of <strong>£{{ application?.totalAmount?.toFixed(2) || '0.00' }}</strong>
+              Send this link to the customer to collect payment of <strong>${{ application?.totalAmount?.toFixed(2) || '0.00' }}</strong>
             </p>
             <div class="flex gap-2">
               <input

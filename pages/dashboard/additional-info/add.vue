@@ -397,24 +397,55 @@
                   </div>
 
                   <!-- Dropdown Options (only for dropdown type) -->
-                  <div v-if="field.fieldType === 'dropdown'">
-                    <label
-                      :for="`options-${getFieldId(field)}`"
-                      class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
-                    >
-                      Options <span class="text-red-500">*</span>
-                      <span class="text-xs text-gray-500">(comma-separated)</span>
-                    </label>
-                    <input
-                      :id="`options-${getFieldId(field)}`"
-                      v-model="field.optionsText"
-                      type="text"
-                      placeholder="e.g. Option 1, Option 2, Option 3"
-                      class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
-                    />
-                    <p v-if="fieldErrors[`field-${getFieldId(field)}-options`]" class="text-xs text-red-600 dark:text-red-400 mt-1">
-                      {{ fieldErrors[`field-${getFieldId(field)}-options`] }}
-                    </p>
+                  <div v-if="field.fieldType === 'dropdown'" class="space-y-4">
+                    <!-- Use Countries List Toggle -->
+                    <div class="flex items-center gap-3">
+                      <button
+                        type="button"
+                        @click="field.useCountriesList = !field.useCountriesList"
+                        :class="[
+                          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2',
+                          field.useCountriesList ? 'bg-black dark:bg-white' : 'bg-gray-200 dark:bg-gray-600'
+                        ]"
+                        role="switch"
+                        :aria-checked="field.useCountriesList"
+                      >
+                        <span
+                          :class="[
+                            'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-900 shadow ring-0 transition duration-200 ease-in-out',
+                            field.useCountriesList ? 'translate-x-4' : 'translate-x-0'
+                          ]"
+                        />
+                      </button>
+                      <label
+                        @click="field.useCountriesList = !field.useCountriesList"
+                        class="text-sm text-gray-700 dark:text-white cursor-pointer select-none"
+                      >
+                        Show countries list
+                      </label>
+                      <span class="text-xs text-gray-500">(Use countries list instead of custom options)</span>
+                    </div>
+
+                    <!-- Custom Options (hidden when useCountriesList is enabled) -->
+                    <div v-if="!field.useCountriesList">
+                      <label
+                        :for="`options-${getFieldId(field)}`"
+                        class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                      >
+                        Options <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-500">(comma-separated)</span>
+                      </label>
+                      <input
+                        :id="`options-${getFieldId(field)}`"
+                        v-model="field.optionsText"
+                        type="text"
+                        placeholder="e.g. Option 1, Option 2, Option 3"
+                        class="w-full h-[36px] border rounded-[6px] border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18181B] text-[#111] dark:text-white placeholder-[#737373] py-1 px-3 text-sm transition-all duration-300 ease-in-out focus:outline-none focus:border-gray-400 dark:focus:border-gray-600 focus:shadow-sm hover:shadow-sm"
+                      />
+                      <p v-if="fieldErrors[`field-${getFieldId(field)}-options`]" class="text-xs text-red-600 dark:text-red-400 mt-1">
+                        {{ fieldErrors[`field-${getFieldId(field)}-options`] }}
+                      </p>
+                    </div>
                   </div>
 
                   <!-- Min/Max Length (for text and number) -->
@@ -549,6 +580,7 @@ const fields = ref<Array<{
   isActive: boolean;
   displayOrder: number;
   optionsText?: string;
+  useCountriesList?: boolean;
   minLength?: number;
   maxLength?: number;
   allowedFileTypesText?: string;
@@ -743,6 +775,7 @@ const loadFields = async () => {
         isActive: field.isActive !== undefined ? field.isActive : true,
         displayOrder: field.displayOrder || 0,
         optionsText: field.options ? field.options.join(', ') : '',
+        useCountriesList: field.useCountriesList || false,
         minLength: field.minLength,
         maxLength: field.maxLength,
         allowedFileTypesText: field.allowedFileTypes ? field.allowedFileTypes.join(', ') : '',
@@ -777,6 +810,7 @@ const addField = () => {
     isActive: true,
     displayOrder: 0, // Will be recalculated below
     optionsText: '',
+    useCountriesList: false,
     minLength: undefined,
     maxLength: undefined,
     allowedFileTypesText: '',
@@ -880,7 +914,7 @@ const validateForm = (): boolean => {
       isValid = false;
     }
 
-    if (field.fieldType === 'dropdown' && !field.optionsText?.trim()) {
+    if (field.fieldType === 'dropdown' && !field.useCountriesList && !field.optionsText?.trim()) {
       fieldErrors.value[`field-${fieldId}-options`] = 'Options are required for dropdown fields';
       isValid = false;
     }
@@ -989,8 +1023,11 @@ const saveForm = async () => {
         };
 
         // Add dropdown options
-        if (field.fieldType === 'dropdown' && field.optionsText) {
-          updateData.options = field.optionsText.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+        if (field.fieldType === 'dropdown') {
+          updateData.useCountriesList = field.useCountriesList || false;
+          if (!field.useCountriesList && field.optionsText) {
+            updateData.options = field.optionsText.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+          }
         }
 
         // Add min/max length for text, number, textarea
@@ -1022,8 +1059,11 @@ const saveForm = async () => {
         };
 
         // Add dropdown options
-        if (field.fieldType === 'dropdown' && field.optionsText) {
-          createData.options = field.optionsText.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+        if (field.fieldType === 'dropdown') {
+          createData.useCountriesList = field.useCountriesList || false;
+          if (!field.useCountriesList && field.optionsText) {
+            createData.options = field.optionsText.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+          }
         }
 
         // Add min/max length for text, number, textarea
