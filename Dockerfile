@@ -2,21 +2,18 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
-
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json ./
 
 # Install ALL dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # Copy source code
 COPY . .
 
 # Build for Node.js server (not Vercel)
 ENV NITRO_PRESET=node-server
-RUN pnpm run build
+RUN npm run build
 
 # Production stage
 FROM node:20-alpine
