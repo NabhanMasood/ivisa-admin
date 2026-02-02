@@ -39,7 +39,7 @@
       </div>
 
       <!-- Navigation -->
-      <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" style="padding: 10px">
+      <nav :class="sidebarCollapsed ? 'px-2' : 'px-2'" class="overflow-y-auto h-[calc(100vh-64px)]" style="padding: 10px">
         <div class="space-y-1">
           <!-- Dashboard -->
           <a
